@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
 import { StatCard, ProgressCard, TestCard } from '@/components/dashboard-cards'
@@ -178,17 +179,20 @@ export default function StudentDashboard() {
                 <h2 className="text-xl font-bold text-foreground">Recent Assessments</h2>
                 <p className="text-sm text-muted-foreground">Your upcoming and completed tests</p>
               </div>
-              <Button variant="outline">View All</Button>
+              <Button variant="outline" asChild>
+                <Link href="/tests">View All</Link>
+              </Button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {mockTests.map((test) => (
-                <TestCard
-                  key={test.id}
-                  title={test.title}
-                  domain={test.domain}
-                  status={test.status}
-                  dueDate={test.dueDate}
-                />
+                <Link key={test.id} href={test.status === 'completed' ? '/results' : `/tests/${test.id}`}>
+                  <TestCard
+                    title={test.title}
+                    domain={test.domain}
+                    status={test.status}
+                    dueDate={test.dueDate}
+                  />
+                </Link>
               ))}
             </div>
           </div>
