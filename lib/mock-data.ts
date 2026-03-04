@@ -14,6 +14,30 @@ export interface Capacity {
   attempts: number
 }
 
+// Domain Pages hierarchy: Domain → Subdomain → Capacity (Test)
+export interface DomainCapacity {
+  id: string
+  name: string
+  nameFr?: string
+  testId: string
+  score?: number
+  attempts?: number
+}
+
+export interface DomainSubdomain {
+  id: string
+  name: string
+  nameFr?: string
+  capacities: DomainCapacity[]
+}
+
+export interface MainDomain {
+  id: string
+  name: string
+  description: string
+  subdomains: DomainSubdomain[]
+}
+
 export interface Test {
   id: string
   title: string
@@ -119,6 +143,96 @@ export const mockDomains: Domain[] = [
   },
 ]
 
+// Main domains for Domain Pages (hierarchy: Domain → Subdomain → Capacity)
+export const mainDomains: MainDomain[] = [
+  {
+    id: 'cognitive',
+    name: 'Cognitive Capacity Domain',
+    description: 'Evaluate reasoning, visual treatment, memory, and attentional capacities',
+    subdomains: [
+      {
+        id: 'reasoning',
+        name: 'Reasoning Domain',
+        capacities: [
+          { id: 'deductive', name: 'Deductive Reasoning', nameFr: 'Raisonnement déductif', testId: 'test-deductive-reasoning' },
+          { id: 'inductive', name: 'Inductive Reasoning', nameFr: 'Raisonnement inductif', testId: 'test-inductive-reasoning' },
+          { id: 'abstract', name: 'Abstract Reasoning', nameFr: 'Raisonnement abstrait', testId: 'test-abstract-reasoning' },
+        ],
+      },
+      {
+        id: 'visual-treatment',
+        name: 'Visual Treatment',
+        capacities: [
+          { id: 'visuo-motor', name: 'Visuo-Motor Capacity', nameFr: 'Capacité visuo-motrice', testId: 'test-visuo-motor' },
+          { id: 'visuo-constructive', name: 'Visuo-Constructive Capacity', nameFr: 'Capacité visuo-constructive', testId: 'test-visuo-constructive' },
+          { id: 'visuo-perceptive', name: 'Visuo-Perceptive Capacity', nameFr: 'Capacité visuo-perceptive', testId: 'test-visuo-perceptive' },
+        ],
+      },
+      {
+        id: 'visual-reasoning',
+        name: 'Visual Reasoning',
+        capacities: [
+          { id: 'mental-rotation', name: 'Mental Rotation', testId: 'test-mental-rotation' },
+          { id: 'spatial-orientation', name: 'Spatial Orientation', testId: 'test-spatial-orientation' },
+          { id: 'spatial-transformation', name: 'Spatial Transformation', testId: 'test-spatial-transformation' },
+        ],
+      },
+      {
+        id: 'memory',
+        name: 'Memory Capacities',
+        capacities: [
+          { id: 'working-memory', name: 'Working Memory', nameFr: 'Mémoire du travail', testId: 'test-working-memory' },
+          { id: 'long-term-memory', name: 'Long-Term Memory', nameFr: 'Mémoire à long terme', testId: 'test-long-term-memory' },
+          { id: 'visuo-spatial-memory', name: 'Visuo-Spatial Memory', nameFr: 'Mémoire visuo-spatiale', testId: 'test-visuo-spatial-memory' },
+        ],
+      },
+      {
+        id: 'attentional-executive',
+        name: 'Attentional & Executive Capacities',
+        capacities: [
+          { id: 'sustained-attention', name: 'Sustained Attention', nameFr: 'Attention soutenue', testId: 'test-sustained-attention' },
+          { id: 'divided-attention', name: 'Divided Attention', nameFr: 'Attention divisée', testId: 'test-divided-attention' },
+          { id: 'selective-attention', name: 'Selective Attention', nameFr: 'Attention sélective', testId: 'test-selective-attention' },
+          { id: 'visuo-spatial-attention', name: 'Visuo-Spatial Attention', nameFr: 'Attention visuo-spatiale', testId: 'test-visuo-spatial-attention' },
+          { id: 'inhibition', name: 'Inhibition', testId: 'test-inhibition' },
+          { id: 'cognitive-flexibility', name: 'Cognitive Flexibility', testId: 'test-cognitive-flexibility' },
+          { id: 'planning', name: 'Planning', testId: 'test-planning' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'mathematical',
+    name: 'Mathematical Capacities Domain',
+    description: 'Evaluate geometric and analytic mathematical skills',
+    subdomains: [
+      {
+        id: 'plane-geometry',
+        name: 'Plane Geometry',
+        capacities: [
+          { id: 'vectors', name: 'Vectors', testId: 'test-vectors' },
+          { id: 'dot-product', name: 'Dot Product', testId: 'test-dot-product' },
+          { id: 'transformations-plane', name: 'Transformations in the Plane', testId: 'test-transformations-plane' },
+        ],
+      },
+      {
+        id: 'analytic-geometry',
+        name: 'Analytic Geometry',
+        capacities: [
+          { id: 'line-plane', name: 'Line in the Plane', testId: 'test-line-plane' },
+        ],
+      },
+      {
+        id: '3d-geometry',
+        name: '3D Geometry',
+        capacities: [
+          { id: 'dot-product-space', name: 'Dot Product in Space', testId: 'test-dot-product-space' },
+        ],
+      },
+    ],
+  },
+]
+
 export const mockTests: Test[] = [
   {
     id: 'test-001',
@@ -153,6 +267,32 @@ export const mockTests: Test[] = [
     type: 'mcq',
     duration: 1200,
   },
+  // Cognitive Domain tests
+  { id: 'test-deductive-reasoning', title: 'Deductive Reasoning', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
+  { id: 'test-inductive-reasoning', title: 'Inductive Reasoning', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
+  { id: 'test-abstract-reasoning', title: 'Abstract Reasoning', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
+  { id: 'test-visuo-motor', title: 'Visuo-Motor Capacity', domain: 'Cognitive Capacity', status: 'upcoming', type: 'drawing', duration: 2400 },
+  { id: 'test-visuo-constructive', title: 'Visuo-Constructive Capacity', domain: 'Cognitive Capacity', status: 'upcoming', type: 'drawing', duration: 2400 },
+  { id: 'test-visuo-perceptive', title: 'Visuo-Perceptive Capacity', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
+  { id: 'test-mental-rotation', title: 'Mental Rotation', domain: 'Cognitive Capacity', status: 'upcoming', type: 'drawing', duration: 2400 },
+  { id: 'test-spatial-orientation', title: 'Spatial Orientation', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
+  { id: 'test-spatial-transformation', title: 'Spatial Transformation', domain: 'Cognitive Capacity', status: 'upcoming', type: 'drawing', duration: 2400 },
+  { id: 'test-working-memory', title: 'Working Memory', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1500 },
+  { id: 'test-long-term-memory', title: 'Long-Term Memory', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
+  { id: 'test-visuo-spatial-memory', title: 'Visuo-Spatial Memory', domain: 'Cognitive Capacity', status: 'upcoming', type: 'drawing', duration: 2100 },
+  { id: 'test-sustained-attention', title: 'Sustained Attention', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1200 },
+  { id: 'test-divided-attention', title: 'Divided Attention', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1500 },
+  { id: 'test-selective-attention', title: 'Selective Attention', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1200 },
+  { id: 'test-visuo-spatial-attention', title: 'Visuo-Spatial Attention', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1500 },
+  { id: 'test-inhibition', title: 'Inhibition', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1200 },
+  { id: 'test-cognitive-flexibility', title: 'Cognitive Flexibility', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
+  { id: 'test-planning', title: 'Planning', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
+  // Mathematical Domain tests
+  { id: 'test-vectors', title: 'Vectors', domain: 'Mathematical Capacities', status: 'upcoming', type: 'mcq', duration: 1800 },
+  { id: 'test-dot-product', title: 'Dot Product', domain: 'Mathematical Capacities', status: 'upcoming', type: 'mcq', duration: 1800 },
+  { id: 'test-transformations-plane', title: 'Transformations in the Plane', domain: 'Mathematical Capacities', status: 'upcoming', type: 'drawing', duration: 2400 },
+  { id: 'test-line-plane', title: 'Line in the Plane', domain: 'Mathematical Capacities', status: 'upcoming', type: 'mcq', duration: 1800 },
+  { id: 'test-dot-product-space', title: 'Dot Product in Space', domain: 'Mathematical Capacities', status: 'upcoming', type: 'mcq', duration: 1800 },
 ]
 
 export const mockStudentResults: StudentResult[] = [

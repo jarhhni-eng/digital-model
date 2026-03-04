@@ -1,22 +1,22 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { use, useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Timer } from '@/components/timer'
-import { mockTestQuestions } from '@/lib/mock-data'
-import { ChevronLeft, ChevronRight, Volume2, Mic, Download, Send } from 'lucide-react'
+import { mockTestQuestions, mockTests } from '@/lib/mock-data'
+import { ChevronLeft, ChevronRight, Mic, Download } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface TestPageProps {
-  params: {
-    testId: string
-  }
+  params: Promise<{ testId: string }>
 }
 
 export default function TestPage({ params }: TestPageProps) {
   const router = useRouter()
+  const { testId } = use(params)
+  const test = mockTests.find((t) => t.id === testId)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string | number | null>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -111,17 +111,20 @@ export default function TestPage({ params }: TestPageProps) {
     router.push('/results')
   }
 
+  const testTitle = test?.title ?? 'Assessment Test'
+  const testDuration = test?.duration ?? 1800
+
   return (
     <div className="min-h-screen bg-background">
       <div className="fixed top-0 left-0 right-0 z-50 bg-card border-b border-border px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="font-semibold text-foreground">Assessment Test</h1>
+            <h1 className="font-semibold text-foreground">{testTitle}</h1>
             <p className="text-xs text-muted-foreground">
               Question {currentQuestionIndex + 1} of {totalQuestions}
             </p>
           </div>
-          <Timer initialSeconds={1800} onTimeUp={handleSubmit} />
+          <Timer initialSeconds={testDuration} onTimeUp={handleSubmit} />
         </div>
       </div>
 
