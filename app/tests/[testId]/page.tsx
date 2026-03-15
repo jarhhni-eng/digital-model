@@ -6,6 +6,12 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Timer } from '@/components/timer'
 import { mockTestQuestions, mockTests } from '@/lib/mock-data'
+import { BEERY_VMI_TEST_ID } from '@/lib/beery-vmi'
+import { VISUO_CONSTRUCTIVE_TEST_ID } from '@/lib/visuo-constructive'
+import { TVPS_TEST_ID } from '@/lib/tvps'
+import { BeeryVMITest } from '@/components/beery-vmi/beery-vmi-test'
+import { VisuoConstructiveTest } from '@/components/visuo-constructive/visuo-constructive-test'
+import { TVPSTest } from '@/components/tvps/tvps-test'
 import { ChevronLeft, ChevronRight, Mic, Download } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -17,6 +23,16 @@ export default function TestPage({ params }: TestPageProps) {
   const router = useRouter()
   const { testId } = use(params)
   const test = mockTests.find((t) => t.id === testId)
+
+  if (testId === BEERY_VMI_TEST_ID) {
+    return <BeeryVMITest />
+  }
+  if (testId === VISUO_CONSTRUCTIVE_TEST_ID) {
+    return <VisuoConstructiveTest />
+  }
+  if (testId === TVPS_TEST_ID) {
+    return <TVPSTest />
+  }
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string | number | null>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
