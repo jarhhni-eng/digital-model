@@ -9,4 +9,5 @@ node_modules/
 .env*.local
 .DS_Store
 
-hello world ...
+# Local API data (users, submissions, profiles)
+/data/*.json

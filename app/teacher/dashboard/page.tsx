@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
 import { StatCard } from '@/components/dashboard-cards'
@@ -13,6 +15,8 @@ import {
 } from 'recharts'
 import { Users, TrendingUp, AlertCircle, BookOpen } from 'lucide-react'
 import Link from 'next/link'
+import { useAuth } from '@/lib/auth-context'
+import { mockTeacherGroups } from '@/lib/mock-groups'
 
 const classPerformanceData = [
   { domain: 'Numerical', avgScore: 76.5 },
@@ -43,6 +47,15 @@ const weakAreaDistribution = [
 ]
 
 export default function TeacherDashboard() {
+  const router = useRouter()
+  const { user, loading } = useAuth()
+
+  useEffect(() => {
+    if (!loading && (!user || (user.role !== 'teacher' && user.role !== 'admin'))) {
+      router.replace('/')
+    }
+  }, [loading, user, router])
+
   const totalStudents = mockTeacherStudents.length
   const avgClassScore = (
     mockTeacherStudents.reduce((sum, s) => sum + s.averageScore, 0) /
@@ -52,9 +65,17 @@ export default function TeacherDashboard() {
     (s) => s.averageScore < 70
   ).length
 
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground">Loading…</p>
+      </div>
+    )
+  }
+
   return (
     <div className="bg-background min-h-screen">
-      <Sidebar userRole="teacher" userName="Dr. Richard Smith" />
+      <Sidebar userRole="teacher" userName={user.username} />
       
       <div className="ml-64">
         <Header
@@ -92,6 +113,36 @@ export default function TeacherDashboard() {
               ).toFixed(1)}
               description="Completed assessments"
             />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-base">Groups (20–30 students)</CardTitle>
+                <CardDescription>Deployment by teacher, level, and institution</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="text-sm space-y-2">
+                  {mockTeacherGroups.map((g) => (
+                    <li key={g.id} className="flex justify-between border-b border-border/60 pb-2">
+                      <span>{g.name}</span>
+                      <span className="text-muted-foreground">{g.studentCount} students</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Analytics</CardTitle>
+                <CardDescription>Filters & cohort reports</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild className="w-full">
+                  <Link href="/analytics">Open analytics</Link>
+                </Button>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Charts Grid */}

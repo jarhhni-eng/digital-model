@@ -54,6 +54,8 @@ export interface Question {
   type: 'mcq' | 'drawing' | 'text' | 'audio'
   question: string
   options?: string[]
+  /** Zero-based index of correct option (MCQ); stored server-side for scoring only. */
+  correctOptionIndex?: number
   instructions?: string
   timeLimit?: number
 }
@@ -287,6 +289,7 @@ export const mockTests: Test[] = [
   { id: 'test-inhibition', title: 'Inhibition', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1200 },
   { id: 'test-cognitive-flexibility', title: 'Cognitive Flexibility', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
   { id: 'test-planning', title: 'Planning', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
+  { id: 'test-processing-speed', title: 'Processing Speed', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 900 },
   // Mathematical Domain tests
   { id: 'test-vectors', title: 'Vectors', domain: 'Mathematical Capacities', status: 'upcoming', type: 'mcq', duration: 1800 },
   { id: 'test-dot-product', title: 'Dot Product', domain: 'Mathematical Capacities', status: 'upcoming', type: 'mcq', duration: 1800 },
@@ -386,6 +389,7 @@ export const mockTestQuestions: Question[] = [
     type: 'mcq',
     question: 'What is 15 + 27?',
     options: ['32', '42', '52', '62'],
+    correctOptionIndex: 1,
     timeLimit: 30,
   },
   {
@@ -393,6 +397,7 @@ export const mockTestQuestions: Question[] = [
     type: 'mcq',
     question: 'Which shape has 4 equal sides?',
     options: ['Triangle', 'Square', 'Pentagon', 'Hexagon'],
+    correctOptionIndex: 1,
     timeLimit: 45,
   },
   {

@@ -1,225 +1,264 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { useAuth } from '@/lib/auth-context'
+import {
+  type MoroccanGradeLevel,
+  type AcademicTrack,
+  resolveDefaultTrack,
+  trackRequired,
+} from '@/lib/student-profile-types'
+import { mockInstitutions, mockTeacherGroups } from '@/lib/mock-groups'
 import { Brain, Loader2 } from 'lucide-react'
 
-export default function ProfileSetupPage() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [formData, setFormData] = useState({
-    fullName: '',
-    age: '',
-    scholarLevel: 'Grade 9',
-    lastYearMathScore: '',
-    currentMathScore: '',
-    teacher: '',
-  })
-  const router = useRouter()
+const gradeOptions: MoroccanGradeLevel[] = [
+  'Tronc Commun',
+  '1st Year Baccalaureate',
+  '2nd Year Baccalaureate',
+  'Other',
+]
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-  }
+export default function ProfileSetupPage() {
+  const router = useRouter()
+  const { user, loading: authLoading } = useAuth()
+  const [isLoading, setIsLoading] = useState(false)
+  const [fullName, setFullName] = useState('')
+  const [age, setAge] = useState('')
+  const [gender, setGender] = useState<'Male' | 'Female' | ''>('')
+  const [teacherName, setTeacherName] = useState('')
+  const [schoolName, setSchoolName] = useState('')
+  const [gradeLevel, setGradeLevel] = useState<MoroccanGradeLevel>('Tronc Commun')
+  const [academicTrack, setAcademicTrack] = useState<AcademicTrack>('')
+  const [institutionId, setInstitutionId] = useState(mockInstitutions[0]?.id ?? '')
+  const [groupId, setGroupId] = useState(mockTeacherGroups[0]?.id ?? '')
+  const [mathCurrent, setMathCurrent] = useState('')
+  const [mathPrevious, setMathPrevious] = useState('')
+
+  const academicYear = String(new Date().getFullYear())
+
+  useEffect(() => {
+    if (!authLoading && !user) router.replace('/')
+  }, [authLoading, user, router])
+
+  useEffect(() => {
+    if (gradeLevel === 'Tronc Commun') {
+      setAcademicTrack(resolveDefaultTrack('Tronc Commun'))
+    } else if (!trackRequired(gradeLevel)) {
+      setAcademicTrack('')
+    }
+  }, [gradeLevel])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!user) return
+    if (trackRequired(gradeLevel) && !academicTrack) {
+      return
+    }
     setIsLoading(true)
-
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    // Redirect to dashboard
-    router.push('/dashboard')
+    try {
+      const res = await fetch('/api/student-profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.userId,
+          fullName,
+          age: Number(age) || 0,
+          gender,
+          teacherName,
+          schoolName,
+          gradeLevel,
+          academicTrack: gradeLevel === 'Tronc Commun' ? 'Scientific' : academicTrack,
+          academicYear,
+          mathScoreCurrent: mathCurrent === '' ? null : Number(mathCurrent),
+          mathScorePrevious: mathPrevious === '' ? null : Number(mathPrevious),
+          institutionId,
+          groupId,
+          updatedAt: new Date().toISOString(),
+        }),
+      })
+      if (!res.ok) throw new Error('save failed')
+      router.push('/dashboard')
+    } catch {
+      setIsLoading(false)
+    }
   }
 
-  const scholarLevels = [
-    'Primary School',
-    'Grade 6-7',
-    'Grade 8-9',
-    'Grade 10',
-    'Grade 11-12',
-    'University',
-  ]
-
-  const teachers = [
-    'Dr. Richard Smith',
-    'Dr. Emily Johnson',
-    'Prof. Michael Chen',
-    'Dr. Sarah Williams',
-  ]
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground">Loading…</p>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-card to-background flex items-center justify-center px-4">
-      {/* Academic accent elements */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -z-10" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/5 rounded-full blur-3xl -z-10" />
-
+    <div className="min-h-screen bg-gradient-to-br from-background via-card to-background flex items-center justify-center px-4 py-10">
       <Card className="w-full max-w-2xl shadow-lg">
-        <CardHeader className="text-center pb-8">
+        <CardHeader className="text-center pb-4">
           <div className="flex justify-center mb-4">
             <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center">
               <Brain className="w-8 h-8 text-white" />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold text-foreground">
-            Complete Your Profile
+            Student profile (Morocco)
           </CardTitle>
           <CardDescription className="text-base mt-2">
-            Help us learn more about your cognitive assessment background
+            Required for cognitive and academic tracking. Academic year: <strong>{academicYear}</strong>
           </CardDescription>
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Full Name */}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Full Name
-              </label>
-              <Input
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                placeholder="Emma Johnson"
-                className="h-10 bg-background border-border"
-                required
-                disabled={isLoading}
-              />
-            </div>
-
-            {/* Age */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Age
-                </label>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Full name</Label>
+                <Input value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <Label>Age</Label>
                 <Input
                   type="number"
-                  name="age"
-                  value={formData.age}
-                  onChange={handleChange}
-                  placeholder="16"
-                  className="h-10 bg-background border-border"
-                  min="5"
-                  max="100"
+                  min={5}
+                  max={100}
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
                   required
-                  disabled={isLoading}
                 />
               </div>
+            </div>
 
-              {/* Scholar Level */}
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Scholar Level
-                </label>
+            <div className="space-y-2">
+              <Label>Gender</Label>
+              <select
+                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                value={gender}
+                onChange={(e) => setGender(e.target.value as 'Male' | 'Female')}
+                required
+              >
+                <option value="">—</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Teacher&apos;s name</Label>
+                <Input value={teacherName} onChange={(e) => setTeacherName(e.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <Label>School / institution</Label>
+                <Input value={schoolName} onChange={(e) => setSchoolName(e.target.value)} required />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Institution (platform)</Label>
                 <select
-                  name="scholarLevel"
-                  value={formData.scholarLevel}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 h-10 bg-background border-2 border-border rounded-lg text-foreground focus:border-primary focus:outline-none"
-                  disabled={isLoading}
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                  value={institutionId}
+                  onChange={(e) => setInstitutionId(e.target.value)}
                 >
-                  {scholarLevels.map((level) => (
-                    <option key={level} value={level}>
-                      {level}
+                  {mockInstitutions.map((i) => (
+                    <option key={i.id} value={i.id}>
+                      {i.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label>Group (20–30 students)</Label>
+                <select
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                  value={groupId}
+                  onChange={(e) => setGroupId(e.target.value)}
+                >
+                  {mockTeacherGroups.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.name} ({g.studentCount} students)
                     </option>
                   ))}
                 </select>
               </div>
             </div>
 
-            {/* Math Scores */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Math Score - Last Year
-                </label>
-                <Input
-                  type="number"
-                  name="lastYearMathScore"
-                  value={formData.lastYearMathScore}
-                  onChange={handleChange}
-                  placeholder="72"
-                  className="h-10 bg-background border-border"
-                  min="0"
-                  max="100"
-                  required
-                  disabled={isLoading}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Current Math Score (Estimated)
-                </label>
-                <Input
-                  type="number"
-                  name="currentMathScore"
-                  value={formData.currentMathScore}
-                  onChange={handleChange}
-                  placeholder="75"
-                  className="h-10 bg-background border-border"
-                  min="0"
-                  max="100"
-                  required
-                  disabled={isLoading}
-                />
-              </div>
-            </div>
-
-            {/* Teacher Selection */}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Select Your Teacher
-              </label>
+            <div className="space-y-2">
+              <Label>Grade level</Label>
               <select
-                name="teacher"
-                value={formData.teacher}
-                onChange={handleChange}
-                className="w-full px-3 py-2 h-10 bg-background border-2 border-border rounded-lg text-foreground focus:border-primary focus:outline-none"
-                required
-                disabled={isLoading}
+                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                value={gradeLevel}
+                onChange={(e) => setGradeLevel(e.target.value as MoroccanGradeLevel)}
               >
-                <option value="">-- Choose a teacher --</option>
-                {teachers.map((teacher) => (
-                  <option key={teacher} value={teacher}>
-                    {teacher}
+                {gradeOptions.map((g) => (
+                  <option key={g} value={g}>
+                    {g}
                   </option>
                 ))}
               </select>
             </div>
 
-            {/* Information Box */}
-            <div className="bg-secondary/10 border border-secondary/20 rounded-lg p-4 text-sm text-muted-foreground">
-              <p>
-                <strong className="text-foreground">Privacy Notice:</strong> Your
-                profile information is securely stored and used only for your cognitive
-                assessments. Your data will be protected in accordance with our privacy
-                policy.
+            {gradeLevel === 'Tronc Commun' && (
+              <p className="text-sm text-muted-foreground">
+                Track: <strong>Scientific</strong> (automatic for Tronc Commun).
               </p>
+            )}
+
+            {trackRequired(gradeLevel) && (
+              <div className="space-y-2">
+                <Label>Academic track (Filière)</Label>
+                <select
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                  value={academicTrack}
+                  onChange={(e) => setAcademicTrack(e.target.value as AcademicTrack)}
+                  required
+                >
+                  <option value="">— Select —</option>
+                  <option value="Mathematical Sciences">Mathematical Sciences</option>
+                  <option value="Experimental Sciences">Experimental Sciences</option>
+                </select>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Mathematics score (current year)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={20}
+                  step={0.01}
+                  value={mathCurrent}
+                  onChange={(e) => setMathCurrent(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Mathematics score (previous year, optional)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={20}
+                  step={0.01}
+                  value={mathPrevious}
+                  onChange={(e) => setMathPrevious(e.target.value)}
+                />
+              </div>
             </div>
 
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              className="w-full h-10 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
-              disabled={isLoading}
-            >
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating Profile...
+                  Saving…
                 </>
               ) : (
-                'Complete Setup'
+                'Save and continue'
               )}
             </Button>
           </form>

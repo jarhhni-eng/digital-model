@@ -1,14 +1,18 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
 import { StatCard, ProgressCard, TestCard } from '@/components/dashboard-cards'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { mockDomains, mockTests, mockStudentProfile } from '@/lib/mock-data'
+import { useAuth } from '@/lib/auth-context'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { TrendingUp, Clock, CheckCircle2, BookOpen } from 'lucide-react'
+import type { TestSubmission } from '@/lib/submissions-types'
 
 const overallScore = 71
 const progressData = [
@@ -31,14 +35,41 @@ const pieData = [
 ]
 
 export default function StudentDashboard() {
-  const completedTests = mockTests.filter(t => t.status === 'completed').length
+  const router = useRouter()
+  const { user, loading } = useAuth()
+  const [subs, setSubs] = useState<TestSubmission[]>([])
+
+  useEffect(() => {
+    if (!loading && !user) router.replace('/')
+  }, [loading, user, router])
+
+  useEffect(() => {
+    if (!user?.userId) return
+    fetch(`/api/submissions?userId=${encodeURIComponent(user.userId)}`)
+      .then((r) => r.json())
+      .then((d) => setSubs(d.submissions ?? []))
+      .catch(() => setSubs([]))
+  }, [user?.userId])
+
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground">Loading…</p>
+      </div>
+    )
+  }
+
+  const submittedTestIds = new Set(subs.map((s) => s.testId))
+  const completedTests = mockTests.filter(
+    (t) => t.status === 'completed' || submittedTestIds.has(t.id)
+  ).length
   const inProgressTests = mockTests.filter(t => t.status === 'in-progress').length
   const upcomingTests = mockTests.filter(t => t.status === 'upcoming').length
   const avgDomainProgress = Math.round(mockDomains.reduce((sum, d) => sum + d.progress, 0) / mockDomains.length)
 
   return (
     <div className="bg-background min-h-screen">
-      <Sidebar userRole="student" userName={mockStudentProfile.name} />
+      <Sidebar userRole="student" userName={user.username} />
       
       <div className="ml-64">
         <Header title="Dashboard" subtitle="Welcome back to your cognitive assessment progress" />
@@ -184,16 +215,19 @@ export default function StudentDashboard() {
               </Button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {mockTests.map((test) => (
-                <Link key={test.id} href={test.status === 'completed' ? '/results' : `/tests/${test.id}`}>
-                  <TestCard
-                    title={test.title}
-                    domain={test.domain}
-                    status={test.status}
-                    dueDate={test.dueDate}
-                  />
-                </Link>
-              ))}
+              {mockTests.map((test) => {
+                const done = test.status === 'completed' || submittedTestIds.has(test.id)
+                return (
+                  <Link key={test.id} href={done ? '/results' : `/tests/${test.id}`}>
+                    <TestCard
+                      title={done ? `${test.title} ✔️` : test.title}
+                      domain={test.domain}
+                      status={done ? 'completed' : test.status}
+                      dueDate={test.dueDate}
+                    />
+                  </Link>
+                )
+              })}
             </div>
           </div>
 

@@ -6,7 +6,8 @@ import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { mainDomains, mockStudentProfile } from '@/lib/mock-data'
+import { mockStudentProfile } from '@/lib/mock-data'
+import { platformDomains } from '@/lib/platform-domains'
 import type { DomainCapacity } from '@/lib/mock-data'
 import { ArrowLeft, ClipboardList, ChevronRight, Brain, Calculator } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -17,7 +18,7 @@ interface DomainDetailPageProps {
 
 export default function DomainDetailPage({ params }: DomainDetailPageProps) {
   const { domainId } = use(params)
-  const domain = mainDomains.find((d) => d.id === domainId)
+  const domain = platformDomains.find((d) => d.id === domainId)
 
   if (!domain) {
     return (
@@ -41,7 +42,7 @@ export default function DomainDetailPage({ params }: DomainDetailPageProps) {
     )
   }
 
-  const DomainIcon = domain.id === 'cognitive' ? Brain : Calculator
+  const DomainIcon = domain.id === 'mathematics-learning' ? Calculator : Brain
 
   return (
     <div className="bg-background min-h-screen">

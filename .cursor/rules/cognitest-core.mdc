@@ -1,0 +1,14 @@
+---
+description: CogniTest project stack, routes, and how to add real tests
+alwaysApply: true
+---
+
+# CogniTest core
+
+- **Stack:** Next.js 16 App Router, React 19, TS, Tailwind 4, shadcn `components/ui/`, `cn()` from `lib/utils.ts`. Mock data in `lib/mock-data.ts`; no API. Login: `localStorage` (`cogniTestRole`, `cogniTestEmail`). Assessments: often `sessionStorage` via helpers in `lib/beery-vmi.ts`, `lib/visuo-constructive.ts`, `lib/tvps.ts`.
+
+- **Tests:** `app/tests/[testId]/page.tsx` must **short-circuit** for special tests: import `TEST_ID` from the right `lib/*` and `return <DedicatedTest />` before generic `mockTestQuestions` state. Register new tests in `mockTests` and `mainDomains` → `DomainCapacity.testId`.
+
+- **Layout:** Default shell = `Sidebar` + `ml-64` + `Header`. Fullscreen test UIs may skip sidebar.
+
+- **Scope discipline:** Only change files needed for the task; follow existing Card/Button patterns and file layout.

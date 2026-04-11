@@ -8,6 +8,7 @@ import {
   ClipboardList,
   LogOut,
   Settings,
+  Shield,
   Users,
   LayoutDashboard,
   Brain,
@@ -19,7 +20,7 @@ interface NavItem {
   icon: React.ReactNode
   label: string
   href: string
-  role: 'student' | 'teacher' | 'both'
+  role: 'student' | 'teacher' | 'both' | 'admin'
 }
 
 const navItems: NavItem[] = [
@@ -66,6 +67,18 @@ const navItems: NavItem[] = [
     role: 'teacher',
   },
   {
+    icon: <BarChart3 className="w-5 h-5" />,
+    label: 'Analytics',
+    href: '/analytics',
+    role: 'teacher',
+  },
+  {
+    icon: <Shield className="w-5 h-5" />,
+    label: 'Admin',
+    href: '/admin',
+    role: 'admin',
+  },
+  {
     icon: <Settings className="w-5 h-5" />,
     label: 'Profile',
     href: '/profile',
@@ -74,16 +87,20 @@ const navItems: NavItem[] = [
 ]
 
 interface SidebarProps {
-  userRole: 'student' | 'teacher'
+  userRole: 'student' | 'teacher' | 'admin'
   userName?: string
 }
 
 export function Sidebar({ userRole, userName = 'User' }: SidebarProps) {
   const pathname = usePathname()
 
-  const filteredItems = navItems.filter(
-    (item) => item.role === userRole || item.role === 'both'
-  )
+  const filteredItems = navItems.filter((item) => {
+    if (item.role === 'both') return true
+    if (userRole === 'admin') {
+      return item.role === 'teacher' || item.role === 'admin'
+    }
+    return item.role === userRole
+  })
 
   return (
     <aside className="fixed left-0 top-0 w-64 h-screen bg-sidebar border-r border-sidebar-border flex flex-col">

@@ -5,10 +5,18 @@ import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { mainDomains, mockStudentProfile } from '@/lib/mock-data'
-import { Brain, Calculator, ArrowRight } from 'lucide-react'
+import { mockStudentProfile } from '@/lib/mock-data'
+import { platformDomains } from '@/lib/platform-domains'
+import { Brain, Calculator, Eye, GitBranch, Box, Sparkles, BarChart3, ArrowRight } from 'lucide-react'
 
 const domainIcons: Record<string, React.ReactNode> = {
+  'attentional-capacities': <Sparkles className="w-10 h-10 text-primary" />,
+  'reasoning-capacities': <GitBranch className="w-10 h-10 text-primary" />,
+  'spatial-reasoning': <Box className="w-10 h-10 text-primary" />,
+  'visual-processing': <Eye className="w-10 h-10 text-primary" />,
+  'memory-capacities': <Brain className="w-10 h-10 text-primary" />,
+  'executive-functions': <BarChart3 className="w-10 h-10 text-primary" />,
+  'mathematics-learning': <Calculator className="w-10 h-10 text-primary" />,
   cognitive: <Brain className="w-12 h-12 text-primary" />,
   mathematical: <Calculator className="w-12 h-12 text-primary" />,
 }
@@ -17,7 +25,7 @@ export default function DomainsPage() {
   const router = useRouter()
 
   const totalCapacities = (domainId: string) => {
-    const domain = mainDomains.find((d) => d.id === domainId)
+    const domain = platformDomains.find((d) => d.id === domainId)
     if (!domain) return 0
     return domain.subdomains.reduce((sum, sub) => sum + sub.capacities.length, 0)
   }
@@ -53,9 +61,8 @@ export default function DomainsPage() {
             </CardContent>
           </Card>
 
-          {/* Two Main Domains */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {mainDomains.map((domain) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {platformDomains.map((domain) => (
               <Card
                 key={domain.id}
                 className="overflow-hidden cursor-pointer transition-shadow hover:shadow-lg hover:border-primary/30"

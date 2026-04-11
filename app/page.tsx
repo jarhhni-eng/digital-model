@@ -1,48 +1,43 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useAuth } from '@/lib/auth-context'
 import {
   Brain,
-  Mail,
   Lock,
   Loader2,
   GraduationCap,
-  Users,
   LayoutDashboard,
   BarChart3,
+  User,
 } from 'lucide-react'
 
 export default function LandingPage() {
   const [isLoading, setIsLoading] = useState(false)
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [userType, setUserType] = useState<'student' | 'teacher'>('student')
+  const [error, setError] = useState('')
   const router = useRouter()
+  const { login } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError('')
     setIsLoading(true)
-
-    // Simulate login
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    try {
-      localStorage.setItem('cogniTestRole', userType)
-      localStorage.setItem('cogniTestEmail', email)
-    } catch (error) {
-      // ignore storage errors in demo
+    const res = await login(username.trim(), password)
+    setIsLoading(false)
+    if (!res.ok || !res.session) {
+      setError(res.error ?? 'Login failed')
+      return
     }
-
-    // Redirect based on user type (same logic as before)
-    if (userType === 'student') {
-      router.push('/dashboard')
-    } else {
-      router.push('/teacher/dashboard')
-    }
+    if (res.session.role === 'admin') router.push('/admin')
+    else if (res.session.role === 'teacher') router.push('/teacher/dashboard')
+    else router.push('/dashboard')
   }
 
   return (
@@ -172,43 +167,18 @@ export default function LandingPage() {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-5">
-                    {/* Role toggle */}
-                    <div className="grid grid-cols-2 gap-2 rounded-lg bg-muted/60 p-1">
-                      <button
-                        type="button"
-                        onClick={() => setUserType('student')}
-                        className={`rounded-md py-2 text-xs font-medium transition-all ${
-                          userType === 'student'
-                            ? 'bg-background text-foreground shadow-sm'
-                            : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                      >
-                        Student
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setUserType('teacher')}
-                        className={`rounded-md py-2 text-xs font-medium transition-all ${
-                          userType === 'teacher'
-                            ? 'bg-background text-foreground shadow-sm'
-                            : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                      >
-                        Teacher
-                      </button>
-                    </div>
-
                     <div className="space-y-2">
-                      <label className="text-xs font-medium text-foreground">Institutional email</label>
+                      <label className="text-xs font-medium text-foreground">Username</label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
-                          type="email"
-                          placeholder="you@ens-fes.ac.ma"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
+                          type="text"
+                          placeholder="your_username"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
                           className="h-10 border-border bg-background pl-10 text-sm"
                           required
+                          autoComplete="username"
                           disabled={isLoading}
                         />
                       </div>
@@ -225,11 +195,15 @@ export default function LandingPage() {
                           onChange={(e) => setPassword(e.target.value)}
                           className="h-10 border-border bg-background pl-10 text-sm"
                           required
+                          autoComplete="current-password"
                           disabled={isLoading}
                         />
                       </div>
                     </div>
 
+                    {error && (
+                      <p className="text-xs text-destructive">{error}</p>
+                    )}
                     <Button
                       type="submit"
                       className="h-10 w-full bg-primary text-primary-foreground hover:bg-primary/90"
@@ -245,9 +219,15 @@ export default function LandingPage() {
                       )}
                     </Button>
 
+                    <p className="text-center text-xs text-muted-foreground">
+                      No account?{' '}
+                      <Link href="/register" className="font-medium text-primary underline">
+                        Register
+                      </Link>
+                    </p>
+
                     <div className="rounded-md border border-dashed border-border/70 bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
-                      This is a demo environment. Use any email and password to explore student and
-                      teacher experiences.
+                      Register first, then sign in. Demo data is stored under <code className="text-[10px]">/data</code> on the server.
                     </div>
                   </form>
                 </CardContent>
