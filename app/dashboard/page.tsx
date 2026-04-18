@@ -6,6 +6,9 @@ import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
 import { StatCard, ProgressCard, TestCard } from '@/components/dashboard-cards'
+import { MobileNav } from '@/components/mobile-nav'
+import { useIsMobile } from '@/components/ui/use-mobile'
+import { cn } from '@/lib/utils'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { mockDomains, mockTests, mockStudentProfile } from '@/lib/mock-data'
@@ -67,14 +70,35 @@ export default function StudentDashboard() {
   const upcomingTests = mockTests.filter(t => t.status === 'upcoming').length
   const avgDomainProgress = Math.round(mockDomains.reduce((sum, d) => sum + d.progress, 0) / mockDomains.length)
 
+  const isMobile = useIsMobile()
+
   return (
     <div className="bg-background min-h-screen">
       <Sidebar userRole="student" userName={user.username} />
-      
-      <div className="ml-64">
-        <Header title="Dashboard" subtitle="Welcome back to your cognitive assessment progress" />
-        
-        <main className="p-6 pt-24 max-w-7xl">
+      <MobileNav userRole="student" />
+
+      <div className={cn("transition-all duration-200", isMobile ? "ml-0" : "ml-64")}>
+        <Header title="Tableau de bord" subtitle="Bienvenue — suivi de votre progression cognitive" />
+
+        <main className={cn("p-4 md:p-6 pt-24 max-w-7xl", isMobile && "pb-20")}>
+          {/* Research Invitation Banner */}
+          <div className="mb-6 rounded-lg border border-primary/20 bg-primary/5 p-4 flex gap-3">
+            <BookOpen className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-sm text-primary mb-1">
+                Invitation à participer à une recherche
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Vous êtes invité(e) à participer à une recherche globale visant à mieux comprendre
+                les processus d&apos;apprentissage chez l&apos;élève dans le contexte de la géométrie
+                au cycle secondaire qualifiant. Votre participation consiste à compléter les
+                évaluations cognitives et mathématiques proposées. Toutes les données sont
+                anonymisées et traitées conformément aux principes éthiques de la recherche
+                scientifique — ENS Fès, USMBA.
+              </p>
+            </div>
+          </div>
+
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatCard

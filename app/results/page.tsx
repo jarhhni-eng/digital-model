@@ -3,6 +3,8 @@
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
 import { StatCard, ProgressCard } from '@/components/dashboard-cards'
+import { useIsMobile } from '@/components/ui/use-mobile'
+import { cn } from '@/lib/utils'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { mockStudentResults, mockStudentProfile, mockDomains } from '@/lib/mock-data'
@@ -30,6 +32,7 @@ const strengthsWeaknesses = [
 ]
 
 export default function ResultsPage() {
+  const isMobile = useIsMobile()
   const overallScore = 71
   const improvement = 12
   const totalAttempts = mockStudentResults.reduce(
@@ -41,13 +44,13 @@ export default function ResultsPage() {
     <div className="bg-background min-h-screen">
       <Sidebar userRole="student" userName={mockStudentProfile.name} />
       
-      <div className="ml-64">
+      <div className={cn("transition-all duration-200", isMobile ? "ml-0" : "ml-64")}>
         <Header
-          title="Assessment Results"
-          subtitle="View your cognitive assessment performance and progress"
+          title="Résultats des évaluations"
+          subtitle="Consultez vos performances cognitives et votre progression"
         />
-        
-        <main className="p-6 pt-24 max-w-7xl">
+
+        <main className={cn("p-4 md:p-6 pt-24 max-w-7xl", isMobile && "pb-20")}>
           {/* Overall Performance Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatCard

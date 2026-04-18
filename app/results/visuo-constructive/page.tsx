@@ -24,7 +24,7 @@ export default function VisuoConstructiveResultsPage() {
     return (
       <div className="bg-background min-h-screen">
         <Sidebar userRole="student" userName={mockStudentProfile.name} />
-        <div className="ml-64 print:ml-0">
+        <div className="md:ml-64 print:ml-0">
           <Header
             title="WAIS Visual Puzzles – Results"
             subtitle="Visuo-Constructive Capacity"

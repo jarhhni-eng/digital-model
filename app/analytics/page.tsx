@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
+import { useIsMobile } from '@/components/ui/use-mobile'
+import { cn } from '@/lib/utils'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import {
@@ -44,6 +46,7 @@ const radarDemo = [
 export default function AnalyticsPage() {
   const router = useRouter()
   const { user, loading } = useAuth()
+  const isMobile = useIsMobile()
   const [instFilter, setInstFilter] = useState(mockInstitutions[0]?.id ?? '')
 
   useEffect(() => {
@@ -70,12 +73,12 @@ export default function AnalyticsPage() {
   return (
     <div className="bg-background min-h-screen">
       <Sidebar userRole={user.role === 'admin' ? 'admin' : 'teacher'} userName={user.username} />
-      <div className="ml-64">
+      <div className={cn("transition-all duration-200", isMobile ? "ml-0" : "ml-64")}>
         <Header
-          title="Analytics & decision support"
-          subtitle="Filters: institution, level, track (demo data)"
+          title="Analytique & aide à la décision"
+          subtitle="Filtres : établissement, niveau, filière (données de démonstration)"
         />
-        <main className="p-6 pt-24 max-w-7xl space-y-6">
+        <main className="p-4 md:p-6 pt-24 max-w-7xl space-y-6">
           <div className="flex flex-wrap gap-4 items-end">
             <div className="space-y-2">
               <Label>Institution</Label>

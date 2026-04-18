@@ -13,6 +13,9 @@ export async function POST(request: Request) {
     const username = String(body.username ?? '').trim().toLowerCase()
     const password = String(body.password ?? '')
     const role = (body.role ?? 'student') as UserRole
+    const firstName = body.firstName ? String(body.firstName).trim() : undefined
+    const lastName = body.lastName ? String(body.lastName).trim() : undefined
+    const testAttempts = body.testAttempts ? Number(body.testAttempts) : undefined
 
     if (username.length < 2 || password.length < 4) {
       return NextResponse.json(
@@ -36,6 +39,9 @@ export async function POST(request: Request) {
       passwordHash: hashPassword(password),
       role,
       createdAt: new Date().toISOString(),
+      ...(firstName && { firstName }),
+      ...(lastName && { lastName }),
+      ...(testAttempts && { testAttempts }),
     }
     users.push(user)
     await writeJsonFile(USERS_FILE, users)

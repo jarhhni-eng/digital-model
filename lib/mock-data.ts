@@ -22,6 +22,8 @@ export interface DomainCapacity {
   testId: string
   score?: number
   attempts?: number
+  competencyCode?: string   // Cₖ — only for Mathematics domain
+  gradeLevel?: string       // e.g. 'Tronc Commun' | '1ère Bac Sciences'
 }
 
 export interface DomainSubdomain {
@@ -291,11 +293,12 @@ export const mockTests: Test[] = [
   { id: 'test-planning', title: 'Planning', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
   { id: 'test-processing-speed', title: 'Processing Speed', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 900 },
   // Mathematical Domain tests
-  { id: 'test-vectors', title: 'Vectors', domain: 'Mathematical Capacities', status: 'upcoming', type: 'mcq', duration: 1800 },
-  { id: 'test-dot-product', title: 'Dot Product', domain: 'Mathematical Capacities', status: 'upcoming', type: 'mcq', duration: 1800 },
-  { id: 'test-transformations-plane', title: 'Transformations in the Plane', domain: 'Mathematical Capacities', status: 'upcoming', type: 'drawing', duration: 2400 },
-  { id: 'test-line-plane', title: 'Line in the Plane', domain: 'Mathematical Capacities', status: 'upcoming', type: 'mcq', duration: 1800 },
-  { id: 'test-dot-product-space', title: 'Dot Product in Space', domain: 'Mathematical Capacities', status: 'upcoming', type: 'mcq', duration: 1800 },
+  { id: 'test-vectors', title: 'Vecteurs (C1)', domain: 'Mathématiques', status: 'upcoming', type: 'mcq', duration: 1800 },
+  { id: 'test-dot-product', title: 'Produit scalaire TC (C3)', domain: 'Mathématiques', status: 'upcoming', type: 'mcq', duration: 1800 },
+  { id: 'test-transformations-plane', title: 'Symétrie et transformations (C2)', domain: 'Mathématiques', status: 'upcoming', type: 'drawing', duration: 2400 },
+  { id: 'test-trigonometry', title: 'Trigonométrie (C4)', domain: 'Mathématiques', status: 'upcoming', type: 'mcq', duration: 900 },
+  { id: 'test-line-plane', title: 'Droite dans le plan (C5)', domain: 'Mathématiques', status: 'upcoming', type: 'mcq', duration: 1800 },
+  { id: 'test-dot-product-space', title: 'Produit scalaire — approfondissement (C6)', domain: 'Mathématiques', status: 'upcoming', type: 'mcq', duration: 1800 },
 ]
 
 export const mockStudentResults: StudentResult[] = [

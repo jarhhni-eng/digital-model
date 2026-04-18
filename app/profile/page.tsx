@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
+import { useIsMobile } from '@/components/ui/use-mobile'
+import { cn } from '@/lib/utils'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -13,6 +15,7 @@ import { Mail, User, Calendar, Award, Activity, School } from 'lucide-react'
 type Role = 'student' | 'teacher'
 
 export default function ProfilePage() {
+  const isMobile = useIsMobile()
   const [role, setRole] = useState<Role>('student')
   const [email, setEmail] = useState<string | undefined>(undefined)
 
@@ -63,10 +66,10 @@ export default function ProfilePage() {
     <div className="bg-background min-h-screen">
       <Sidebar userRole={role} userName={displayName} />
 
-      <div className="ml-64">
+      <div className={cn("transition-all duration-200", isMobile ? "ml-0" : "ml-64")}>
         <Header
-          title="Profile"
-          subtitle={isTeacher ? 'Teacher profile and settings' : 'Student profile and academic data'}
+          title="Profil"
+          subtitle={isTeacher ? 'Profil enseignant et paramètres' : 'Profil élève et données académiques'}
         />
 
         <main className="p-6 pt-24 max-w-7xl space-y-6">
