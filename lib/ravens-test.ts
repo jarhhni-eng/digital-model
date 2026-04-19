@@ -43,6 +43,17 @@ export interface RavensQuestion {
 // Build the flat question list
 const SERIES_ORDER: SeriesId[] = ['A', 'B', 'C', 'D', 'E']
 
+// Actual filenames on disk:
+//   Series A → "A(1).jpg" … "A(12).jpg"   (no space)
+//   Series B-E → "B (1).jpg" … "E (12).jpg" (space before parenthesis)
+function buildImagePath(series: SeriesId, position: number): string {
+  const filename =
+    series === 'A'
+      ? `A(${position}).jpg`
+      : `${series} (${position}).jpg`
+  return `/ravens/${filename}`
+}
+
 export const ravensQuestions: RavensQuestion[] = SERIES_ORDER.flatMap((series) =>
   Array.from({ length: 12 }, (_, i) => ({
     code: `${series}${i + 1}`,
@@ -50,7 +61,7 @@ export const ravensQuestions: RavensQuestion[] = SERIES_ORDER.flatMap((series) =
     position: i + 1,
     index: SERIES_ORDER.indexOf(series) * 12 + i,
     numChoices: SERIES_CHOICES[series],
-    imagePath: `/ravens/${series}${i + 1}.png`,
+    imagePath: buildImagePath(series, i + 1),
     correctAnswer: RAW_KEY[series][i],
   }))
 )
