@@ -49,7 +49,7 @@ export const spatialQuestions: SpatialQuestion[] = Array.from(
   { length: 18 },
   (_, i) => ({
     number: i + 1,
-    mainImage: '/images/main/main.jpg',
+    mainImage: '/images/main/main.png',
     orientationImage: `/images/orientation/${i + 1}.png`,
     correctAnswer: ANSWER_KEY[i + 1],
   })
