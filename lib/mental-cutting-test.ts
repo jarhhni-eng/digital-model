@@ -19,7 +19,7 @@ export const cuttingQuestions: CuttingQuestion[] = Array.from(
   { length: TOTAL_QUESTIONS },
   (_, i) => ({
     number: i + 1,
-    imagePath: `/transformation/transformation ${i + 1}.jpg`,
+    imagePath: `/transformation/trasnsformation ${i + 1}.png`,
     correct: CORRECT_ANSWERS[i],
   })
 )
