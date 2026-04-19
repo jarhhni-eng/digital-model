@@ -41,7 +41,7 @@ export const rotationQuestions: RotationQuestion[] = Array.from(
   { length: 20 },
   (_, i) => ({
     number: i + 1,
-    imagePath: `/rotation/rotation (${i + 1}).jpg`,
+    imagePath: `/rotation/Rotation (${i + 1}).png`,
     correctAnswers: RAW_KEY[i + 1],
   })
 )
