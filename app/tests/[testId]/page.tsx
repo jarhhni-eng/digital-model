@@ -5,9 +5,11 @@ import { mockTests } from '@/lib/mock-data'
 import { BEERY_VMI_TEST_ID } from '@/lib/beery-vmi'
 import { VISUO_CONSTRUCTIVE_TEST_ID } from '@/lib/visuo-constructive'
 import { TVPS_TEST_ID } from '@/lib/tvps'
+import { SYLLOGISM_TEST_ID } from '@/lib/syllogism-test'
 import { BeeryVMITest } from '@/components/beery-vmi/beery-vmi-test'
 import { VisuoConstructiveTest } from '@/components/visuo-constructive/visuo-constructive-test'
 import { TVPSTest } from '@/components/tvps/tvps-test'
+import { SyllogismTest } from '@/components/syllogism/syllogism-test'
 import { GenericTestRunner } from '@/components/assessment/generic-test-runner'
 
 interface TestPageProps {
@@ -26,6 +28,9 @@ export default function TestPage({ params }: TestPageProps) {
   }
   if (testId === TVPS_TEST_ID) {
     return <TVPSTest />
+  }
+  if (testId === SYLLOGISM_TEST_ID) {
+    return <SyllogismTest />
   }
 
   return <GenericTestRunner test={test} />
