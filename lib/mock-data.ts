@@ -292,20 +292,6 @@ export const mockTests: Test[] = [
   { id: 'test-cognitive-flexibility', title: 'Cognitive Flexibility', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
   { id: 'test-planning', title: 'Planning', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
   { id: 'test-processing-speed', title: 'Processing Speed', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 900 },
-  // Mathematical Domain tests
-  { id: 'test-vectors', title: 'Vecteurs (C1)', domain: 'Mathématiques', status: 'upcoming', type: 'mcq', duration: 1800 },
-  { id: 'test-dot-product', title: 'Produit scalaire TC (C3)', domain: 'Mathématiques', status: 'upcoming', type: 'mcq', duration: 1800 },
-  { id: 'test-transformations-plane', title: 'Symétrie et transformations (C2)', domain: 'Mathématiques', status: 'upcoming', type: 'drawing', duration: 2400 },
-  { id: 'test-trigonometry', title: 'Trigonométrie (C4)', domain: 'Mathématiques', status: 'upcoming', type: 'mcq', duration: 900 },
-  { id: 'test-line-plane', title: 'Droite dans le plan (C5)', domain: 'Mathématiques', status: 'upcoming', type: 'mcq', duration: 1800 },
-  { id: 'test-dot-product-space', title: 'Produit scalaire — approfondissement (C6)', domain: 'Mathématiques', status: 'upcoming', type: 'mcq', duration: 1800 },
-  // 1ère Bac Sciences — Produit Scalaire C1–C6
-  { id: 'test-ps-c1', title: 'Parallélisme et perpendicularité (C1)', domain: 'Mathématiques — 1ère Bac', status: 'upcoming', type: 'mcq', duration: 1800 },
-  { id: 'test-ps-c2', title: 'Distances et angles — produit scalaire (C2)', domain: 'Mathématiques — 1ère Bac', status: 'upcoming', type: 'mcq', duration: 1800 },
-  { id: 'test-ps-c3', title: 'Ensemble de points MA·MB = 0 (C3)', domain: 'Mathématiques — 1ère Bac', status: 'upcoming', type: 'mcq', duration: 1800 },
-  { id: 'test-ps-c4', title: 'Cercle — équation cartésienne (C4)', domain: 'Mathématiques — 1ère Bac', status: 'upcoming', type: 'mcq', duration: 1800 },
-  { id: 'test-ps-c5', title: 'Représentation paramétrique (C5)', domain: 'Mathématiques — 1ère Bac', status: 'upcoming', type: 'mcq', duration: 1800 },
-  { id: 'test-ps-c6', title: 'Propriétés analytiques du produit scalaire (C6)', domain: 'Mathématiques — 1ère Bac', status: 'upcoming', type: 'mcq', duration: 1800 },
 ]
 
 export const mockStudentResults: StudentResult[] = [
