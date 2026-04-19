@@ -4,6 +4,7 @@ import { use } from 'react'
 import Link from 'next/link'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
+import { useIsMobile } from '@/components/ui/use-mobile'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { mockStudentProfile } from '@/lib/mock-data'
@@ -19,12 +20,13 @@ interface DomainDetailPageProps {
 export default function DomainDetailPage({ params }: DomainDetailPageProps) {
   const { domainId } = use(params)
   const domain = platformDomains.find((d) => d.id === domainId)
+  const isMobile = useIsMobile()
 
   if (!domain) {
     return (
       <div className="bg-background min-h-screen">
         <Sidebar userRole="student" userName={mockStudentProfile.name} />
-        <div className="ml-64 p-6 pt-24">
+        <div className={cn("p-4 md:p-6 pt-24 transition-all", isMobile ? "ml-0" : "ml-64")}>
           <div className="max-w-2xl mx-auto text-center py-12">
             <h1 className="text-2xl font-bold text-foreground mb-2">Domain not found</h1>
             <p className="text-muted-foreground mb-6">
@@ -48,13 +50,13 @@ export default function DomainDetailPage({ params }: DomainDetailPageProps) {
     <div className="bg-background min-h-screen">
       <Sidebar userRole="student" userName={mockStudentProfile.name} />
 
-      <div className="ml-64">
+      <div className={cn("transition-all duration-200", isMobile ? "ml-0" : "ml-64")}>
         <Header
           title={domain.name}
           subtitle={domain.description}
         />
 
-        <main className="p-6 pt-24 max-w-5xl">
+        <main className={cn("p-4 md:p-6 pt-24 max-w-5xl", isMobile && "pb-20")}>
           {/* Breadcrumb */}
           <nav className="mb-8 flex items-center gap-2 text-sm">
             <Link

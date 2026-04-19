@@ -111,34 +111,4 @@ export const platformDomains: MainDomain[] = [
       },
     ],
   },
-  {
-    id: 'mathematics-learning',
-    name: 'Mathematics learning domain',
-    description: 'Competency-based geometry and analysis (secondary).',
-    subdomains: [
-      {
-        id: 'plane-geometry',
-        name: 'Plane geometry',
-        capacities: [
-          { id: 'vectors', name: 'Vectors', testId: 'test-vectors' },
-          { id: 'dot-product', name: 'Dot product', testId: 'test-dot-product' },
-          { id: 'transformations-plane', name: 'Transformations in the plane', testId: 'test-transformations-plane' },
-        ],
-      },
-      {
-        id: 'analytic-geometry',
-        name: 'Analytic geometry',
-        capacities: [
-          { id: 'line-plane', name: 'Line in the plane', testId: 'test-line-plane' },
-        ],
-      },
-      {
-        id: '3d-geometry',
-        name: '3D geometry',
-        capacities: [
-          { id: 'dot-product-space', name: 'Dot product in space', testId: 'test-dot-product-space' },
-        ],
-      },
-    ],
-  },
 ]

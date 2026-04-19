@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
+import { useIsMobile } from '@/components/ui/use-mobile'
+import { cn } from '@/lib/utils'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -39,6 +41,7 @@ function formatDuration(seconds: number): string {
 }
 
 export default function TestsPage() {
+  const isMobile = useIsMobile()
   const completed = mockTests.filter((t) => t.status === 'completed')
   const inProgress = mockTests.filter((t) => t.status === 'in-progress')
   const upcoming = mockTests.filter((t) => t.status === 'upcoming')
@@ -49,13 +52,13 @@ export default function TestsPage() {
     <div className="bg-background min-h-screen">
       <Sidebar userRole="student" userName={mockStudentProfile.name} />
 
-      <div className="ml-64">
+      <div className={cn("transition-all duration-200", isMobile ? "ml-0" : "ml-64")}>
         <Header
-          title="Assessments"
-          subtitle="View all tests, track progress, and start or continue assessments"
+          title="Évaluations"
+          subtitle="Consultez les tests, suivez votre progression et commencez les évaluations"
         />
 
-        <main className="p-6 pt-24 max-w-7xl">
+        <main className={cn("p-4 md:p-6 pt-24 max-w-7xl", isMobile && "pb-20")}>
           {/* Summary stats */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <Card>

@@ -4,6 +4,8 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
+import { useIsMobile } from '@/components/ui/use-mobile'
+import { cn } from '@/lib/utils'
 import { StatCard } from '@/components/dashboard-cards'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -49,6 +51,7 @@ const weakAreaDistribution = [
 export default function TeacherDashboard() {
   const router = useRouter()
   const { user, loading } = useAuth()
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     if (!loading && (!user || (user.role !== 'teacher' && user.role !== 'admin'))) {
@@ -77,13 +80,13 @@ export default function TeacherDashboard() {
     <div className="bg-background min-h-screen">
       <Sidebar userRole="teacher" userName={user.username} />
       
-      <div className="ml-64">
+      <div className={cn("transition-all duration-200", isMobile ? "ml-0" : "ml-64")}>
         <Header
-          title="Teacher Dashboard"
-          subtitle="Manage students and monitor class progress"
+          title="Tableau de bord professeur"
+          subtitle="Gérez vos élèves et suivez la progression de la classe"
         />
-        
-        <main className="p-6 pt-24 max-w-7xl">
+
+        <main className="p-4 md:p-6 pt-24 max-w-7xl">
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatCard

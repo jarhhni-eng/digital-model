@@ -38,7 +38,7 @@ export default function BeeryVMIResultsPage() {
         <div className="print:hidden">
           <Sidebar userRole="student" userName={mockStudentProfile.name} />
         </div>
-        <div className="ml-64 print:ml-0">
+        <div className="md:ml-64 print:ml-0">
           <Header title="Beery VMI Results" subtitle="Visual-Motor Integration assessment" />
           <main className="p-6 pt-24 max-w-4xl">
             <Card>

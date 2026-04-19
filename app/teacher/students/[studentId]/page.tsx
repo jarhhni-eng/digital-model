@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
+import { useIsMobile } from '@/components/ui/use-mobile'
+import { cn } from '@/lib/utils'
 import { StatCard, ProgressCard } from '@/components/dashboard-cards'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -31,6 +33,7 @@ interface StudentDetailsPageProps {
 
 export default function StudentDetailsPage({ params }: StudentDetailsPageProps) {
   const router = useRouter()
+  const isMobile = useIsMobile()
   const student = mockTeacherStudents.find((s) => s.id === params.studentId) || mockTeacherStudents[0]
   const profile = mockStudentProfile
 
@@ -45,13 +48,13 @@ export default function StudentDetailsPage({ params }: StudentDetailsPageProps) 
     <div className="bg-background min-h-screen">
       <Sidebar userRole="teacher" userName="Dr. Richard Smith" />
       
-      <div className="ml-64">
+      <div className={cn("transition-all duration-200", isMobile ? "ml-0" : "ml-64")}>
         <Header
-          title={`Student Profile: ${student.name}`}
-          subtitle="Detailed progress and assessment history"
+          title={`Profil élève : ${student.name}`}
+          subtitle="Progression détaillée et historique des évaluations"
         />
-        
-        <main className="p-6 pt-24 max-w-7xl">
+
+        <main className="p-4 md:p-6 pt-24 max-w-7xl">
           {/* Back Button */}
           <Button
             variant="outline"

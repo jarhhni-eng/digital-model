@@ -1,0 +1,26 @@
+{
+  "name": "CogniTest — Évaluation Cognitive",
+  "short_name": "CogniTest",
+  "description": "Plateforme de recherche en évaluation cognitive et mathématique pour le secondaire — ENS Fès, USMBA, Maroc.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#1e3a8a",
+  "orientation": "portrait-primary",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/apple-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "screenshots": []
+}

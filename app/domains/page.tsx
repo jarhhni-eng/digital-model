@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
+import { useIsMobile } from '@/components/ui/use-mobile'
+import { cn } from '@/lib/utils'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { mockStudentProfile } from '@/lib/mock-data'
@@ -23,6 +25,7 @@ const domainIcons: Record<string, React.ReactNode> = {
 
 export default function DomainsPage() {
   const router = useRouter()
+  const isMobile = useIsMobile()
 
   const totalCapacities = (domainId: string) => {
     const domain = platformDomains.find((d) => d.id === domainId)
@@ -34,13 +37,13 @@ export default function DomainsPage() {
     <div className="bg-background min-h-screen">
       <Sidebar userRole="student" userName={mockStudentProfile.name} />
 
-      <div className="ml-64">
+      <div className={cn("transition-all duration-200", isMobile ? "ml-0" : "ml-64")}>
         <Header
-          title="Domains"
-          subtitle="Explore cognitive and mathematical capacities through structured tests"
+          title="Domaines cognitifs"
+          subtitle="Explorez les capacités cognitives et mathématiques à travers des évaluations structurées"
         />
 
-        <main className="p-6 pt-24 max-w-7xl">
+        <main className={cn("p-4 md:p-6 pt-24 max-w-7xl", isMobile && "pb-20")}>
           {/* Domain Hierarchy Info */}
           <Card className="mb-8 bg-secondary/5 border-secondary/20">
             <CardHeader>

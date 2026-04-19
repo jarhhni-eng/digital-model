@@ -6,6 +6,9 @@ export interface StoredUser {
   passwordHash: string
   role: UserRole
   createdAt: string
+  firstName?: string
+  lastName?: string
+  testAttempts?: number
 }
 
 export interface AuthSession {

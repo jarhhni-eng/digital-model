@@ -144,5 +144,22 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-size: 16px;
+    overflow-x: hidden;
+  }
+  html {
+    overflow-x: hidden;
+  }
+
+  /* Mobile-first: minimum touch target size */
+  button,
+  [role='button'],
+  a {
+    min-height: 44px;
+  }
+
+  /* iOS safe area support for bottom nav */
+  .mobile-safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 }

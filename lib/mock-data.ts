@@ -22,6 +22,8 @@ export interface DomainCapacity {
   testId: string
   score?: number
   attempts?: number
+  competencyCode?: string   // Cₖ — only for Mathematics domain
+  gradeLevel?: string       // e.g. 'Tronc Commun' | '1ère Bac Sciences'
 }
 
 export interface DomainSubdomain {
@@ -290,12 +292,6 @@ export const mockTests: Test[] = [
   { id: 'test-cognitive-flexibility', title: 'Cognitive Flexibility', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
   { id: 'test-planning', title: 'Planning', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
   { id: 'test-processing-speed', title: 'Processing Speed', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 900 },
-  // Mathematical Domain tests
-  { id: 'test-vectors', title: 'Vectors', domain: 'Mathematical Capacities', status: 'upcoming', type: 'mcq', duration: 1800 },
-  { id: 'test-dot-product', title: 'Dot Product', domain: 'Mathematical Capacities', status: 'upcoming', type: 'mcq', duration: 1800 },
-  { id: 'test-transformations-plane', title: 'Transformations in the Plane', domain: 'Mathematical Capacities', status: 'upcoming', type: 'drawing', duration: 2400 },
-  { id: 'test-line-plane', title: 'Line in the Plane', domain: 'Mathematical Capacities', status: 'upcoming', type: 'mcq', duration: 1800 },
-  { id: 'test-dot-product-space', title: 'Dot Product in Space', domain: 'Mathematical Capacities', status: 'upcoming', type: 'mcq', duration: 1800 },
 ]
 
 export const mockStudentResults: StudentResult[] = [

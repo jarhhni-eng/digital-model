@@ -33,7 +33,7 @@ export default function VisuoPerceptiveResultsPage() {
     return (
       <div className="bg-background min-h-screen">
         <Sidebar userRole="student" userName={mockStudentProfile.name} />
-        <div className="ml-64 print:ml-0">
+        <div className="md:ml-64 print:ml-0">
           <Header
             title="TVPS-3 – Results"
             subtitle="Visuo-Perceptive Capacity"

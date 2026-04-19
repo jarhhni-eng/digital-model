@@ -308,7 +308,7 @@ export function GenericTestRunner({ test }: GenericTestRunnerProps) {
                       type="button"
                       onClick={() => setSelectedOption(option)}
                       className={cn(
-                        'w-full p-4 text-left rounded-lg border-2 transition-all font-medium',
+                        'w-full p-4 text-left rounded-lg border-2 transition-all font-medium min-h-[56px]',
                         selectedOption === option
                           ? 'bg-primary/10 border-primary text-primary'
                           : 'bg-card border-border text-foreground hover:border-primary/50'
