@@ -1,0 +1,336 @@
+[
+  {
+    "auto_code": "T1-D1-Q1",
+    "original_code": "Q1",
+    "question_type": 1,
+    "type_label": "Questions du cours",
+    "lesson_num": 1,
+    "lesson_title": "Mémorisation",
+    "competency": null,
+    "text": "à quel degré tu te rappelles la leçon du produit scalaire ?",
+    "image": null,
+    "answers": [
+      {
+        "text": "J'ai tout oublié",
+        "is_correct": false
+      },
+      {
+        "text": "Je me rappelle quelques parties",
+        "is_correct": false
+      },
+      {
+        "text": "Je me rappelle bien",
+        "is_correct": false
+      },
+      {
+        "text": "Je me rappelle tout",
+        "is_correct": false
+      }
+    ],
+    "n_correct": 0
+  },
+  {
+    "auto_code": "T1-D1-Q2",
+    "original_code": "Q2",
+    "question_type": 1,
+    "type_label": "Questions du cours",
+    "lesson_num": 1,
+    "lesson_title": "Mémorisation",
+    "competency": "C1",
+    "text": "Le produit scalaire de U(a,c) et V(b,d) est",
+    "image": null,
+    "answers": [
+      {
+        "text": "‖U⃗‖·‖V⃗‖ cos((U⃗,V⃗))",
+        "is_correct": true
+      },
+      {
+        "text": "‖U⃗‖·‖V⃗‖ sin((U⃗,V⃗))",
+        "is_correct": false
+      },
+      {
+        "text": "ab+cd",
+        "is_correct": true
+      }
+    ],
+    "n_correct": 2
+  },
+  {
+    "auto_code": "T1-D1-Q3",
+    "original_code": "Q3",
+    "question_type": 1,
+    "type_label": "Questions du cours",
+    "lesson_num": 1,
+    "lesson_title": "Mémorisation",
+    "competency": "C1",
+    "text": "Si l'un des vecteurs U ou V est nul, alors",
+    "image": null,
+    "answers": [
+      {
+        "text": "U⃗·V⃗ = 0",
+        "is_correct": true
+      },
+      {
+        "text": "U⃗·V⃗ = 0⃗",
+        "is_correct": false
+      },
+      {
+        "text": "U⃗ et V⃗ sont orthogonaux",
+        "is_correct": false
+      }
+    ],
+    "n_correct": 1
+  },
+  {
+    "auto_code": "T1-D1-Q3",
+    "original_code": "Q3",
+    "question_type": 1,
+    "type_label": "Questions du cours",
+    "lesson_num": 1,
+    "lesson_title": "Mémorisation",
+    "competency": "C1",
+    "text": "Si U et V sont perpendiculaires, alors",
+    "image": null,
+    "answers": [
+      {
+        "text": "U⃗·V⃗ = 0",
+        "is_correct": true
+      },
+      {
+        "text": "U⃗·V⃗ = 0⃗",
+        "is_correct": false
+      },
+      {
+        "text": "U⃗ ou V⃗ est nul",
+        "is_correct": false
+      }
+    ],
+    "n_correct": 1
+  },
+  {
+    "auto_code": "T1-D1-Q4",
+    "original_code": "Q4",
+    "question_type": 1,
+    "type_label": "Questions du cours",
+    "lesson_num": 1,
+    "lesson_title": "Mémorisation",
+    "competency": "C3",
+    "text": "Théorème d'Al-Kashi : Quels que soient les points A, B et C",
+    "image": "mediane.jpg",
+    "answers": [
+      {
+        "text": "BC² = AB² + AC² - 2·AB⃗·AC⃗",
+        "is_correct": true
+      },
+      {
+        "text": "AB² = CB² + CA² - 2·CB⃗·CA⃗",
+        "is_correct": true
+      }
+    ],
+    "n_correct": 2
+  },
+  {
+    "auto_code": "T1-D1-Q5",
+    "original_code": "Q5",
+    "question_type": 1,
+    "type_label": "Questions du cours",
+    "lesson_num": 1,
+    "lesson_title": "Mémorisation",
+    "competency": "C3",
+    "text": "Théorème de la médiane — I milieu de BC",
+    "image": "mediane.jpg",
+    "answers": [
+      {
+        "text": "AB² + AC² = ½ BC² + 2 AI²",
+        "is_correct": true
+      },
+      {
+        "text": "AC² + BC² = ½ AB² + 2 BI²",
+        "is_correct": false
+      }
+    ],
+    "n_correct": 1
+  },
+  {
+    "auto_code": "T1-D1-Q6",
+    "original_code": "Q6",
+    "question_type": 1,
+    "type_label": "Questions du cours",
+    "lesson_num": 1,
+    "lesson_title": "Mémorisation",
+    "competency": "C1",
+    "text": "det(U,V) avec U(a,b) et V(c,d)",
+    "image": null,
+    "answers": [
+      {
+        "text": "Det = ac-bd",
+        "is_correct": false
+      },
+      {
+        "text": "Det = ab-bc",
+        "is_correct": false
+      },
+      {
+        "text": "Det = ad-bc",
+        "is_correct": true
+      }
+    ],
+    "n_correct": 1
+  },
+  {
+    "auto_code": "T1-D1-Q7",
+    "original_code": "Q7",
+    "question_type": 1,
+    "type_label": "Questions du cours",
+    "lesson_num": 1,
+    "lesson_title": "Mémorisation",
+    "competency": null,
+    "text": "Point M(x,y) appartient au cercle (C) de centre Ω(xₒ,yₒ) et rayon 3 :",
+    "image": null,
+    "answers": [
+      {
+        "text": "(x-xₒ)² + (y-yₒ)² = 3",
+        "is_correct": false
+      },
+      {
+        "text": "(x-xₒ)² + (y-yₒ)² = 9",
+        "is_correct": true
+      },
+      {
+        "text": "x² + y² = 2x + 2y + 9",
+        "is_correct": false
+      }
+    ],
+    "n_correct": 1
+  },
+  {
+    "auto_code": "T1-D1-Q8",
+    "original_code": "Q8",
+    "question_type": 1,
+    "type_label": "Questions du cours",
+    "lesson_num": 1,
+    "lesson_title": "Mémorisation",
+    "competency": "C1",
+    "text": "Distance entre Ω(3;4) et (D) : ax+by+c=0",
+    "image": null,
+    "answers": [
+      {
+        "text": "d = |4a+3b+c| / √(a²+b²)",
+        "is_correct": false
+      },
+      {
+        "text": "d = |3a+4b+c| / √(a²+c²)",
+        "is_correct": false
+      },
+      {
+        "text": "d = |3a+4b+c| / √(a²+b²)",
+        "is_correct": true
+      }
+    ],
+    "n_correct": 1
+  },
+  {
+    "auto_code": "T2-D1-Q9",
+    "original_code": "Q9",
+    "question_type": 2,
+    "type_label": "Questions de la construction",
+    "lesson_num": 1,
+    "lesson_title": "Mémorisation",
+    "competency": "C2",
+    "text": "Dans le repère (O, I, J), le vecteur OA⃗ pour A(2,3) est",
+    "image": "repere.jpg",
+    "answers": [
+      {
+        "text": "(2, 3)",
+        "is_correct": true
+      },
+      {
+        "text": "(3, 2)",
+        "is_correct": false
+      },
+      {
+        "text": "(−2, −3)",
+        "is_correct": false
+      }
+    ],
+    "n_correct": 1
+  },
+  {
+    "auto_code": "T2-D1-Q10",
+    "original_code": "Q10",
+    "question_type": 2,
+    "type_label": "Questions de la construction",
+    "lesson_num": 1,
+    "lesson_title": "Mémorisation",
+    "competency": "C2",
+    "text": "La distance entre A(1,2) et B(4,6) est",
+    "image": "repere.jpg",
+    "answers": [
+      {
+        "text": "3",
+        "is_correct": false
+      },
+      {
+        "text": "5",
+        "is_correct": true
+      },
+      {
+        "text": "7",
+        "is_correct": false
+      }
+    ],
+    "n_correct": 1
+  },
+  {
+    "auto_code": "T3-D1-Q11",
+    "original_code": "Q11",
+    "question_type": 3,
+    "type_label": "Questions de raisonnement",
+    "lesson_num": 1,
+    "lesson_title": "Mémorisation",
+    "competency": "C1",
+    "text": "Soit (D): 2x − y + 3 = 0. La droite perpendiculaire passant par A(1,1) a pour équation",
+    "image": "repere.jpg",
+    "answers": [
+      {
+        "text": "x + 2y − 3 = 0",
+        "is_correct": true
+      },
+      {
+        "text": "2x − y + 1 = 0",
+        "is_correct": false
+      },
+      {
+        "text": "x − 2y + 1 = 0",
+        "is_correct": false
+      }
+    ],
+    "n_correct": 1
+  },
+  {
+    "auto_code": "T3-D1-Q12",
+    "original_code": "Q12",
+    "question_type": 3,
+    "type_label": "Questions de raisonnement",
+    "lesson_num": 1,
+    "lesson_title": "Mémorisation",
+    "competency": "C3",
+    "text": "L'ensemble des points M vérifiant MA⃗·MB⃗ = 0 est",
+    "image": "repere.jpg",
+    "answers": [
+      {
+        "text": "Un segment",
+        "is_correct": false
+      },
+      {
+        "text": "Un cercle de diamètre [AB]",
+        "is_correct": true
+      },
+      {
+        "text": "Une droite perpendiculaire à AB",
+        "is_correct": false
+      }
+    ],
+    "n_correct": 1
+  }
+]

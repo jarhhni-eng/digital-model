@@ -13,7 +13,6 @@ import {
   LogOut,
   Menu,
   Settings,
-  Shield,
   Users,
   X,
 } from 'lucide-react'
@@ -36,7 +35,6 @@ const navItems: NavItem[] = [
   { icon: <Users className="w-5 h-5" />, label: 'Élèves', href: '/students', role: 'teacher' },
   { icon: <BarChart3 className="w-5 h-5" />, label: 'Analytique', href: '/analytics', role: 'teacher' },
   { icon: <BookOpen className="w-5 h-5" />, label: 'Rapports', href: '/reports', role: 'teacher' },
-  { icon: <Shield className="w-5 h-5" />, label: 'Administration', href: '/admin', role: 'admin' },
   { icon: <Settings className="w-5 h-5" />, label: 'Profil', href: '/profile', role: 'both' },
 ]
 
@@ -54,7 +52,8 @@ export function Sidebar({ userRole, userName = 'Utilisateur' }: SidebarProps) {
 
   const filteredItems = navItems.filter((item) => {
     if (item.role === 'both') return true
-    if (userRole === 'admin') return item.role === 'teacher' || item.role === 'admin'
+    // Admins never use the shared Sidebar — they have a dedicated isolated one.
+    if (userRole === 'admin') return false
     return item.role === userRole
   })
 

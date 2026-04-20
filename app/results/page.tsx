@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
 import { useIsMobile } from '@/components/ui/use-mobile'
@@ -10,8 +11,19 @@ import { Progress } from '@/components/ui/progress'
 import { mockStudentProfile } from '@/lib/mock-data'
 import {
   Brain, Eye, Zap, Target, Activity, Layers,
-  CheckCircle2, Clock, Circle,
+  CheckCircle2, Clock, Circle, Triangle, FileSignature,
 } from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
+import {
+  getLatestResultForUser,
+  BEERY_MOTRICE_ITEM_COUNT,
+  BeeryMotriceResult,
+} from '@/lib/beery-motrice'
+import { getLatestDAResult, DARResult } from '@/lib/attentional/divided-attention'
+import { getLatestSAResult, SAResult } from '@/lib/attentional/selective-attention'
+import { getLatestSARTResult, SARTResult } from '@/lib/attentional/sustained-attention'
+import { getLatestTMTResult, TMTResult } from '@/lib/attentional/trail-making'
+import { getLatestShAResult, ShAResult } from '@/lib/attentional/shifting-attention'
 
 // ─── Exact same domain/test definitions as dashboard ──────────────────────────
 
@@ -102,6 +114,22 @@ const DOMAINS = [
       { id: 'test-processing-speed',      name: 'Processing speed',      status: 'upcoming',    score: 0  },
     ],
   },
+  {
+    id: 'geometry-learning',
+    name: 'Cognition et apprentissage de la géométrie',
+    nameFr: 'Cognition et apprentissage de la géométrie',
+    icon: <Triangle className="w-4 h-4" />,
+    color: '#6366f1',
+    score: 0,
+    tests: [
+      { id: 'test-geo-vectors',      name: 'Vecteurs et translation', status: 'upcoming', score: 0 },
+      { id: 'test-geo-central-sym',  name: 'Symétrie centrale',        status: 'upcoming', score: 0 },
+      { id: 'test-geo-axial-sym',    name: 'Symétrie axiale',          status: 'upcoming', score: 0 },
+      { id: 'test-geo-dot-product',  name: 'Produit scalaire',         status: 'upcoming', score: 0 },
+      { id: 'test-geo-trigonometry', name: 'Trigonométrie',            status: 'upcoming', score: 0 },
+      { id: 'test-geo-line-plane',   name: 'Droite dans le plan',      status: 'upcoming', score: 0 },
+    ],
+  },
 ]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -126,6 +154,16 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
+function AttStat({ label, value, detail }: { label: string; value: string; detail?: string }) {
+  return (
+    <div className="rounded-md border bg-background p-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-xl font-bold">{value}</p>
+      {detail && <p className="text-xs text-muted-foreground">{detail}</p>}
+    </div>
+  )
+}
+
 function scoreColor(score: number) {
   if (score >= 75) return 'text-green-600'
   if (score >= 55) return 'text-amber-600'
@@ -136,6 +174,39 @@ function scoreColor(score: number) {
 
 export default function ResultsPage() {
   const isMobile = useIsMobile()
+  const { user } = useAuth()
+  const [beery, setBeery] = useState<BeeryMotriceResult | null>(null)
+  const [da, setDa] = useState<DARResult | null>(null)
+  const [sa, setSa] = useState<SAResult | null>(null)
+  const [sart, setSart] = useState<SARTResult | null>(null)
+  const [tmt, setTmt] = useState<TMTResult | null>(null)
+  const [sha, setSha] = useState<ShAResult | null>(null)
+
+  useEffect(() => {
+    const refresh = () => {
+      const name = user?.username
+      if (!name) {
+        setBeery(null)
+        setDa(null); setSa(null); setSart(null); setTmt(null); setSha(null)
+        return
+      }
+      setBeery(getLatestResultForUser(name) ?? null)
+      setDa(getLatestDAResult(name) ?? null)
+      setSa(getLatestSAResult(name) ?? null)
+      setSart(getLatestSARTResult(name) ?? null)
+      setTmt(getLatestTMTResult(name) ?? null)
+      setSha(getLatestShAResult(name) ?? null)
+    }
+    refresh()
+    window.addEventListener('beery-motrice-changed', refresh)
+    window.addEventListener('attentional-changed', refresh)
+    window.addEventListener('storage', refresh)
+    return () => {
+      window.removeEventListener('beery-motrice-changed', refresh)
+      window.removeEventListener('attentional-changed', refresh)
+      window.removeEventListener('storage', refresh)
+    }
+  }, [user])
 
   const totalTests = DOMAINS.reduce((s, d) => s + d.tests.length, 0)
   const completedTests = DOMAINS.reduce(
@@ -178,6 +249,62 @@ export default function ResultsPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* ── Beery VMI (résultat corrigé par l'admin) ────────────────────── */}
+          {beery && (
+            <Card className="mb-6 border-amber-200 bg-amber-50/50 dark:border-amber-900/40 dark:bg-amber-950/20">
+              <CardHeader className="pb-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-md bg-amber-500/10 p-2 text-amber-600">
+                      <FileSignature className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base">
+                        Beery VMI — Intégration visuo-motrice
+                      </CardTitle>
+                      <p className="text-xs text-muted-foreground">
+                        Traitement visuel · Corrigé par un administrateur le{' '}
+                        {new Date(beery.validatedAt).toLocaleDateString('fr-FR')}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground">Brut</p>
+                      <p className="text-lg font-bold">{beery.rawScore}/{BEERY_MOTRICE_ITEM_COUNT}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground">Standard</p>
+                      <p className="text-lg font-bold">{beery.standardScore}</p>
+                    </div>
+                    <Badge className="bg-amber-600 text-white">{beery.niveau}</Badge>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+          )}
+
+          {/* ── Capacités attentionnelles (résultats persistés) ───────────── */}
+          {(da || sa || sart || tmt || sha) && (
+            <Card className="mb-6 border-blue-200 bg-blue-50/40 dark:border-blue-900/40 dark:bg-blue-950/20">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-blue-600" />
+                  <CardTitle className="text-base">Capacités attentionnelles — derniers résultats</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-5">
+                  {da && <AttStat label="Attention divisée" value={`${da.score}%`} detail={`${da.correctCount}/${da.trials.length}`} />}
+                  {sa && <AttStat label="Attention sélective" value={`${sa.score}%`} detail={`${sa.correctCount}/${sa.trials.length}`} />}
+                  {sart && <AttStat label="Attention soutenue" value={`${sart.score}%`} detail={`C:${sart.commissionErrors} · O:${sart.omissionErrors}`} />}
+                  {tmt && <AttStat label="Trail Making" value={`${tmt.score}`} detail={`B−A: ${Math.round(tmt.switchCost/1000)}s`} />}
+                  {sha && <AttStat label="Flexibilité" value={`${sha.score}%`} detail={`Switch: ${sha.switchCost}ms`} />}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* ── Domain → Tests → Scores ─────────────────────────────────────── */}
           <div className="space-y-6">

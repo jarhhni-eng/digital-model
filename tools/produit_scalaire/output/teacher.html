@@ -1,0 +1,162 @@
+<!doctype html><html lang='fr'><head><meta charset='utf-8'><title>Enseignant — Produit scalaire</title>
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+  :root { --accent:#4f46e5; --ok:#16a34a; --bad:#dc2626; --muted:#6b7280; }
+  *{box-sizing:border-box} body{font-family:system-ui,sans-serif;margin:0;background:#f9fafb;color:#111}
+  header{background:#fff;border-bottom:1px solid #e5e7eb;padding:16px 24px}
+  header h1{margin:0;font-size:1.1rem} header .sub{color:var(--muted);font-size:.85rem}
+  main{max-width:780px;margin:0 auto;padding:24px}
+  .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .qid{font-size:.75rem;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
+  .stem{margin:8px 0 12px;font-size:1.02rem}
+  .choice{display:block;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;margin:6px 0;cursor:pointer}
+  .choice:hover{border-color:var(--accent)}
+  .choice.correct{border-color:var(--ok);background:#f0fdf4}
+  .choice.wrong{border-color:var(--bad);background:#fef2f2}
+  .badge{display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:999px;border:1px solid currentColor;margin-right:6px}
+  .b-skill{color:var(--accent)} .b-type{color:#b45309} .b-ok{color:var(--ok)} .b-bad{color:var(--bad)}
+  img.figure{max-width:100%;border-radius:8px;margin:8px 0;border:1px solid #e5e7eb}
+  .nav{display:flex;justify-content:space-between;margin-top:16px}
+  button{background:var(--accent);color:#fff;border:0;padding:8px 16px;border-radius:8px;cursor:pointer}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+  .stat{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;text-align:center}
+  .stat .v{font-size:1.6rem;font-weight:700;color:var(--accent)}
+  .stat .l{font-size:.75rem;color:var(--muted);margin-top:4px}
+  .meta{font-size:.8rem;color:var(--muted);margin-top:6px}
+  details{margin-top:8px} details summary{cursor:pointer;color:var(--muted);font-size:.85rem}
+</style>
+</head><body>
+      <header>
+        <h1>Vue enseignant — Produit scalaire</h1>
+        <div class="sub">Bonnes réponses, compétences, type de question et analytique.</div>
+      </header>
+      <main>
+        
+      <div class="card">
+        <h2 style="margin-top:0">Analytique</h2>
+        <div class="stat-grid">
+          <div class="stat"><div class="v">75%</div><div class="l">Score total<br>6/8</div></div>
+          <div class='stat'><div class='v'>100%</div><div class='l'>T1 · Questions du cours<br>4/4</div></div><div class='stat'><div class='v'>50%</div><div class='l'>T3 · Questions de raisonnement<br>2/4</div></div>
+          <div class='stat'><div class='v'>100%</div><div class='l'>Compétence C1<br>2/2</div></div><div class='stat'><div class='v'>75%</div><div class='l'>Compétence C3<br>3/4</div></div><div class='stat'><div class='v'>50%</div><div class='l'>Compétence C2<br>1/2</div></div>
+        </div>
+      </div>
+    
+        
+          <div class="card">
+            <div class="qid">T1-D1-Q1 · Question 1</div>
+            <div style="margin:6px 0"><span class='badge b-type'>T1 — Questions du cours</span><span class='badge'>Diagnostique</span></div>
+            <div class="stem">À quel degré te rappelles-tu la leçon du produit scalaire ?</div>
+            
+            <div class='choice '><strong>A.</strong> J'ai tout oublié</div><div class='choice '><strong>B.</strong> Je me rappelle quelques parties</div><div class='choice '><strong>C.</strong> Je me rappelle bien</div><div class='choice '><strong>D.</strong> Je me rappelle tout</div>
+            
+          </div>
+        
+          <div class="card">
+            <div class="qid">T1-D1-Q2 · Question 2</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C1</span><span class='badge b-type'>T1 — Questions du cours</span></div>
+            <div class="stem">Le produit scalaire de deux vecteurs $\vec{U}$ et $\vec{V}$ est :</div>
+            
+            <div class='choice correct'><span class='badge b-ok'>correct</span><strong>A.</strong> $\|\vec{U}\| \cdot \|\vec{V}\| \cdot \cos(\widehat{(\vec{U}, \vec{V})})$</div><div class='choice '><strong>B.</strong> $\|\vec{U}\| \cdot \|\vec{V}\| \cdot \sin(\widehat{(\vec{U}, \vec{V})})$</div><div class='choice '><strong>C.</strong> $\|\vec{U}\| \cdot \|\vec{V}\| \cdot \tan(\widehat{(\vec{U}, \vec{V})})$</div><div class='choice '><strong>D.</strong> J'ai oublié</div>
+            
+          </div>
+        
+          <div class="card">
+            <div class="qid">T1-D1-Q3 · Question 3</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C1</span><span class='badge b-type'>T1 — Questions du cours</span></div>
+            <div class="stem">Deux vecteurs $\vec{U}$ et $\vec{V}$ sont orthogonaux si :</div>
+            
+            <div class='choice correct'><span class='badge b-ok'>correct</span><strong>A.</strong> $\vec{U} \cdot \vec{V} = 0$</div><div class='choice '><strong>B.</strong> $\vec{U} \cdot \vec{V} = \vec{0}$</div><div class='choice '><strong>C.</strong> $\vec{U}$ et $\vec{V}$ sont nuls</div><div class='choice '><strong>D.</strong> J'ai oublié</div>
+            
+          </div>
+        
+          <div class="card">
+            <div class="qid">T1-D1-Q4 · Question 4</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C3</span><span class='badge b-type'>T1 — Questions du cours</span></div>
+            <div class="stem">Théorème d'Al-Kashi — quels que soient les points $A, B, C$ :</div>
+            
+            <div class='choice correct'><span class='badge b-ok'>correct</span><strong>A.</strong> $BC^2 = AB^2 + AC^2 - 2\, \vec{AB} \cdot \vec{AC}$</div><div class='choice correct'><span class='badge b-ok'>correct</span><strong>B.</strong> $AB^2 = CB^2 + CA^2 - 2\, \vec{CB} \cdot \vec{CA}$</div><div class='choice '><strong>C.</strong> J'ai oublié</div>
+            
+          </div>
+        
+          <div class="card">
+            <div class="qid">T1-D1-Q5 · Question 5</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C3</span><span class='badge b-type'>T1 — Questions du cours</span></div>
+            <div class="stem">Soit $ABC$ un triangle et $D$ le milieu de $[BC]$ :</div>
+            
+            <div class='choice correct'><span class='badge b-ok'>correct</span><strong>A.</strong> $AB^2 + AC^2 = \frac{1}{2}BC^2 + 2AD^2$</div><div class='choice '><strong>B.</strong> $AC^2 + BC^2 = \frac{1}{2}AB^2 + 2BD^2$</div><div class='choice '><strong>C.</strong> J'ai oublié</div>
+            
+          </div>
+        
+          <div class="card">
+            <div class="qid">T2-D1-Q6 · Question 6</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C1</span><span class='badge b-type'>T2 — Questions de construction</span></div>
+            <div class="stem">Dans la figure 2, déterminer les coordonnées des points $B(\ ;\ )$, $C(\ ;\ )$, $D(\ ;\ )$, $E(\ ;\ )$, $F(\ ;\ )$, $G(\ ;\ )$.</div>
+            <img class="figure" src="images/q6_figure2.png" alt="Figure Q6">
+            <div class='meta'>Réponse attendue : B, C, D, E, F, G — coordonnées lues sur la figure 2.</div>
+            <details><summary>Correction détaillée</summary><div class='meta'>B, C, D, E, F, G — coordonnées lues sur la figure 2.</div></details>
+          </div>
+        
+          <div class="card">
+            <div class="qid">T2-D1-Q7 · Question 7</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C1</span><span class='badge b-type'>T2 — Questions de construction</span></div>
+            <div class="stem">Déterminer les coordonnées des vecteurs $\vec{U}, \vec{V}, \vec{a}, \vec{W}$ :</div>
+            
+            <div class='meta'>Réponse attendue : $\vec{U}(4,4)$, $\vec{V}(2,0)$, $\vec{a}(3,2)$, $\vec{W}(1,3)$</div>
+            <details><summary>Correction détaillée</summary><div class='meta'>$\vec{U}(4,4)$, $\vec{V}(2,0)$, $\vec{a}(3,2)$, $\vec{W}(1,3)$</div></details>
+          </div>
+        
+          <div class="card">
+            <div class="qid">T2-D1-Q8 · Question 8</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C1</span><span class='badge b-type'>T2 — Questions de construction</span></div>
+            <div class="stem">Calculer les normes $\|\vec{U}\|, \|\vec{V}\|, \|\vec{W}\|, \|\vec{a}\|$ avec $\|\vec{U}\| = \sqrt{(x_B - x_O)^2 + (y_B - y_O)^2}$.</div>
+            
+            <div class='meta'>Réponse attendue : $\|\vec{U}\| = \sqrt{32} = 4\sqrt{2}$, $\|\vec{V}\| = 2$, $\|\vec{W}\| = \sqrt{10}$, $\|\vec{a}\| = \sqrt{13}$</div>
+            <details><summary>Correction détaillée</summary><div class='meta'>$\|\vec{U}\| = \sqrt{32} = 4\sqrt{2}$, $\|\vec{V}\| = 2$, $\|\vec{W}\| = \sqrt{10}$, $\|\vec{a}\| = \sqrt{13}$</div></details>
+          </div>
+        
+          <div class="card">
+            <div class="qid">T3-D1-Q9 · Question 9</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C2</span><span class='badge b-type'>T3 — Questions de raisonnement</span></div>
+            <div class="stem">Calculer $\vec{U} \cdot \vec{V} = \|\vec{OB}\| \cdot \|\vec{OC}\| \cdot \cos(\widehat{(\vec{OB}, \vec{OC})})$ :</div>
+            
+            <div class='choice correct'><span class='badge b-ok'>correct</span><strong>A.</strong> $8$</div><div class='choice '><strong>B.</strong> $-8$</div><div class='choice '><strong>C.</strong> $10$</div>
+            
+          </div>
+        
+          <div class="card">
+            <div class="qid">T3-D1-Q10 · Question 10</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C2</span><span class='badge b-type'>T3 — Questions de raisonnement</span></div>
+            <div class="stem">Produit scalaire analytique : $\vec{a} \cdot \vec{W} = ?$</div>
+            
+            <div class='choice correct'><span class='badge b-ok'>correct</span><strong>A.</strong> $8$</div><div class='choice '><strong>B.</strong> $-8$</div><div class='choice '><strong>C.</strong> $9$</div>
+            
+          </div>
+        
+          <div class="card">
+            <div class="qid">T3-D1-Q11 · Question 11</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C3</span><span class='badge b-type'>T3 — Questions de raisonnement</span></div>
+            <div class="stem">Soit $ABC$ un triangle tel que $AB = 6$, $AC = 5$, $BC = 7$. Vérifier que $\cos(\widehat{BAC}) = \frac{1}{5}$, puis calculer $\vec{AB} \cdot \vec{AC}$.</div>
+            
+            <div class='choice correct'><span class='badge b-ok'>correct</span><strong>A.</strong> $\cos(\widehat{BAC}) = \dfrac{1}{5}$ \; et \; $\vec{AB}\cdot\vec{AC}=6$</div><div class='choice '><strong>B.</strong> $\cos(\widehat{BAC}) = \dfrac{2}{5}$ \; et \; $\vec{AB}\cdot\vec{AC}=12$</div><div class='choice '><strong>C.</strong> $\cos(\widehat{BAC}) = -\dfrac{1}{5}$ \; et \; $\vec{AB}\cdot\vec{AC}=-6$</div>
+            <details><summary>Correction détaillée</summary><div class='meta'>$\vec{AB}\cdot\vec{AC} = AB \cdot AC \cdot \cos(\widehat{BAC}) = 6 \cdot 5 \cdot \tfrac{1}{5} = 6$</div></details>
+          </div>
+        
+          <div class="card">
+            <div class="qid">T3-D1-Q12 · Question 12</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C3</span><span class='badge b-type'>T3 — Questions de raisonnement</span></div>
+            <div class="stem">Déduire $\vec{BA} \cdot \vec{BC}$.</div>
+            <img class="figure" src="images/q12_figure.png" alt="Figure Q12">
+            <div class='choice correct'><span class='badge b-ok'>correct</span><strong>A.</strong> $\vec{BA}\cdot\vec{BC} = \dfrac{AB^2 + BC^2 - AC^2}{2} = \dfrac{36+49-25}{2} = 30$</div><div class='choice '><strong>B.</strong> $\vec{BA}\cdot\vec{BC} = 15$</div><div class='choice '><strong>C.</strong> $\vec{BA}\cdot\vec{BC} = -30$</div>
+            <details><summary>Correction détaillée</summary><div class='meta'>$\vec{BA}\cdot\vec{BC} = 30$ (via Al-Kashi appliqué en $B$).</div></details>
+          </div>
+        
+      </main>
+    </body></html>
