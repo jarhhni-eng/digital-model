@@ -1,0 +1,1 @@
+"""Produit scalaire assessment toolkit."""

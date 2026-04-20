@@ -111,4 +111,59 @@ export const platformDomains: MainDomain[] = [
       },
     ],
   },
+  {
+    id: 'geometry-learning',
+    name: 'Cognition et apprentissage de la géométrie',
+    description: "Évaluer les capacités cognitives mobilisées dans l'apprentissage de la géométrie du secondaire qualifiant.",
+    subdomains: [
+      {
+        id: 'geo-vectors',
+        name: 'Vecteurs et translation',
+        nameFr: 'Vecteurs et translation',
+        capacities: [
+          { id: 'geo-vectors-cap', name: 'Vectors and translation', nameFr: 'Vecteurs et translation', testId: 'test-geo-vectors' },
+        ],
+      },
+      {
+        id: 'geo-central-sym',
+        name: 'Symétrie centrale',
+        nameFr: 'Symétrie centrale',
+        capacities: [
+          { id: 'geo-central-sym-cap', name: 'Central symmetry', nameFr: 'Symétrie centrale', testId: 'test-geo-central-sym' },
+        ],
+      },
+      {
+        id: 'geo-axial-sym',
+        name: 'Symétrie axiale',
+        nameFr: 'Symétrie axiale',
+        capacities: [
+          { id: 'geo-axial-sym-cap', name: 'Axial symmetry', nameFr: 'Symétrie axiale', testId: 'test-geo-axial-sym' },
+        ],
+      },
+      {
+        id: 'geo-dot-product',
+        name: 'Produit scalaire',
+        nameFr: 'Produit scalaire',
+        capacities: [
+          { id: 'geo-dot-product-cap', name: 'Dot product', nameFr: 'Produit scalaire', testId: 'test-geo-dot-product' },
+        ],
+      },
+      {
+        id: 'geo-trigonometry',
+        name: 'Trigonométrie',
+        nameFr: 'Trigonométrie',
+        capacities: [
+          { id: 'geo-trig-cap', name: 'Trigonometry', nameFr: 'Trigonométrie', testId: 'test-geo-trigonometry' },
+        ],
+      },
+      {
+        id: 'geo-line-plane',
+        name: 'Droite dans le plan',
+        nameFr: 'Droite dans le plan',
+        capacities: [
+          { id: 'geo-line-plane-cap', name: 'Line in the plane', nameFr: 'Droite dans le plan', testId: 'test-geo-line-plane' },
+        ],
+      },
+    ],
+  },
 ]

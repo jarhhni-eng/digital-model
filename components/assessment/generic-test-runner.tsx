@@ -42,15 +42,16 @@ export function GenericTestRunner({ test }: GenericTestRunnerProps) {
 
   const answersRef = useRef<Record<string, string>>({})
 
-  const currentQuestion = mockTestQuestions[currentQuestionIndex]
-  const totalQuestions = mockTestQuestions.length
+  const questions = test?.questions?.length ? test.questions : mockTestQuestions
+  const currentQuestion = questions[currentQuestionIndex]
+  const totalQuestions = questions.length
   const meta = getTestMetadata(testId)
   const testTitle = test?.title ?? 'Assessment Test'
   const testDuration = test?.duration ?? 1800
 
   useEffect(() => {
     const canvas = canvasRef.current
-    if (canvas && currentQuestion.type === 'drawing') {
+    if (canvas && currentQuestion?.type === 'drawing') {
       const ctx = canvas.getContext('2d')
       if (ctx) {
         ctx.fillStyle = '#ffffff'
@@ -61,10 +62,10 @@ export function GenericTestRunner({ test }: GenericTestRunnerProps) {
 
   useEffect(() => {
     questionEnteredAt.current = Date.now()
-    const q = mockTestQuestions[currentQuestionIndex]
+    const q = questions[currentQuestionIndex]
     if (q.type === 'mcq') setSelectedOption(answersRef.current[q.id] ?? null)
     if (q.type === 'text') setTextAnswer(answersRef.current[q.id] ?? '')
-  }, [currentQuestionIndex])
+  }, [currentQuestionIndex, questions])
 
   const recordTimeForCurrentQuestion = useCallback(() => {
     const elapsed = Date.now() - questionEnteredAt.current
@@ -74,7 +75,7 @@ export function GenericTestRunner({ test }: GenericTestRunnerProps) {
   }, [currentQuestionIndex])
 
   const persistCurrentAnswer = useCallback(() => {
-    const q = mockTestQuestions[currentQuestionIndex]
+    const q = questions[currentQuestionIndex]
     if (q.type === 'mcq' && selectedOption) answersRef.current[q.id] = selectedOption
     if (q.type === 'text') answersRef.current[q.id] = textAnswer
     if (q.type === 'drawing' && canvasRef.current) {
@@ -84,7 +85,7 @@ export function GenericTestRunner({ test }: GenericTestRunnerProps) {
         answersRef.current[q.id] = ''
       }
     }
-  }, [currentQuestionIndex, selectedOption, textAnswer])
+  }, [currentQuestionIndex, selectedOption, textAnswer, questions])
 
   const handleDrawStart = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (currentQuestion.type !== 'drawing') return
@@ -156,7 +157,7 @@ export function GenericTestRunner({ test }: GenericTestRunnerProps) {
     recordTimeForCurrentQuestion()
     setIsSubmitting(true)
     const startedAt = testStartRef.current ?? new Date().toISOString()
-    const answers = mockTestQuestions.map((q, idx) => ({
+    const answers = questions.map((q, idx) => ({
       questionId: q.id,
       selectedValue: answersRef.current[q.id] ?? null,
       timeSpentMs: questionTimesMs.current[idx] ?? null,
@@ -291,6 +292,20 @@ export function GenericTestRunner({ test }: GenericTestRunnerProps) {
 
           <Card className="mb-8 shadow-sm">
             <CardHeader>
+              {(currentQuestion.label || currentQuestion.competencyCode) && (
+                <div className="flex items-center gap-2 mb-2">
+                  {currentQuestion.label && (
+                    <span className="text-xs font-bold px-2 py-0.5 rounded bg-primary/10 text-primary">
+                      {currentQuestion.label}
+                    </span>
+                  )}
+                  {currentQuestion.competencyCode && (
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 border border-indigo-200">
+                      {currentQuestion.competencyCode}
+                    </span>
+                  )}
+                </div>
+              )}
               <CardTitle className="text-xl">{currentQuestion.question}</CardTitle>
               {currentQuestion.instructions && (
                 <CardDescription className="mt-2 text-base">

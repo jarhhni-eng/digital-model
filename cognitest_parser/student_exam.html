@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Évaluation — Cognition et apprentissage de la géométrie</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f1f5f9;color:#1e293b;min-height:100vh}
+.shell{max-width:720px;margin:0 auto;padding:24px 16px 80px}
+/* progress */
+.prog-wrap{margin-bottom:20px}
+.prog-track{height:6px;background:#e2e8f0;border-radius:3px}
+.prog-fill{height:100%;background:#6366f1;border-radius:3px;transition:width .35s}
+.prog-label{font-size:12px;color:#64748b;text-align:right;margin-top:5px}
+/* card */
+.q-card{background:#fff;border-radius:14px;box-shadow:0 2px 14px rgba(0,0,0,.07);
+  padding:28px 24px;border-left:5px solid #6366f1;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.q-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.q-badge{background:#6366f1;color:#fff;font-weight:700;font-size:12px;
+  padding:4px 10px;border-radius:6px;letter-spacing:.4px}
+.q-count{font-size:12px;color:#94a3b8}
+.q-text{font-size:16px;font-weight:500;line-height:1.7;margin-bottom:18px}
+.q-img{text-align:center;margin-bottom:18px}
+.q-img img{max-width:100%;border-radius:10px;border:1px solid #e2e8f0;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+/* options */
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;align-items:flex-start;gap:14px;padding:13px 16px;border-radius:10px;
+  border:2px solid #e2e8f0;background:#fff;cursor:pointer;text-align:left;
+  font-size:14px;transition:border-color .15s,background .15s;width:100%}
+.opt:hover{border-color:#a5b4fc;background:#f5f3ff}
+.opt.selected{border-color:#6366f1;background:#eef2ff}
+.opt-skip{border-style:dashed}
+.opt-letter{min-width:26px;height:26px;border-radius:50%;background:#f1f5f9;
+  color:#64748b;font-weight:700;font-size:12px;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;transition:background .15s}
+.opt.selected .opt-letter{background:#6366f1;color:#fff}
+.opt-text{line-height:1.5}
+/* nav */
+.nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e2e8f0;
+  padding:12px 24px;display:flex;justify-content:space-between;align-items:center;z-index:10}
+.btn{padding:10px 26px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:14px}
+.btn-prev{background:#f1f5f9;color:#475569}
+.btn-next{background:#6366f1;color:#fff}
+.btn-submit{background:#16a34a;color:#fff;display:none}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="prog-wrap">
+    <div class="prog-track"><div class="prog-fill" id="prog" style="width:8%"></div></div>
+    <div class="prog-label" id="prog-lbl">Question 1 / 13</div>
+  </div>
+
+  <div class="q-card" id="card-0" style="display:block">
+    <div class="q-header">
+      <span class="q-badge">T1-D1-Q1</span>
+      <span class="q-count">Question 1 / 13</span>
+    </div>
+    <p class="q-text">à quel degré tu te rappelles la leçon du produit scalaire ?</p>
+    
+    <div class="opts">
+        <button class="opt" onclick="pick(0,0,this)" data-q="0" data-opt="0">
+          <span class="opt-letter">A</span>
+          <span class="opt-text">J'ai tout oublié</span>
+        </button>
+        <button class="opt" onclick="pick(0,1,this)" data-q="0" data-opt="1">
+          <span class="opt-letter">B</span>
+          <span class="opt-text">Je me rappelle quelques parties</span>
+        </button>
+        <button class="opt" onclick="pick(0,2,this)" data-q="0" data-opt="2">
+          <span class="opt-letter">C</span>
+          <span class="opt-text">Je me rappelle bien</span>
+        </button>
+        <button class="opt" onclick="pick(0,3,this)" data-q="0" data-opt="3">
+          <span class="opt-letter">D</span>
+          <span class="opt-text">Je me rappelle tout</span>
+        </button>
+        <button class="opt opt-skip" onclick="pick(0,-1,this)" data-q="0" data-opt="-1">
+          <span class="opt-letter">?</span>
+          <span class="opt-text" style="color:#94a3b8">Je ne sais pas</span>
+        </button>
+    </div>
+  </div>
+  <div class="q-card" id="card-1" style="display:none">
+    <div class="q-header">
+      <span class="q-badge">T1-D1-Q2</span>
+      <span class="q-count">Question 2 / 13</span>
+    </div>
+    <p class="q-text">Le produit scalaire de U(a,c) et V(b,d) est</p>
+    
+    <div class="opts">
+        <button class="opt" onclick="pick(1,0,this)" data-q="1" data-opt="0">
+          <span class="opt-letter">A</span>
+          <span class="opt-text">‖U⃗‖·‖V⃗‖ cos((U⃗,V⃗))</span>
+        </button>
+        <button class="opt" onclick="pick(1,1,this)" data-q="1" data-opt="1">
+          <span class="opt-letter">B</span>
+          <span class="opt-text">‖U⃗‖·‖V⃗‖ sin((U⃗,V⃗))</span>
+        </button>
+        <button class="opt" onclick="pick(1,2,this)" data-q="1" data-opt="2">
+          <span class="opt-letter">C</span>
+          <span class="opt-text">ab+cd</span>
+        </button>
+        <button class="opt opt-skip" onclick="pick(1,-1,this)" data-q="1" data-opt="-1">
+          <span class="opt-letter">?</span>
+          <span class="opt-text" style="color:#94a3b8">Je ne sais pas</span>
+        </button>
+    </div>
+  </div>
+  <div class="q-card" id="card-2" style="display:none">
+    <div class="q-header">
+      <span class="q-badge">T1-D1-Q3</span>
+      <span class="q-count">Question 3 / 13</span>
+    </div>
+    <p class="q-text">Si l'un des vecteurs U ou V est nul, alors</p>
+    
+    <div class="opts">
+        <button class="opt" onclick="pick(2,0,this)" data-q="2" data-opt="0">
+          <span class="opt-letter">A</span>
+          <span class="opt-text">U⃗·V⃗ = 0</span>
+        </button>
+        <button class="opt" onclick="pick(2,1,this)" data-q="2" data-opt="1">
+          <span class="opt-letter">B</span>
+          <span class="opt-text">U⃗·V⃗ = 0⃗</span>
+        </button>
+        <button class="opt" onclick="pick(2,2,this)" data-q="2" data-opt="2">
+          <span class="opt-letter">C</span>
+          <span class="opt-text">U⃗ et V⃗ sont orthogonaux</span>
+        </button>
+        <button class="opt opt-skip" onclick="pick(2,-1,this)" data-q="2" data-opt="-1">
+          <span class="opt-letter">?</span>
+          <span class="opt-text" style="color:#94a3b8">Je ne sais pas</span>
+        </button>
+    </div>
+  </div>
+  <div class="q-card" id="card-3" style="display:none">
+    <div class="q-header">
+      <span class="q-badge">T1-D1-Q3</span>
+      <span class="q-count">Question 4 / 13</span>
+    </div>
+    <p class="q-text">Si U et V sont perpendiculaires, alors</p>
+    
+    <div class="opts">
+        <button class="opt" onclick="pick(3,0,this)" data-q="3" data-opt="0">
+          <span class="opt-letter">A</span>
+          <span class="opt-text">U⃗·V⃗ = 0</span>
+        </button>
+        <button class="opt" onclick="pick(3,1,this)" data-q="3" data-opt="1">
+          <span class="opt-letter">B</span>
+          <span class="opt-text">U⃗·V⃗ = 0⃗</span>
+        </button>
+        <button class="opt" onclick="pick(3,2,this)" data-q="3" data-opt="2">
+          <span class="opt-letter">C</span>
+          <span class="opt-text">U⃗ ou V⃗ est nul</span>
+        </button>
+        <button class="opt opt-skip" onclick="pick(3,-1,this)" data-q="3" data-opt="-1">
+          <span class="opt-letter">?</span>
+          <span class="opt-text" style="color:#94a3b8">Je ne sais pas</span>
+        </button>
+    </div>
+  </div>
+  <div class="q-card" id="card-4" style="display:none">
+    <div class="q-header">
+      <span class="q-badge">T1-D1-Q4</span>
+      <span class="q-count">Question 5 / 13</span>
+    </div>
+    <p class="q-text">Théorème d'Al-Kashi : Quels que soient les points A, B et C</p>
+    <div class="q-img"><img src="mediane.jpg" alt="mediane.jpg"></div>
+    <div class="opts">
+        <button class="opt" onclick="pick(4,0,this)" data-q="4" data-opt="0">
+          <span class="opt-letter">A</span>
+          <span class="opt-text">BC² = AB² + AC² - 2·AB⃗·AC⃗</span>
+        </button>
+        <button class="opt" onclick="pick(4,1,this)" data-q="4" data-opt="1">
+          <span class="opt-letter">B</span>
+          <span class="opt-text">AB² = CB² + CA² - 2·CB⃗·CA⃗</span>
+        </button>
+        <button class="opt opt-skip" onclick="pick(4,-1,this)" data-q="4" data-opt="-1">
+          <span class="opt-letter">?</span>
+          <span class="opt-text" style="color:#94a3b8">Je ne sais pas</span>
+        </button>
+    </div>
+  </div>
+  <div class="q-card" id="card-5" style="display:none">
+    <div class="q-header">
+      <span class="q-badge">T1-D1-Q5</span>
+      <span class="q-count">Question 6 / 13</span>
+    </div>
+    <p class="q-text">Théorème de la médiane — I milieu de BC</p>
+    <div class="q-img"><img src="mediane.jpg" alt="mediane.jpg"></div>
+    <div class="opts">
+        <button class="opt" onclick="pick(5,0,this)" data-q="5" data-opt="0">
+          <span class="opt-letter">A</span>
+          <span class="opt-text">AB² + AC² = ½ BC² + 2 AI²</span>
+        </button>
+        <button class="opt" onclick="pick(5,1,this)" data-q="5" data-opt="1">
+          <span class="opt-letter">B</span>
+          <span class="opt-text">AC² + BC² = ½ AB² + 2 BI²</span>
+        </button>
+        <button class="opt opt-skip" onclick="pick(5,-1,this)" data-q="5" data-opt="-1">
+          <span class="opt-letter">?</span>
+          <span class="opt-text" style="color:#94a3b8">Je ne sais pas</span>
+        </button>
+    </div>
+  </div>
+  <div class="q-card" id="card-6" style="display:none">
+    <div class="q-header">
+      <span class="q-badge">T1-D1-Q6</span>
+      <span class="q-count">Question 7 / 13</span>
+    </div>
+    <p class="q-text">det(U,V) avec U(a,b) et V(c,d)</p>
+    
+    <div class="opts">
+        <button class="opt" onclick="pick(6,0,this)" data-q="6" data-opt="0">
+          <span class="opt-letter">A</span>
+          <span class="opt-text">Det = ac-bd</span>
+        </button>
+        <button class="opt" onclick="pick(6,1,this)" data-q="6" data-opt="1">
+          <span class="opt-letter">B</span>
+          <span class="opt-text">Det = ab-bc</span>
+        </button>
+        <button class="opt" onclick="pick(6,2,this)" data-q="6" data-opt="2">
+          <span class="opt-letter">C</span>
+          <span class="opt-text">Det = ad-bc</span>
+        </button>
+        <button class="opt opt-skip" onclick="pick(6,-1,this)" data-q="6" data-opt="-1">
+          <span class="opt-letter">?</span>
+          <span class="opt-text" style="color:#94a3b8">Je ne sais pas</span>
+        </button>
+    </div>
+  </div>
+  <div class="q-card" id="card-7" style="display:none">
+    <div class="q-header">
+      <span class="q-badge">T1-D1-Q7</span>
+      <span class="q-count">Question 8 / 13</span>
+    </div>
+    <p class="q-text">Point M(x,y) appartient au cercle (C) de centre Ω(xₒ,yₒ) et rayon 3 :</p>
+    
+    <div class="opts">
+        <button class="opt" onclick="pick(7,0,this)" data-q="7" data-opt="0">
+          <span class="opt-letter">A</span>
+          <span class="opt-text">(x-xₒ)² + (y-yₒ)² = 3</span>
+        </button>
+        <button class="opt" onclick="pick(7,1,this)" data-q="7" data-opt="1">
+          <span class="opt-letter">B</span>
+          <span class="opt-text">(x-xₒ)² + (y-yₒ)² = 9</span>
+        </button>
+        <button class="opt" onclick="pick(7,2,this)" data-q="7" data-opt="2">
+          <span class="opt-letter">C</span>
+          <span class="opt-text">x² + y² = 2x + 2y + 9</span>
+        </button>
+        <button class="opt opt-skip" onclick="pick(7,-1,this)" data-q="7" data-opt="-1">
+          <span class="opt-letter">?</span>
+          <span class="opt-text" style="color:#94a3b8">Je ne sais pas</span>
+        </button>
+    </div>
+  </div>
+  <div class="q-card" id="card-8" style="display:none">
+    <div class="q-header">
+      <span class="q-badge">T1-D1-Q8</span>
+      <span class="q-count">Question 9 / 13</span>
+    </div>
+    <p class="q-text">Distance entre Ω(3;4) et (D) : ax+by+c=0</p>
+    
+    <div class="opts">
+        <button class="opt" onclick="pick(8,0,this)" data-q="8" data-opt="0">
+          <span class="opt-letter">A</span>
+          <span class="opt-text">d = |4a+3b+c| / √(a²+b²)</span>
+        </button>
+        <button class="opt" onclick="pick(8,1,this)" data-q="8" data-opt="1">
+          <span class="opt-letter">B</span>
+          <span class="opt-text">d = |3a+4b+c| / √(a²+c²)</span>
+        </button>
+        <button class="opt" onclick="pick(8,2,this)" data-q="8" data-opt="2">
+          <span class="opt-letter">C</span>
+          <span class="opt-text">d = |3a+4b+c| / √(a²+b²)</span>
+        </button>
+        <button class="opt opt-skip" onclick="pick(8,-1,this)" data-q="8" data-opt="-1">
+          <span class="opt-letter">?</span>
+          <span class="opt-text" style="color:#94a3b8">Je ne sais pas</span>
+        </button>
+    </div>
+  </div>
+  <div class="q-card" id="card-9" style="display:none">
+    <div class="q-header">
+      <span class="q-badge">T2-D1-Q9</span>
+      <span class="q-count">Question 10 / 13</span>
+    </div>
+    <p class="q-text">Dans le repère (O, I, J), le vecteur OA⃗ pour A(2,3) est</p>
+    <div class="q-img"><img src="repere.jpg" alt="repere.jpg"></div>
+    <div class="opts">
+        <button class="opt" onclick="pick(9,0,this)" data-q="9" data-opt="0">
+          <span class="opt-letter">A</span>
+          <span class="opt-text">(2, 3)</span>
+        </button>
+        <button class="opt" onclick="pick(9,1,this)" data-q="9" data-opt="1">
+          <span class="opt-letter">B</span>
+          <span class="opt-text">(3, 2)</span>
+        </button>
+        <button class="opt" onclick="pick(9,2,this)" data-q="9" data-opt="2">
+          <span class="opt-letter">C</span>
+          <span class="opt-text">(−2, −3)</span>
+        </button>
+        <button class="opt opt-skip" onclick="pick(9,-1,this)" data-q="9" data-opt="-1">
+          <span class="opt-letter">?</span>
+          <span class="opt-text" style="color:#94a3b8">Je ne sais pas</span>
+        </button>
+    </div>
+  </div>
+  <div class="q-card" id="card-10" style="display:none">
+    <div class="q-header">
+      <span class="q-badge">T2-D1-Q10</span>
+      <span class="q-count">Question 11 / 13</span>
+    </div>
+    <p class="q-text">La distance entre A(1,2) et B(4,6) est</p>
+    <div class="q-img"><img src="repere.jpg" alt="repere.jpg"></div>
+    <div class="opts">
+        <button class="opt" onclick="pick(10,0,this)" data-q="10" data-opt="0">
+          <span class="opt-letter">A</span>
+          <span class="opt-text">3</span>
+        </button>
+        <button class="opt" onclick="pick(10,1,this)" data-q="10" data-opt="1">
+          <span class="opt-letter">B</span>
+          <span class="opt-text">5</span>
+        </button>
+        <button class="opt" onclick="pick(10,2,this)" data-q="10" data-opt="2">
+          <span class="opt-letter">C</span>
+          <span class="opt-text">7</span>
+        </button>
+        <button class="opt opt-skip" onclick="pick(10,-1,this)" data-q="10" data-opt="-1">
+          <span class="opt-letter">?</span>
+          <span class="opt-text" style="color:#94a3b8">Je ne sais pas</span>
+        </button>
+    </div>
+  </div>
+  <div class="q-card" id="card-11" style="display:none">
+    <div class="q-header">
+      <span class="q-badge">T3-D1-Q11</span>
+      <span class="q-count">Question 12 / 13</span>
+    </div>
+    <p class="q-text">Soit (D): 2x − y + 3 = 0. La droite perpendiculaire passant par A(1,1) a pour équation</p>
+    <div class="q-img"><img src="repere.jpg" alt="repere.jpg"></div>
+    <div class="opts">
+        <button class="opt" onclick="pick(11,0,this)" data-q="11" data-opt="0">
+          <span class="opt-letter">A</span>
+          <span class="opt-text">x + 2y − 3 = 0</span>
+        </button>
+        <button class="opt" onclick="pick(11,1,this)" data-q="11" data-opt="1">
+          <span class="opt-letter">B</span>
+          <span class="opt-text">2x − y + 1 = 0</span>
+        </button>
+        <button class="opt" onclick="pick(11,2,this)" data-q="11" data-opt="2">
+          <span class="opt-letter">C</span>
+          <span class="opt-text">x − 2y + 1 = 0</span>
+        </button>
+        <button class="opt opt-skip" onclick="pick(11,-1,this)" data-q="11" data-opt="-1">
+          <span class="opt-letter">?</span>
+          <span class="opt-text" style="color:#94a3b8">Je ne sais pas</span>
+        </button>
+    </div>
+  </div>
+  <div class="q-card" id="card-12" style="display:none">
+    <div class="q-header">
+      <span class="q-badge">T3-D1-Q12</span>
+      <span class="q-count">Question 13 / 13</span>
+    </div>
+    <p class="q-text">L'ensemble des points M vérifiant MA⃗·MB⃗ = 0 est</p>
+    <div class="q-img"><img src="repere.jpg" alt="repere.jpg"></div>
+    <div class="opts">
+        <button class="opt" onclick="pick(12,0,this)" data-q="12" data-opt="0">
+          <span class="opt-letter">A</span>
+          <span class="opt-text">Un segment</span>
+        </button>
+        <button class="opt" onclick="pick(12,1,this)" data-q="12" data-opt="1">
+          <span class="opt-letter">B</span>
+          <span class="opt-text">Un cercle de diamètre [AB]</span>
+        </button>
+        <button class="opt" onclick="pick(12,2,this)" data-q="12" data-opt="2">
+          <span class="opt-letter">C</span>
+          <span class="opt-text">Une droite perpendiculaire à AB</span>
+        </button>
+        <button class="opt opt-skip" onclick="pick(12,-1,this)" data-q="12" data-opt="-1">
+          <span class="opt-letter">?</span>
+          <span class="opt-text" style="color:#94a3b8">Je ne sais pas</span>
+        </button>
+    </div>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="btn btn-prev" id="btn-prev" onclick="go(-1)" disabled>◀ Précédent</button>
+  <button class="btn btn-next" id="btn-next" onclick="go(1)">Suivant ▶</button>
+  <button class="btn btn-submit" id="btn-submit" onclick="submit()">Soumettre ✓</button>
+</div>
+
+<script>
+const TOTAL = 13;
+let cur = 0;
+const answers = {};
+
+function pick(qIdx, optIdx, btn) {
+  const card = document.getElementById('card-' + qIdx);
+  card.querySelectorAll('.opt').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  answers[qIdx] = optIdx;
+}
+
+function go(dir) {
+  document.getElementById('card-' + cur).style.display = 'none';
+  cur = Math.max(0, Math.min(TOTAL - 1, cur + dir));
+  document.getElementById('card-' + cur).style.display = 'block';
+  document.getElementById('prog').style.width = Math.round((cur + 1) / TOTAL * 100) + '%';
+  document.getElementById('prog-lbl').textContent = 'Question ' + (cur + 1) + ' / ' + TOTAL;
+  document.getElementById('btn-prev').disabled = cur === 0;
+  document.getElementById('btn-next').style.display = cur < TOTAL - 1 ? 'inline-block' : 'none';
+  document.getElementById('btn-submit').style.display = cur === TOTAL - 1 ? 'inline-block' : 'none';
+}
+
+function submit() {
+  const payload = JSON.stringify({timestamp: new Date().toISOString(), answers});
+  console.log('SUBMIT', payload);
+  // In production: POST to your API endpoint
+  alert('Réponses enregistrées avec succès.');
+}
+
+// Init state
+document.getElementById('btn-next').style.display = TOTAL > 1 ? 'inline-block' : 'none';
+document.getElementById('btn-submit').style.display = TOTAL === 1 ? 'inline-block' : 'none';
+</script>
+</body></html>
