@@ -164,6 +164,14 @@ export const platformDomains: MainDomain[] = [
           { id: 'geo-line-plane-cap', name: 'Line in the plane', nameFr: 'Droite dans le plan', testId: 'test-geo-line-plane' },
         ],
       },
+      {
+        id: 'geo-3d-geometry',
+        name: 'Géométrie dans l\'espace',
+        nameFr: 'Géométrie dans l\'espace',
+        capacities: [
+          { id: 'geo-3d-geometry-cap', name: 'Spatial Geometry', nameFr: 'Géométrie dans l\'espace', testId: 'test-geo-3d-geometry' },
+        ],
+      },
     ],
   },
 ]
