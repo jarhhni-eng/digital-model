@@ -26,6 +26,7 @@ import { getLatestTMTResult, TMTResult } from '@/lib/attentional/trail-making'
 import { getLatestShAResult, ShAResult } from '@/lib/attentional/shifting-attention'
 import { getLatestRAVLTResult, RAVLTResult } from '@/lib/memory/ravlt'
 import { getLatestDigitSpanResult, DigitSpanResult } from '@/lib/memory/digit-span'
+import { getLatestSpatialGeometryResult, SpatialGeometryResult } from '@/lib/geometry/spatial-geometry'
 
 // ─── Exact same domain/test definitions as dashboard ──────────────────────────
 
@@ -130,6 +131,7 @@ const DOMAINS = [
       { id: 'test-geo-dot-product',  name: 'Produit scalaire',         status: 'upcoming', score: 0 },
       { id: 'test-geo-trigonometry', name: 'Trigonométrie',            status: 'upcoming', score: 0 },
       { id: 'test-geo-line-plane',   name: 'Droite dans le plan',      status: 'upcoming', score: 0 },
+      { id: 'test-geo-3d-geometry',  name: 'Géométrie dans l\'espace', status: 'upcoming', score: 0 },
     ],
   },
 ]
@@ -185,6 +187,7 @@ export default function ResultsPage() {
   const [sha, setSha] = useState<ShAResult | null>(null)
   const [ravlt, setRavlt] = useState<RAVLTResult | null>(null)
   const [digitSpan, setDigitSpan] = useState<DigitSpanResult | null>(null)
+  const [spatialGeometry, setSpatialGeometry] = useState<SpatialGeometryResult | null>(null)
 
   useEffect(() => {
     const refresh = () => {
@@ -203,16 +206,19 @@ export default function ResultsPage() {
       setSha(getLatestShAResult(name) ?? null)
       setRavlt(getLatestRAVLTResult(name) ?? null)
       setDigitSpan(getLatestDigitSpanResult(name) ?? null)
+      setSpatialGeometry(getLatestSpatialGeometryResult(name) ?? null)
     }
     refresh()
     window.addEventListener('beery-motrice-changed', refresh)
     window.addEventListener('attentional-changed', refresh)
     window.addEventListener('memory-changed', refresh)
+    window.addEventListener('geometry-changed', refresh)
     window.addEventListener('storage', refresh)
     return () => {
       window.removeEventListener('beery-motrice-changed', refresh)
       window.removeEventListener('attentional-changed', refresh)
       window.removeEventListener('memory-changed', refresh)
+      window.removeEventListener('geometry-changed', refresh)
       window.removeEventListener('storage', refresh)
     }
   }, [user])

@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh pr *)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npm run *)",
+      "Bash(pip install *)",
+      "Bash(python build_sample_docx.py)",
+      "Bash(python parser.py questions_sample.docx)",
+      "Bash(python -m pip install python-docx -q)",
+      "Bash(python -m tools.produit_scalaire.main --answers tools/produit_scalaire/sample_answers.json)",
+      "Bash(python -c \"import json; print\\(json.dumps\\(json.load\\(open\\('tools/produit_scalaire/output/stats.json', encoding='utf-8'\\)\\)['by_skill'], indent=2, ensure_ascii=False\\)\\)\")",
+      "Bash(python -m http.server 8765)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8765/student.html)",
+      "Bash(npm ls *)",
+      "Bash(npm install *)",
+      "Bash(python -c ' *)",
+      "Bash(npx tsc *)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(pkill -f \"node.*dev\")",
+      "Bash(netstat -ano)",
+      "Bash(findstr :3000)",
+      "Bash(taskkill /PID 36540 /F)",
+      "Bash(awk '{print $2}')",
+      "Bash(xargs kill *)",
+      "Bash(curl -s http://localhost:3003)",
+      "Bash(rm -rf .next)",
+      "Bash(rm -rf .next/dev/lock)",
+      "Bash(curl -s http://localhost:3005)",
+      "Bash(curl -s http://localhost:3005/)",
+      "Bash(curl -s \"http://localhost:3005/tests/test-geo-3d-geometry\")"
+    ]
+  }
+}

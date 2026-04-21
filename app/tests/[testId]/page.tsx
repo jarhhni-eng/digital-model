@@ -40,6 +40,8 @@ import { TrigonometryQuizTest } from '@/components/trigonometry/trigonometry-qui
 import { GenericTestRunner } from '@/components/assessment/generic-test-runner'
 import { VECTORS_TEST_ID } from '@/lib/geo-vectors-lesson'
 import { TRIG_TEST_ID } from '@/lib/trigonometry-lesson'
+import { SPATIAL_GEOMETRY_TEST_ID } from '@/lib/geometry/spatial-geometry'
+import { SpatialGeometryQuiz } from '@/components/geometry/spatial-geometry-quiz'
 
 interface TestPageProps {
   params: Promise<{ testId: string }>
@@ -106,6 +108,9 @@ export default function TestPage({ params }: TestPageProps) {
   }
   if (testId === TRIG_TEST_ID) {
     return <TrigonometryQuizTest />
+  }
+  if (testId === SPATIAL_GEOMETRY_TEST_ID) {
+    return <SpatialGeometryQuiz />
   }
 
   return <GenericTestRunner test={test} />

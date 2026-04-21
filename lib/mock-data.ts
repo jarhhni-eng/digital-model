@@ -292,6 +292,14 @@ export const mainDomains: MainDomain[] = [
           { id: 'geo-line-plane-cap', name: 'Line in the plane', nameFr: 'Droite dans le plan', testId: 'test-geo-line-plane', competencyCode: 'C₁–C₅' },
         ],
       },
+      {
+        id: 'geo-3d-geometry',
+        name: 'Géométrie dans l\'espace',
+        nameFr: 'Géométrie dans l\'espace',
+        capacities: [
+          { id: 'geo-3d-geometry-cap', name: 'Spatial Geometry', nameFr: 'Géométrie dans l\'espace', testId: 'test-geo-3d-geometry', competencyCode: 'C₁–C₅' },
+        ],
+      },
     ],
   },
 ]
@@ -450,6 +458,14 @@ export const mockTests: Test[] = [
       { id: 'geo-lp-q4', label: 'Q4', competencyCode: 'C₄', type: 'mcq', question: 'La distance du point (1, 2) à la droite d\'équation x − y = 0 est :', options: ['1/√2', '√2', '1', '2/√2'], correctOptionIndex: 0, timeLimit: 45 },
       { id: 'geo-lp-q5', label: 'Q5', competencyCode: 'C₅', type: 'mcq', question: 'Les droites y = 2x + 1 et y = −x + 4 se coupent en :', options: ['(1, 3)', '(2, 5)', '(3, 7)', '(0, 1)'], correctOptionIndex: 0, timeLimit: 45 },
     ],
+  },
+  {
+    id: 'test-geo-3d-geometry',
+    title: 'Géométrie dans l\'espace',
+    domain: 'Cognition et apprentissage de la géométrie',
+    status: 'upcoming',
+    type: 'mcq',
+    duration: 900,
   },
 ]
 
