@@ -228,6 +228,33 @@ function TrialView({
     }
   }, [question.question])
 
+  // Render LaTeX in options
+  const optionsRef = useRef<(HTMLDivElement | null)[]>([])
+  useEffect(() => {
+    optionsRef.current.forEach((el) => {
+      if (el) {
+        const content = el.innerHTML
+        try {
+          const rendered = content.replace(
+            /\\\((.*?)\\\)/g,
+            (match, latex) => {
+              try {
+                return `<span class="inline-math">${KaTeX.renderToString(latex, {
+                  throwOnError: false,
+                })}</span>`
+              } catch {
+                return match
+              }
+            }
+          )
+          el.innerHTML = rendered
+        } catch (e) {
+          console.error('KaTeX rendering error in options:', e)
+        }
+      }
+    })
+  }, [question.options])
+
   return (
     <main className="container mx-auto max-w-2xl py-8">
       <div className="mb-4 flex items-center justify-between">
@@ -266,6 +293,7 @@ function TrialView({
           {question.options.map((option, idx) => {
             const answerLabel = String.fromCharCode(65 + idx) // A, B, C, D
             const isSelected = selected === idx
+            const isImageOption = question.hasImageOptions
 
             return (
               <button
@@ -288,14 +316,29 @@ function TrialView({
                     {isSelected && <span className="text-xs font-bold">✓</span>}
                   </div>
                   <div className="flex-1">
-                    <div className="font-semibold text-gray-900 dark:text-white">
-                      {answerLabel}. {' '}
-                      <span
+                    {isImageOption ? (
+                      <div>
+                        <div className="font-semibold text-gray-900 dark:text-white mb-2">
+                          {answerLabel}.
+                        </div>
+                        <div className="flex items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 dark:border-gray-600 dark:bg-gray-800">
+                          <div className="text-center">
+                            <BarChart3 className="mx-auto h-8 w-8 text-gray-400" />
+                            <p className="mt-1 text-xs text-gray-500">Image {answerLabel}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        className="font-semibold text-gray-900 dark:text-white"
+                        ref={(el) => {
+                          if (el) optionsRef.current[idx] = el
+                        }}
                         dangerouslySetInnerHTML={{
-                          __html: option,
+                          __html: `${answerLabel}. ${option}`,
                         }}
                       />
-                    </div>
+                    )}
                   </div>
                 </div>
               </button>

@@ -28,7 +28,12 @@
       "Bash(rm -rf .next/dev/lock)",
       "Bash(curl -s http://localhost:3005)",
       "Bash(curl -s http://localhost:3005/)",
-      "Bash(curl -s \"http://localhost:3005/tests/test-geo-3d-geometry\")"
+      "Bash(curl -s \"http://localhost:3005/tests/test-geo-3d-geometry\")",
+      "Bash(curl -s \"http://localhost:3005/domains\")",
+      "Bash(curl -s \"http://localhost:3005/domains/geometry-learning\")",
+      "Bash(mv Q9.png q9.png)",
+      "Bash(mv q6.jpg q6.png)",
+      "Bash(curl -s \"http://localhost:3005/images/geometry/3d/q9.png\" -I)"
     ]
   }
 }

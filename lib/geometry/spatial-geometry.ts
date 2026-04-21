@@ -1,19 +1,20 @@
 /**
- * Spatial Geometry (3D/la géométrie dans l'espace) — WAIS-style spatial reasoning test.
- * Twenty-one questions covering planes, lines, spatial relationships, intersections, orthogonality, and sections.
+ * Spatial Geometry (3D/la géométrie dans l'espace) — Professional 3D Geometry Test
+ * 21 questions covering fundamental concepts in 3D geometry
  */
 
 export const SPATIAL_GEOMETRY_TEST_ID = 'test-geo-3d-geometry'
 export const SPATIAL_GEOMETRY_RESULTS_KEY = 'spatial-geometry:results'
 
 export interface SpatialGeometryQuestion {
-  id: string // G1-D1-Q1, G1-D1-Q2, etc.
-  question: string // LaTeX-formatted question text
-  options: string[] // A, B, C, D options
-  correctAnswer: number // 0-3 for A-D
+  id: string
+  question: string
+  options: string[]
+  correctAnswer: number
   requiresImage: boolean
   imagePath?: string
-  topic: string // e.g., 'planes', 'lines', 'parallel-perpendicular', etc.
+  hasImageOptions?: boolean
+  topic: string
 }
 
 export interface SpatialGeometryTrialResult {
@@ -32,296 +33,297 @@ export interface SpatialGeometryResult {
   trials: SpatialGeometryTrialResult[]
   totalMs: number
   correctCount: number
-  score: number // 0..100 percent of questions correct
+  score: number
 }
 
 export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
-    id: 'G1-D1-Q1',
-    question: `Deux plans π₁ et π₂ se coupent selon une droite d. Lequel des énoncés suivants est toujours vrai ?`,
+    id: 'Q1',
+    question: 'Par trois points non alignés A, B, C de l\'espace E passe :',
     options: [
-      'Les deux plans sont perpendiculaires',
-      'La droite d est la seule intersection possible',
-      'Les deux plans contiennent une infinité de points communs',
-      'Les deux plans sont parallèles'
+      'un plan unique noté (ABC)',
+      'deux plans',
+      'trois plans différents',
+      'aucune réponse'
     ],
-    correctAnswer: 2,
+    correctAnswer: 0,
+    requiresImage: false,
+    topic: 'fundamental-concepts'
+  },
+  {
+    id: 'Q2',
+    question: 'A et B sont deux points distincts d\'un plan (P). La droite (AB) est :',
+    options: [
+      'incluse dans le plan (P)',
+      'orthogonale au plan (P)',
+      'parallèle au plan (P)',
+      'aucune réponse'
+    ],
+    correctAnswer: 0,
+    requiresImage: false,
+    topic: 'lines-planes'
+  },
+  {
+    id: 'Q3',
+    question: 'Deux plans distincts (P) et (P\') ont un point commun A. Alors :',
+    options: [
+      'ils se coupent suivant une droite passant par A',
+      'ils se coupent uniquement en A',
+      'ils sont parallèles',
+      'aucune réponse'
+    ],
+    correctAnswer: 0,
+    requiresImage: false,
+    topic: 'plane-intersection'
+  },
+  {
+    id: 'Q4',
+    question: 'Si deux droites (D) et (D\') sont parallèles et Δ est parallèle à l\'une :',
+    options: [
+      'Δ est parallèle à l\'autre',
+      'Δ est perpendiculaire à l\'autre',
+      'Δ est sécante',
+      'aucune réponse'
+    ],
+    correctAnswer: 0,
+    requiresImage: false,
+    topic: 'parallel-lines'
+  },
+  {
+    id: 'Q5',
+    question: 'Si une droite Δ est parallèle aux droites (D) et (D\') :',
+    options: [
+      '(D) et (D\') sont parallèles',
+      'elles ne sont pas parallèles',
+      'elles sont perpendiculaires',
+      'aucune réponse'
+    ],
+    correctAnswer: 0,
+    requiresImage: false,
+    topic: 'parallel-lines'
+  },
+  {
+    id: 'Q6',
+    question: 'Deux plans (P) et (P\') sont parallèles. Tout plan (Q) parallèle à l\'un est parallèle à l\'autre.',
+    options: [
+      'Image A',
+      'Image B',
+      'Image C',
+      'Image D'
+    ],
+    correctAnswer: 0,
+    requiresImage: false,
+    hasImageOptions: true,
+    topic: 'parallel-planes'
+  },
+  {
+    id: 'Q7',
+    question: 'Une droite (D) est parallèle à un plan (P) si :',
+    options: [
+      'elle est parallèle à toute droite du plan',
+      'elle est parallèle à une seule droite du plan',
+      'elle est incluse dans le plan',
+      'aucune réponse'
+    ],
+    correctAnswer: 1,
+    requiresImage: false,
+    topic: 'line-plane'
+  },
+  {
+    id: 'Q8',
+    question: 'Deux plans (P) et (P\') sont parallèles :',
+    options: [
+      'toute droite coupant l\'un coupe l\'autre',
+      'une droite orthogonale à l\'un est orthogonale à l\'autre',
+      'une droite coupant l\'un ne coupe pas l\'autre',
+      'aucune réponse'
+    ],
+    correctAnswer: 1,
     requiresImage: true,
-    imagePath: '/images/geometry/3d/q1.svg',
-    topic: 'planes'
+    imagePath: '/images/geometry/3d/q8.png',
+    topic: 'parallel-planes'
   },
   {
-    id: 'G1-D1-Q2',
-    question: `Si une droite l est parallèle à un plan π, combien de points l et π ont-ils en commun ?`,
+    id: 'Q9',
+    question: 'Deux plans parallèles coupés par un plan donnent deux droites parallèles.',
     options: [
-      'Exactement un point',
-      'Zéro point',
-      'Une infinité de points',
-      'Entre 1 et 3 points'
+      'Image A',
+      'Image B',
+      'Image C',
+      'Image D'
     ],
-    correctAnswer: 1,
+    correctAnswer: 0,
     requiresImage: false,
-    topic: 'parallel-perpendicular'
+    hasImageOptions: true,
+    topic: 'plane-sections'
   },
   {
-    id: 'G1-D1-Q3',
-    question: `Trois droites non coplanaires forment-elles nécessairement une surface réglée ?`,
+    id: 'Q10',
+    question: 'Relation entre une droite et une droite d\'intersection de deux plans :',
     options: [
-      'Oui, toujours',
-      'Non, jamais',
-      'Seulement si elles sont parallèles',
-      'Seulement si elles sont concourantes'
-    ],
-    correctAnswer: 1,
-    requiresImage: false,
-    topic: 'spatial-positions'
-  },
-  {
-    id: 'G1-D1-Q4',
-    question: `Un plan π est perpendiculaire à un plan π' si et seulement si :`,
-    options: [
-      'π contient une droite perpendiculaire à π\'',
-      'Tout point de π est équidistant de π\'',
-      'π et π\' ne se coupent pas',
-      'π et π\' ont une infinité de droites en commun'
+      'parallèles',
+      'perpendiculaires',
+      'sécantes',
+      'aucune réponse'
     ],
     correctAnswer: 0,
     requiresImage: true,
-    imagePath: '/images/geometry/3d/q4.svg',
+    imagePath: '/images/geometry/3d/q10.png',
+    topic: 'line-intersection'
+  },
+  {
+    id: 'Q11',
+    question: 'Si deux droites sont orthogonales :',
+    options: [
+      'toute parallèle à l\'une est orthogonale à l\'autre',
+      'parallèle à l\'autre',
+      'sécante',
+      'aucune réponse'
+    ],
+    correctAnswer: 0,
+    requiresImage: true,
+    imagePath: '/images/geometry/3d/q11.png',
     topic: 'orthogonality'
   },
   {
-    id: 'G1-D1-Q5',
-    question: `Soit un cube ABCDEFGH d'arête a. Quel est la distance entre les droites AB et GH ?`,
+    id: 'Q12',
+    question: 'Si deux droites sont parallèles et Δ est orthogonale à l\'une :',
     options: [
-      'a',
-      'a√2',
-      'a√3',
-      'a/2'
-    ],
-    correctAnswer: 0,
-    requiresImage: true,
-    imagePath: '/images/geometry/3d/q5.svg',
-    topic: 'spatial-positions'
-  },
-  {
-    id: 'G1-D1-Q6',
-    question: `Une section d'une pyramide par un plan parallèle à la base est :`,
-    options: [
-      'Une figure similaire à la base',
-      'Un triangle équilatéral',
-      'Un carré',
-      'Un rectangle'
-    ],
-    correctAnswer: 0,
-    requiresImage: true,
-    imagePath: '/images/geometry/3d/q6.svg',
-    topic: 'geometric-sections'
-  },
-  {
-    id: 'G1-D1-Q7',
-    question: `Deux droites sont dites gauches si :`,
-    options: [
-      'Elles ne se coupent pas et sont parallèles',
-      'Elles ne se coupent pas et ne sont pas parallèles',
-      'Elles sont perpendiculaires',
-      'Elles appartiennent au même plan'
+      'Δ est parallèle à l\'autre',
+      'Δ est orthogonale à l\'autre',
+      'seulement à une',
+      'aucune réponse'
     ],
     correctAnswer: 1,
     requiresImage: true,
-    imagePath: '/images/geometry/3d/q7.svg',
-    topic: 'spatial-positions'
-  },
-  {
-    id: 'G1-D1-Q8',
-    question: `Un prisme droit a une base régulière hexagonale. Combien de plans de symétrie possède-t-il ?`,
-    options: [
-      '6 plans',
-      '7 plans',
-      '12 plans',
-      '3 plans'
-    ],
-    correctAnswer: 1,
-    requiresImage: false,
-    topic: 'geometric-sections'
-  },
-  {
-    id: 'G1-D1-Q9',
-    question: `Dans un espace 3D, le lieu des points équidistants de deux droites parallèles est :`,
-    options: [
-      'Un plan unique',
-      'Deux plans perpendiculaires',
-      'Un plan parallèle aux deux droites',
-      'Une droite'
-    ],
-    correctAnswer: 2,
-    requiresImage: true,
-    imagePath: '/images/geometry/3d/q9.svg',
-    topic: 'locus'
-  },
-  {
-    id: 'G1-D1-Q10',
-    question: `La projection orthogonale d'un cercle sur un plan est :`,
-    options: [
-      'Toujours un cercle',
-      'Toujours une ellipse',
-      'Un cercle ou une ellipse selon l\'angle',
-      'Un segment de droite'
-    ],
-    correctAnswer: 2,
-    requiresImage: true,
-    imagePath: '/images/geometry/3d/q10.svg',
-    topic: 'projections'
-  },
-  {
-    id: 'G1-D1-Q11',
-    question: `Un tétraèdre régulier possède combien d'axes de symétrie d'ordre 3 ?`,
-    options: [
-      '0',
-      '2',
-      '4',
-      '8'
-    ],
-    correctAnswer: 2,
-    requiresImage: false,
-    topic: 'symmetry'
-  },
-  {
-    id: 'G1-D1-Q12',
-    question: `Deux plans distincts qui ne se coupent pas sont :`,
-    options: [
-      'Nécessairement perpendiculaires',
-      'Nécessairement parallèles',
-      'Parfois parallèles, parfois gauches',
-      'Toujours gauches'
-    ],
-    correctAnswer: 1,
-    requiresImage: false,
-    topic: 'planes'
-  },
-  {
-    id: 'G1-D1-Q13',
-    question: `Une droite l perpendiculaire à deux droites concourantes d'un plan π est :`,
-    options: [
-      'Parallèle à π',
-      'Contenue dans π',
-      'Perpendiculaire à π',
-      'Oblique par rapport à π'
-    ],
-    correctAnswer: 2,
-    requiresImage: true,
-    imagePath: '/images/geometry/3d/q13.svg',
+    imagePath: '/images/geometry/3d/q12.png',
     topic: 'orthogonality'
   },
   {
-    id: 'G1-D1-Q14',
-    question: `L'intersection de trois plans en position générale est :`,
+    id: 'Q13',
+    question: 'Déterminer la position relative :',
     options: [
-      'Toujours un point',
-      'Toujours une droite',
-      'Un point, une droite, ou vide',
-      'Toujours vide'
-    ],
-    correctAnswer: 2,
-    requiresImage: true,
-    imagePath: '/images/geometry/3d/q14.svg',
-    topic: 'intersections'
-  },
-  {
-    id: 'G1-D1-Q15',
-    question: `Dans un parallélépipède rectangle, les diagonales principales se coupent-elles en un même point ?`,
-    options: [
-      'Oui, toujours',
-      'Non, jamais',
-      'Seulement si c\'est un cube',
-      'Seulement si les arêtes sont égales'
+      'sécantes',
+      'coplanaires',
+      'incluses dans un plan',
+      'aucune réponse'
     ],
     correctAnswer: 0,
     requiresImage: true,
-    imagePath: '/images/geometry/3d/q15.svg',
-    topic: 'spatial-positions'
+    imagePath: '/images/geometry/3d/q13.png',
+    topic: 'relative-position'
   },
   {
-    id: 'G1-D1-Q16',
-    question: `La section d'un cube par un plan peut-elle être un hexagone régulier ?`,
+    id: 'Q14',
+    question: 'Déterminer la position relative :',
     options: [
-      'Non, jamais',
-      'Oui, toujours',
-      'Oui, mais seulement dans des cas particuliers',
-      'Oui, mais seulement si le plan passe par un sommet'
+      'parallèles',
+      'incluses dans un plan',
+      'parallèle à toute droite du plan',
+      'aucune réponse'
     ],
-    correctAnswer: 2,
+    correctAnswer: 0,
     requiresImage: true,
-    imagePath: '/images/geometry/3d/q16.svg',
-    topic: 'geometric-sections'
+    imagePath: '/images/geometry/3d/q14.png',
+    topic: 'relative-position'
   },
   {
-    id: 'G1-D1-Q17',
-    question: `Une droite l et un plan π sont perpendiculaires si :`,
+    id: 'Q15',
+    question: '(D) est orthogonale au plan (P) et (D\') est incluse dans (P) :',
     options: [
-      'l est perpendiculaire à une seule droite de π',
-      'l est perpendiculaire à toutes les droites de π',
-      'l est perpendiculaire à deux droites sécantes de π',
-      'Les réponses b) et c) sont équivalentes'
-    ],
-    correctAnswer: 3,
-    requiresImage: false,
-    topic: 'orthogonality'
-  },
-  {
-    id: 'G1-D1-Q18',
-    question: `Quel est l'angle dièdre entre deux faces adjacentes d'un cube ?`,
-    options: [
-      '45°',
-      '60°',
-      '90°',
-      '120°'
-    ],
-    correctAnswer: 2,
-    requiresImage: false,
-    topic: 'angles'
-  },
-  {
-    id: 'G1-D1-Q19',
-    question: `La distance d'un point P à un plan π est définie comme :`,
-    options: [
-      'La longueur du segment PM où M est un point quelconque de π',
-      'La longueur du segment perpendiculaire de P à π',
-      'La moitié de la distance entre P et un point arbitraire de π',
-      'Le diamètre de la sphère centrée en P tangente à π'
+      'parallèles',
+      'orthogonales',
+      'parallèle à toute droite du plan',
+      'aucune réponse'
     ],
     correctAnswer: 1,
     requiresImage: true,
-    imagePath: '/images/geometry/3d/q19.svg',
-    topic: 'distance'
+    imagePath: '/images/geometry/3d/q15.png',
+    topic: 'orthogonality'
   },
   {
-    id: 'G1-D1-Q20',
-    question: `Deux sphères distinctes peuvent-elles se coupent selon un grand cercle ?`,
+    id: 'Q16',
+    question: 'Position de (D) et (P) :',
     options: [
-      'Non, jamais',
-      'Oui, toujours',
-      'Oui, dans certains cas particuliers',
-      'Seulement si elles ont le même rayon'
+      'coupe en un point',
+      'point d\'intersection I',
+      'orthogonale en I',
+      'aucune réponse'
     ],
     correctAnswer: 2,
     requiresImage: true,
-    imagePath: '/images/geometry/3d/q20.svg',
-    topic: 'spheres'
+    imagePath: '/images/geometry/3d/q16.png',
+    topic: 'line-plane'
   },
   {
-    id: 'G1-D1-Q21',
-    question: `Une pyramide régulière à base carrée a tous ses plans de symétrie en commun avec :`,
+    id: 'Q17',
+    question: 'Positions des plans :',
     options: [
-      'Un prisme à base carrée',
-      'Un prisme à base triangulaire',
-      'Un parallélépipède rectangle',
-      'Un octaèdre régulier'
+      'parallèles',
+      'droites parallèles',
+      'orthogonales conservées',
+      'aucune réponse'
     ],
     correctAnswer: 0,
     requiresImage: true,
-    imagePath: '/images/geometry/3d/q21.svg',
-    topic: 'symmetry'
+    imagePath: '/images/geometry/3d/q17.png',
+    topic: 'plane-position'
+  },
+  {
+    id: 'Q18',
+    question: 'Position de (D) et (P) :',
+    options: [
+      'parallèles',
+      'coplanaires',
+      'sécantes',
+      'aucune réponse'
+    ],
+    correctAnswer: 2,
+    requiresImage: true,
+    imagePath: '/images/geometry/3d/q18.png',
+    topic: 'line-plane'
+  },
+  {
+    id: 'Q19',
+    question: '',
+    options: [
+      'droite (CG)',
+      'droite (CD)',
+      'droite (BC)',
+      'point C'
+    ],
+    correctAnswer: 0,
+    requiresImage: true,
+    imagePath: '/images/geometry/3d/q19.png',
+    topic: 'spatial-sections'
+  },
+  {
+    id: 'Q20',
+    question: 'ABCD est un tétraèdre avec I ∈ [AB], J ∈ [AC], K ∈ [CD].',
+    options: [
+      'section par (IJK)',
+      'section par (ABD)',
+      'section de (ABC)',
+      'aucune réponse'
+    ],
+    correctAnswer: 0,
+    requiresImage: true,
+    imagePath: '/images/geometry/3d/q20.png',
+    topic: 'spatial-sections'
+  },
+  {
+    id: 'Q21',
+    question: 'Intersection droite-plan :',
+    options: [
+      'point E',
+      'point F',
+      'autre point',
+      'aucune réponse'
+    ],
+    correctAnswer: 0,
+    requiresImage: true,
+    imagePath: '/images/geometry/3d/q21.png',
+    topic: 'line-plane-intersection'
   }
 ]
 
