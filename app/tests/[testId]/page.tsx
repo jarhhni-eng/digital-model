@@ -18,7 +18,11 @@ import { SELECTIVE_ATTENTION_TEST_ID } from '@/lib/attentional/selective-attenti
 import { SUSTAINED_ATTENTION_TEST_ID } from '@/lib/attentional/sustained-attention'
 import { TRAIL_MAKING_TEST_ID } from '@/lib/attentional/trail-making'
 import { SHIFTING_ATTENTION_TEST_ID } from '@/lib/attentional/shifting-attention'
+import { RAVLT_TEST_ID } from '@/lib/memory/ravlt'
+import { DIGIT_SPAN_TEST_ID } from '@/lib/memory/digit-span'
 import { DividedAttentionTest } from '@/components/attentional/divided-attention-test'
+import { RAVLTTest } from '@/components/memory/ravlt-test'
+import { DigitSpanTest } from '@/components/memory/digit-span-test'
 import { SelectiveAttentionTest } from '@/components/attentional/selective-attention-test'
 import { SustainedAttentionTest } from '@/components/attentional/sustained-attention-test'
 import { TrailMakingTest } from '@/components/attentional/trail-making-test'
@@ -90,6 +94,12 @@ export default function TestPage({ params }: TestPageProps) {
   }
   if (testId === SHIFTING_ATTENTION_TEST_ID) {
     return <ShiftingAttentionTest />
+  }
+  if (testId === RAVLT_TEST_ID) {
+    return <RAVLTTest />
+  }
+  if (testId === DIGIT_SPAN_TEST_ID) {
+    return <DigitSpanTest />
   }
   if (testId === VECTORS_TEST_ID) {
     return <VectorsQuizTest />
