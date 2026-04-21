@@ -1,0 +1,32 @@
+<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Square pyramid with symmetry planes -->
+  <!-- Background -->
+  <rect width="300" height="300" fill="#f9fafb"/>
+
+  <!-- Square base -->
+  <polygon points="80,180 220,180 220,220 80,220" fill="#e5e7eb" stroke="#999" stroke-width="1.5"/>
+
+  <!-- Pyramid edges to apex -->
+  <line x1="150" y1="40" x2="80" y2="180" stroke="#999" stroke-width="1.5"/>
+  <line x1="150" y1="40" x2="220" y2="180" stroke="#999" stroke-width="1.5"/>
+  <line x1="150" y1="40" x2="80" y2="220" stroke="#999" stroke-width="1.5"/>
+  <line x1="150" y1="40" x2="220" y2="220" stroke="#999" stroke-width="1.5"/>
+
+  <!-- Base outline -->
+  <line x1="80" y1="180" x2="220" y2="180" stroke="#999" stroke-width="1.5"/>
+  <line x1="80" y1="180" x2="80" y2="220" stroke="#999" stroke-width="1.5"/>
+  <line x1="220" y1="180" x2="220" y2="220" stroke="#999" stroke-width="1.5"/>
+
+  <!-- Symmetry planes (blue vertical lines) -->
+  <line x1="150" y1="30" x2="150" y2="230" stroke="#3b82f6" stroke-width="2" opacity="0.6"/>
+  <line x1="80" y1="80" x2="220" y2="240" stroke="#3b82f6" stroke-width="2" opacity="0.6"/>
+
+  <!-- Apex -->
+  <circle cx="150" cy="40" r="3" fill="#000"/>
+
+  <!-- Labels -->
+  <text x="150" y="25" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">Pyramide régulière carrée</text>
+  <text x="270" y="100" font-size="11" fill="#3b82f6" font-weight="bold">Plans</text>
+  <text x="270" y="115" font-size="11" fill="#3b82f6" font-weight="bold">de symétrie</text>
+  <text x="150" y="290" font-size="12" text-anchor="middle" fill="#666">4 plans de symétrie</text>
+</svg>

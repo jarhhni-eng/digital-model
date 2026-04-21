@@ -1,0 +1,28 @@
+<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Two spheres intersecting -->
+  <!-- Background -->
+  <rect width="300" height="300" fill="#f9fafb"/>
+
+  <!-- Sphere 1 (blue) -->
+  <circle cx="110" cy="150" r="70" fill="#3b82f6" opacity="0.15" stroke="#3b82f6" stroke-width="2"/>
+
+  <!-- Sphere 2 (red) -->
+  <circle cx="190" cy="150" r="70" fill="#ef4444" opacity="0.15" stroke="#ef4444" stroke-width="2"/>
+
+  <!-- Intersection circle (dark line) -->
+  <ellipse cx="150" cy="150" rx="15" ry="50" fill="none" stroke="#000" stroke-width="2.5"/>
+
+  <!-- Center points -->
+  <circle cx="110" cy="150" r="3" fill="#3b82f6"/>
+  <circle cx="190" cy="150" r="3" fill="#ef4444"/>
+
+  <!-- Line between centers -->
+  <line x1="110" y1="150" x2="190" y2="150" stroke="#666" stroke-width="1" stroke-dasharray="3,3"/>
+
+  <!-- Labels -->
+  <text x="150" y="25" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">Intersection de deux sphères</text>
+  <text x="90" y="100" font-size="11" fill="#3b82f6" font-weight="bold">S₁</text>
+  <text x="200" y="100" font-size="11" fill="#ef4444" font-weight="bold">S₂</text>
+  <text x="150" y="220" font-size="11" fill="#000" font-weight="bold">Grand cercle</text>
+  <text x="150" y="290" font-size="12" text-anchor="middle" fill="#666">Intersection selon un cercle</text>
+</svg>

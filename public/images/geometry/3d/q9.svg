@@ -1,0 +1,39 @@
+<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Two parallel lines and equidistant planes -->
+  <defs>
+    <linearGradient id="plane1" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0.05" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="300" height="300" fill="#f9fafb"/>
+
+  <!-- Plane 1 (left) -->
+  <polygon points="40,80 100,80 100,240 40,240" fill="url(#plane1)" stroke="#3b82f6" stroke-width="2"/>
+
+  <!-- Plane 2 (middle) -->
+  <polygon points="150,80 150,240" stroke="#10b981" stroke-width="2" stroke-dasharray="5,5"/>
+
+  <!-- Plane 3 (right) -->
+  <polygon points="200,80 260,80 260,240 200,240" fill="url(#plane1)" stroke="#3b82f6" stroke-width="2"/>
+
+  <!-- Line 1 (red, left) -->
+  <line x1="70" y1="60" x2="70" y2="260" stroke="#ef4444" stroke-width="2.5"/>
+  <circle cx="70" cy="60" r="3" fill="#ef4444"/>
+
+  <!-- Line 2 (red, right) -->
+  <line x1="230" y1="60" x2="230" y2="260" stroke="#ef4444" stroke-width="2.5"/>
+  <circle cx="230" cy="60" r="3" fill="#ef4444"/>
+
+  <!-- Arrows showing equidistance -->
+  <line x1="100" y1="150" x2="150" y2="150" stroke="#10b981" stroke-width="1.5"/>
+  <polygon points="150,150 145,146 145,154" fill="#10b981"/>
+
+  <!-- Labels -->
+  <text x="150" y="25" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">Locus équidistant</text>
+  <text x="70" y="280" font-size="11" fill="#ef4444" font-weight="bold">d₁</text>
+  <text x="230" y="280" font-size="11" fill="#ef4444" font-weight="bold">d₂</text>
+  <text x="125" y="135" font-size="10" fill="#10b981" font-weight="bold">π</text>
+</svg>
