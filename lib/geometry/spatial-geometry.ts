@@ -13,7 +13,7 @@ export interface SpatialGeometryQuestion {
   correctAnswer: number
   requiresImage: boolean
   imagePath?: string
-  hasImageOptions?: boolean
+  imageOptions?: string[] // For Q6, Q9: paths to image option files
   topic: string
 }
 
@@ -108,12 +108,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
     options: [
       'Image A',
       'Image B',
-      'Image C',
-      'Image D'
+      'incluses dans un plan',
+      'aucune réponse'
     ],
     correctAnswer: 0,
     requiresImage: false,
-    hasImageOptions: true,
+    imageOptions: ['/images/geometry/3d/q6_a.jpg', '/images/geometry/3d/q6_b.png'],
     topic: 'parallel-planes'
   },
   {
@@ -149,12 +149,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
     options: [
       'Image A',
       'Image B',
-      'Image C',
-      'Image D'
+      'sécantes',
+      'aucune réponse'
     ],
     correctAnswer: 0,
     requiresImage: false,
-    hasImageOptions: true,
+    imageOptions: ['/images/geometry/3d/q9_a.png', '/images/geometry/3d/q9_b.png'],
     topic: 'plane-sections'
   },
   {

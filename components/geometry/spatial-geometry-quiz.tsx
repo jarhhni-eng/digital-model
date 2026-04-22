@@ -187,6 +187,7 @@ interface TrialViewProps {
     options: string[]
     requiresImage: boolean
     imagePath?: string
+    imageOptions?: string[]
   }
   selected: number | null
   onSelectOption: (index: number) => void
@@ -293,7 +294,7 @@ function TrialView({
           {question.options.map((option, idx) => {
             const answerLabel = String.fromCharCode(65 + idx) // A, B, C, D
             const isSelected = selected === idx
-            const isImageOption = question.hasImageOptions
+            const hasImageForThisOption = question.imageOptions && idx < question.imageOptions.length
 
             return (
               <button
@@ -316,16 +317,25 @@ function TrialView({
                     {isSelected && <span className="text-xs font-bold">✓</span>}
                   </div>
                   <div className="flex-1">
-                    {isImageOption ? (
+                    {hasImageForThisOption ? (
                       <div>
                         <div className="font-semibold text-gray-900 dark:text-white mb-2">
                           {answerLabel}.
                         </div>
-                        <div className="flex items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 dark:border-gray-600 dark:bg-gray-800">
-                          <div className="text-center">
-                            <BarChart3 className="mx-auto h-8 w-8 text-gray-400" />
-                            <p className="mt-1 text-xs text-gray-500">Image {answerLabel}</p>
-                          </div>
+                        <div className="rounded-lg border border-gray-300 overflow-hidden bg-gray-100 dark:bg-gray-800">
+                          <img
+                            src={question.imageOptions![idx]}
+                            alt={`Option ${answerLabel}`}
+                            className="w-full h-auto object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement
+                              target.style.display = 'none'
+                              const parent = target.parentElement
+                              if (parent) {
+                                parent.innerHTML = `<div class="flex items-center justify-center p-6"><BarChart3 className="h-8 w-8 text-gray-400" /></div>`
+                              }
+                            }}
+                          />
                         </div>
                       </div>
                     ) : (
