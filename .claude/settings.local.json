@@ -33,7 +33,8 @@
       "Bash(curl -s \"http://localhost:3005/domains/geometry-learning\")",
       "Bash(mv Q9.png q9.png)",
       "Bash(mv q6.jpg q6.png)",
-      "Bash(curl -s \"http://localhost:3005/images/geometry/3d/q9.png\" -I)"
+      "Bash(curl -s \"http://localhost:3005/images/geometry/3d/q9.png\" -I)",
+      "Bash(curl -s http://localhost:3006)"
     ]
   }
 }

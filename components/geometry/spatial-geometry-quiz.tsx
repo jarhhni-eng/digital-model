@@ -31,7 +31,17 @@ export function SpatialGeometryQuiz() {
     if (selected === null) return
 
     const question = SPATIAL_GEOMETRY_QUESTIONS[current]
-    const correct = selected === question.correctAnswer
+
+    // Handle multiple correct answers
+    let correct = false
+    if (question.correctAnswer === null) {
+      correct = false // Self-assessment questions are never marked correct
+    } else if (Array.isArray(question.correctAnswer)) {
+      correct = question.correctAnswer.includes(selected)
+    } else {
+      correct = selected === question.correctAnswer
+    }
+
     const trial: SpatialGeometryTrialResult = {
       index: current,
       questionId: question.id,
@@ -54,7 +64,12 @@ export function SpatialGeometryQuiz() {
 
   useEffect(() => {
     if (phase === 'done' && trials.length > 0) {
-      const correct = trials.filter((t) => t.correct).length
+      // Filter out self-assessment questions (those with null correctAnswer) from scoring
+      const scorableTrials = trials.filter((t) => {
+        const question = SPATIAL_GEOMETRY_QUESTIONS[t.index]
+        return question.correctAnswer !== null
+      })
+      const correct = scorableTrials.filter((t) => t.correct).length
       const r: SpatialGeometryResult = {
         id: `sg-${Date.now()}`,
         userName: user?.username,
@@ -63,7 +78,7 @@ export function SpatialGeometryQuiz() {
         trials,
         totalMs: Date.now() - startedAt,
         correctCount: correct,
-        score: Math.round((correct / SPATIAL_GEOMETRY_QUESTIONS.length) * 100),
+        score: scorableTrials.length > 0 ? Math.round((correct / scorableTrials.length) * 100) : 0,
       }
       saveSpatialGeometryResult(r)
     }
@@ -125,7 +140,7 @@ function Intro({ onStart, onQuit }: { onStart: () => void; onQuit: () => void })
         <h1 className="mb-3 text-3xl font-bold">Géométrie dans l'espace</h1>
         <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
           Ce test évalue votre compréhension des concepts fondamentaux de la géométrie tridimensionnelle.
-          Vous verrez 21 questions portant sur les plans, les droites, les relations spatiales,
+          Vous commencerez par une auto-évaluation, puis vous répondrez à 21 questions portant sur les plans, les droites, les relations spatiales,
           les intersections, l'orthogonalité et les sections géométriques.
         </p>
         <div className="mb-6 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
@@ -190,7 +205,7 @@ interface TrialViewProps {
     imagePath?: string
     imageOptions?: string[]
     part: string
-    correctAnswer: number | null
+    correctAnswer: number | number[] | null
     correction?: string
   }
   selected: number | null
@@ -260,6 +275,11 @@ function TrialView({
     })
   }, [question.options])
 
+  // Determine if this question has image options (Q6, Q9)
+  const hasImageOptions = question.imageOptions && question.imageOptions.length === 4
+  // Determine if this question has a main image before options (Q8, Q10-Q21)
+  const hasMainImage = question.imagePath && !hasImageOptions
+
   return (
     <main className="container mx-auto max-w-2xl py-8">
       <div className="mb-4 flex items-center justify-between">
@@ -273,11 +293,6 @@ function TrialView({
               Compétence: {question.competencies.join(', ')}
             </p>
           )}
-          <p className="text-xs text-muted-foreground capitalize">
-            {question.part === 'metacognition' && 'Auto-évaluation'}
-            {question.part === 'qcm' && 'QCM - Géométrie'}
-            {question.part === 'deductive' && 'Raisonnement Déductif'}
-          </p>
         </div>
       </div>
       <Progress value={((index + 1) / total) * 100} className="mb-6" />
@@ -292,35 +307,41 @@ function TrialView({
           }}
         />
 
-        {/* Image placeholder if needed */}
-        {question.requiresImage && (
-          <div className="flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-8 dark:bg-gray-900">
-            <div className="text-center">
-              <BarChart3 className="mx-auto h-12 w-12 text-gray-400" />
-              <p className="mt-2 text-sm text-gray-500">Illustration géométrique</p>
-              {question.imagePath && (
-                <p className="mt-1 text-xs text-gray-400">{question.imagePath}</p>
-              )}
-            </div>
+        {/* Main image if needed (Q8, Q10-Q21) */}
+        {hasMainImage && (
+          <div className="flex items-center justify-center rounded-lg border border-gray-300 overflow-hidden bg-gray-100 dark:bg-gray-800">
+            <img
+              src={question.imagePath}
+              alt={`Question ${question.id}`}
+              className="w-full h-auto object-cover max-h-96"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement
+                target.style.display = 'none'
+                const parent = target.parentElement
+                if (parent) {
+                  parent.innerHTML = `<div class="flex items-center justify-center p-8"><p class="text-sm text-gray-500">Image non disponible</p></div>`
+                }
+              }}
+            />
           </div>
         )}
 
         {/* Answer options */}
-        <div className="space-y-2">
+        <div className={hasImageOptions ? 'grid grid-cols-2 gap-3' : 'space-y-2'}>
           {question.options.map((option, idx) => {
             const answerLabel = String.fromCharCode(65 + idx) // A, B, C, D
             const isSelected = selected === idx
-            const hasImageForThisOption = question.imageOptions && idx < question.imageOptions.length
+            const hasImageForThisOption = hasImageOptions && idx < question.imageOptions!.length
 
             return (
               <button
                 key={idx}
                 onClick={() => onSelectOption(idx)}
-                className={`w-full rounded-lg border-2 p-4 text-left transition-all ${
+                className={`rounded-lg border-2 p-4 text-left transition-all ${
                   isSelected
                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
                     : 'border-gray-200 bg-white hover:border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-gray-600'
-                }`}
+                } ${hasImageOptions ? '' : 'w-full'}`}
               >
                 <div className="flex items-start gap-3">
                   <div
@@ -348,7 +369,7 @@ function TrialView({
                               target.style.display = 'none'
                               const parent = target.parentElement
                               if (parent) {
-                                parent.innerHTML = `<div class="flex items-center justify-center p-6"><BarChart3 className="h-8 w-8 text-gray-400" /></div>`
+                                parent.innerHTML = `<div class="flex items-center justify-center p-6"><p class="text-xs text-gray-400">Image non disponible</p></div>`
                               }
                             }}
                           />
@@ -392,8 +413,13 @@ interface ResultsProps {
 }
 
 function Results({ trials, onExit }: ResultsProps) {
-  const correct = trials.filter((t) => t.correct).length
-  const percentage = Math.round((correct / trials.length) * 100)
+  // Filter out self-assessment questions (those with null correctAnswer) from scoring
+  const scorableTrials = trials.filter((t) => {
+    const question = SPATIAL_GEOMETRY_QUESTIONS[t.index]
+    return question.correctAnswer !== null
+  })
+  const correct = scorableTrials.filter((t) => t.correct).length
+  const percentage = scorableTrials.length > 0 ? Math.round((correct / scorableTrials.length) * 100) : 0
 
   return (
     <main className="container mx-auto max-w-2xl py-10">
@@ -404,7 +430,7 @@ function Results({ trials, onExit }: ResultsProps) {
           <div className="rounded-md border bg-muted/20 p-3">
             <p className="text-xs text-muted-foreground">Score</p>
             <p className="text-2xl font-bold">
-              {correct} / {trials.length}
+              {correct} / {scorableTrials.length}
             </p>
           </div>
           <div className="rounded-md border bg-muted/20 p-3">
@@ -414,13 +440,36 @@ function Results({ trials, onExit }: ResultsProps) {
         </div>
         <div className="mb-6 max-h-64 overflow-auto rounded-md border bg-slate-50 p-3 dark:bg-slate-900">
           <p className="mb-2 text-xs font-semibold text-muted-foreground">Détails :</p>
-          {trials.map((t) => (
-            <div key={t.index} className="text-left text-xs">
-              <span className={t.correct ? 'text-green-600' : 'text-red-600'}>
-                {t.questionId}: {t.correct ? '✓ Correct' : '✗ Incorrect'} (Sélection: {String.fromCharCode(65 + t.selected)})
-              </span>
-            </div>
-          ))}
+          {trials.map((t) => {
+            const question = SPATIAL_GEOMETRY_QUESTIONS[t.index]
+            const isAutoEval = question.correctAnswer === null
+            const selectedLabel = String.fromCharCode(65 + t.selected)
+
+            // Format correct answers for display
+            let correctAnswersText = ''
+            if (!isAutoEval && question.correctAnswer !== null) {
+              if (Array.isArray(question.correctAnswer)) {
+                correctAnswersText = question.correctAnswer.map((idx) => String.fromCharCode(65 + idx)).join(', ')
+              } else {
+                correctAnswersText = String.fromCharCode(65 + question.correctAnswer)
+              }
+            }
+
+            return (
+              <div key={t.index} className="text-left text-xs border-b border-slate-200 dark:border-slate-700 py-2 last:border-b-0">
+                {isAutoEval ? (
+                  <span className="text-slate-600 dark:text-slate-400">
+                    {t.questionId}: Auto-évaluation (Réponse: {selectedLabel})
+                  </span>
+                ) : (
+                  <span className={t.correct ? 'text-green-600' : 'text-red-600'}>
+                    {t.questionId}: {t.correct ? '✓ Correct' : '✗ Incorrect'} (Sélection: {selectedLabel}
+                    {correctAnswersText && ` | Correcte(s): ${correctAnswersText}`})
+                  </span>
+                )}
+              </div>
+            )
+          })}
         </div>
         <Button onClick={onExit}>Retour au tableau de bord</Button>
       </Card>
