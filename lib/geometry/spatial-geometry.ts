@@ -56,12 +56,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q1',
     competencies: ['C1'],
-    question: 'Par trois points non alignés \\(A, B, C\\) de l\'espace \\((E)\\) passe :',
+    question: 'Par trois points non alignés \\(A, B, C\\) de l\'espace \\((E)\\), il passe :',
     options: [
-      'un plan et un seul \\((ABC)\\)',
-      'deux plans',
-      'trois plans différents',
-      'aucune réponse'
+      'Un plan et un seul, le plan \\((ABC)\\)',
+      'Deux plans différents contenant ces trois points',
+      'Trois plans différents contenant ces trois points',
+      'Aucune réponse'
     ],
     correctAnswer: 0,
     requiresImage: false,
@@ -72,12 +72,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q2',
     competencies: ['C1'],
-    question: '\\(A\\) et \\(B\\) sont deux points d\'un plan \\((P)\\). La droite \\((AB)\\) est :',
+    question: 'Si \\(A\\) et \\(B\\) sont deux points d\'un plan \\((P)\\), alors la droite \\((AB)\\) est :',
     options: [
-      'incluse dans \\((P)\\)',
-      'orthogonale à \\((P)\\)',
-      'parallèle à \\((P)\\)',
-      'aucune réponse'
+      'Incluse dans le plan \\((P)\\)',
+      'Orthogonale (perpendiculaire) au plan \\((P)\\)',
+      'Parallèle au plan \\((P)\\) sans être incluse dedans',
+      'Aucune réponse'
     ],
     correctAnswer: 0,
     requiresImage: false,
@@ -88,12 +88,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q3',
     competencies: ['C1'],
-    question: 'Deux plans \\((P)\\) et \\((P\')\\) ont un point commun \\(A\\) :',
+    question: 'Deux plans \\((P)\\) et \\((P\')\\) ont un point commun \\(A\\). Quelle est leur position relative ?',
     options: [
-      'ils se coupent suivant une droite',
-      'ils se coupent en un point',
-      'ils sont parallèles',
-      'aucune réponse'
+      'Les deux plans se coupent suivant une droite',
+      'Les deux plans se coupent en un seul point \\(A\\)',
+      'Les deux plans sont parallèles',
+      'Aucune réponse'
     ],
     correctAnswer: 0,
     requiresImage: false,
@@ -104,12 +104,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q4',
     competencies: ['C2'],
-    question: 'Si \\((D)\\) et \\((D\')\\) sont parallèles et \\(\\Delta\\) est parallèle à l\'une :',
+    question: 'Si deux droites \\((D)\\) et \\((D\')\\) sont parallèles et \\(\\Delta\\) est parallèle à l\'une d\'elles, alors \\(\\Delta\\) est :',
     options: [
-      '\\(\\Delta\\) est parallèle à l\'autre',
-      'perpendiculaire',
-      'sécante',
-      'aucune réponse'
+      'Parallèle à l\'autre droite aussi',
+      'Perpendiculaire à l\'autre droite',
+      'Sécante (qui coupe) l\'autre droite',
+      'Aucune réponse'
     ],
     correctAnswer: 0,
     requiresImage: false,
@@ -120,12 +120,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q5',
     competencies: ['C2'],
-    question: 'Si \\(\\Delta\\) est parallèle à \\((D)\\) et \\((D\')\\) :',
+    question: 'Si une droite \\(\\Delta\\) est parallèle à deux droites \\((D)\\) et \\((D\')\\), alors \\((D)\\) et \\((D\')\\) sont :',
     options: [
-      '\\((D)\\) et \\((D\')\\) sont parallèles',
-      'ne sont pas parallèles',
-      'sont perpendiculaires',
-      'aucune réponse'
+      'Parallèles l\'une à l\'autre',
+      'Non parallèles (elles ne sont pas parallèles)',
+      'Perpendiculaires l\'une à l\'autre',
+      'Aucune réponse'
     ],
     correctAnswer: 0,
     requiresImage: false,
@@ -136,10 +136,10 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q6',
     competencies: ['C1'],
-    question: 'Deux plans parallèles et un plan \\((Q)\\) parallèle à l\'un.',
+    question: 'Soient deux plans parallèles. Un troisième plan \\((Q)\\) est parallèle à l\'un d\'eux. Quelle est la position du plan \\((Q)\\) par rapport à l\'autre plan parallèle ?',
     options: [
-      'Image A',
-      'Image B'
+      'Image A - Plan parallèle',
+      'Image B - Plan sécant'
     ],
     correctAnswer: 0,
     requiresImage: false,
@@ -151,12 +151,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q7',
     competencies: ['C2'],
-    question: 'Une droite \\((D)\\) est parallèle à un plan \\((P)\\) si :',
+    question: 'Une droite \\((D)\\) est parallèle à un plan \\((P)\\) si et seulement si la droite \\((D)\\) est :',
     options: [
-      'parallèle à toute droite',
-      'parallèle à une seule',
-      'incluse dans le plan',
-      'aucune réponse'
+      'Parallèle à au moins une droite du plan \\((P)\\)',
+      'Parallèle à une seule droite du plan \\((P)\\)',
+      'Incluse dans le plan \\((P)\\)',
+      'Aucune réponse'
     ],
     correctAnswer: 0,
     requiresImage: false,
@@ -167,12 +167,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q8',
     competencies: ['C1'],
-    question: 'Deux plans \\((P)\\) et \\((P\')\\) sont parallèles :',
+    question: 'Deux plans \\((P)\\) et \\((P\')\\) sont parallèles, et une droite \\((D)\\) coupe l\'un des deux plans. Laquelle des affirmations suivantes est correcte ?',
     options: [
-      'toute droite coupe les deux plans',
-      'toute droite orthogonale à l\'un est orthogonale à l\'autre',
-      'coupe un seul plan',
-      'aucune réponse'
+      'Toute droite \\((D)\\) qui coupe l\'un des deux plans coupe aussi l\'autre plan',
+      'Toute droite \\((D)\\) orthogonale à l\'un des deux plans est aussi orthogonale à l\'autre',
+      'Une droite \\((D)\\) qui coupe l\'un des plans ne coupe pas l\'autre plan',
+      'Aucune réponse'
     ],
     correctAnswer: [0, 1],
     requiresImage: true,
@@ -184,10 +184,10 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q9',
     competencies: ['C2'],
-    question: 'Plans parallèles coupés par un plan :',
+    question: 'Deux plans parallèles sont coupés par un troisième plan sécant. Quelle est la relation entre les deux droites d\'intersection obtenues ?',
     options: [
-      'Image A',
-      'Image B'
+      'Image A - Les deux droites sont parallèles',
+      'Image B - Les deux droites sont sécantes'
     ],
     correctAnswer: [0, 1],
     requiresImage: false,
@@ -199,12 +199,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q10',
     competencies: ['C2'],
-    question: '\\((D)\\) parallèle à deux plans sécants :',
+    question: 'Si une droite \\((D)\\) est parallèle à deux plans sécants selon la droite \\(\\Delta\\), alors la droite \\((D)\\) et la droite \\(\\Delta\\) sont :',
     options: [
-      'parallèles',
-      'perpendiculaires',
-      'sécantes',
-      'aucune réponse'
+      'Parallèles',
+      'Perpendiculaires l\'une à l\'autre',
+      'Sécantes (qui se coupent)',
+      'Aucune réponse'
     ],
     correctAnswer: 0,
     requiresImage: true,
@@ -216,12 +216,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q11',
     competencies: ['C2'],
-    question: 'Deux droites orthogonales :',
+    question: 'Si deux droites \\((D)\\) et \\((D\')\\) sont orthogonales, et \\(\\Delta\\) est parallèle à \\((D)\\), alors \\(\\Delta\\) est :',
     options: [
-      'orthogonale conservée',
-      'parallèle',
-      'sécante',
-      'aucune réponse'
+      'Orthogonale à \\((D\')\\)',
+      'Parallèle à \\((D\')\\)',
+      'Sécante avec \\((D\')\\)',
+      'Aucune réponse'
     ],
     correctAnswer: 0,
     requiresImage: true,
@@ -233,12 +233,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q12',
     competencies: ['C2'],
-    question: 'Droites parallèles et \\(\\Delta\\) orthogonale :',
+    question: 'Si deux droites \\((D)\\) et \\((D\')\\) sont parallèles, et \\(\\Delta\\) est orthogonale à l\'une d\'elles, alors \\(\\Delta\\) est :',
     options: [
-      'parallèle',
-      'orthogonale',
-      'partielle',
-      'aucune réponse'
+      'Parallèle à l\'autre droite',
+      'Orthogonale à l\'autre droite aussi',
+      'Partiellement orthogonale',
+      'Aucune réponse'
     ],
     correctAnswer: 1,
     requiresImage: true,
@@ -250,12 +250,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q13',
     competencies: ['C2'],
-    question: 'Position relative :',
+    question: 'Observez la figure et déterminez la position relative des deux droites \\((D)\\) et \\((D\')\\) :',
     options: [
-      'sécantes',
-      'coplanaires',
-      'incluses',
-      'aucune réponse'
+      'Les droites sont sécantes (elles se coupent)',
+      'Les droites sont coplanaires',
+      'Les droites sont incluses dans un même plan',
+      'Aucune réponse'
     ],
     correctAnswer: null,
     requiresImage: true,
@@ -267,12 +267,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q14',
     competencies: ['C1'],
-    question: 'Position relative :',
+    question: 'D\'après la figure, la droite \\((D)\\) est :',
     options: [
-      'parallèles',
-      'incluses',
-      'parallèle à toute droite',
-      'aucune réponse'
+      'Parallèle au plan \\((P)\\)',
+      'Incluse dans le plan \\((P)\\)',
+      'Parallèle à toute droite du plan \\((P)\\)',
+      'Aucune réponse'
     ],
     correctAnswer: 2,
     requiresImage: true,
@@ -284,12 +284,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q15',
     competencies: ['C2'],
-    question: '\\((D)\\) \\(\\perp\\) \\((P)\\) et \\((D\') \\subset (P)\\) :',
+    question: 'Si une droite \\((D)\\) est orthogonale (perpendiculaire) au plan \\((P)\\) et \\((D\')\\) est incluse dans le plan \\((P)\\), alors \\((D)\\) et \\((D\')\\) sont :',
     options: [
-      'parallèles',
-      'orthogonales',
-      'parallèle à toute droite',
-      'aucune réponse'
+      'Parallèles',
+      'Orthogonales l\'une à l\'autre',
+      'Orthogonales et parallèles à toute droite du plan',
+      'Aucune réponse'
     ],
     correctAnswer: [1, 2],
     requiresImage: true,
@@ -301,12 +301,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q16',
     competencies: ['C2'],
-    question: 'Position droite-plan :',
+    question: 'D\'après la figure, la droite \\((D)\\) et le plan \\((P)\\) sont :',
     options: [
-      'coupe en un point',
-      'point \\(I\\)',
-      'orthogonale',
-      'aucune réponse'
+      'La droite coupe le plan en un point',
+      'Le point d\'intersection est \\(I\\)',
+      'La droite est orthogonale au plan',
+      'Aucune réponse'
     ],
     correctAnswer: [0, 1],
     requiresImage: true,
@@ -318,12 +318,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q17',
     competencies: ['C2'],
-    question: 'Plans :',
+    question: 'Deux plans parallèles sont coupés par deux plans sécants. Parmi les affirmations suivantes, lesquelles sont correctes ?',
     options: [
-      'parallèles',
-      'droites parallèles',
-      'orthogonalité conservée',
-      'aucune réponse'
+      'Les deux plans de départ restent parallèles',
+      'Les droites d\'intersection sont parallèles entre elles',
+      'L\'orthogonalité entre les droites est conservée',
+      'Aucune réponse'
     ],
     correctAnswer: [0, 1, 2],
     requiresImage: true,
@@ -335,12 +335,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q18',
     competencies: ['C1'],
-    question: 'Droite et plan :',
+    question: 'D\'après la figure, la droite \\((D)\\) et le plan \\((P)\\) sont :',
     options: [
-      'parallèles',
-      'coplanaires',
-      'sécantes',
-      'aucune réponse'
+      'La droite est parallèle au plan',
+      'La droite et le plan sont coplanaires',
+      'La droite est sécante avec le plan',
+      'Aucune réponse'
     ],
     correctAnswer: 0,
     requiresImage: true,
@@ -352,12 +352,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q19',
     competencies: ['C1', 'C2'],
-    question: 'Intersections :',
+    question: 'En analysant la figure, identifiez les intersections possibles de la droite avec les faces du polyèdre :',
     options: [
-      '\\((CG)\\)',
-      '\\((BC)\\)',
-      'point \\(C\\)',
-      'autres'
+      'L\'intersection est la droite \\((CG)\\)',
+      'L\'intersection est la droite \\((BC)\\)',
+      'L\'intersection est au point \\(C\\)',
+      'Les trois intersections précédentes'
     ],
     correctAnswer: [0, 1, 2],
     requiresImage: true,
@@ -369,12 +369,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q20',
     competencies: ['C1', 'C3'],
-    question: 'Tétraèdre :',
+    question: '\\(ABCD\\) est un tétraèdre. Les points \\(I\\), \\(J\\), \\(K\\) sont respectivement sur \\([AB]\\), \\([AC]\\), \\([CD]\\). Quelle est la section du tétraèdre par le plan \\((IJK)\\) ?',
     options: [
-      'section \\((IJK)\\)',
-      '\\((ABD)\\)',
-      '\\((ABC)\\)',
-      'aucune'
+      'La section est le polygone \\((IJK)\\)',
+      'La section est le triangle \\((ABD)\\)',
+      'La section est le triangle \\((ABC)\\)',
+      'Aucune section possible'
     ],
     correctAnswer: 0,
     requiresImage: true,
@@ -386,12 +386,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q21',
     competencies: ['C1', 'C3'],
-    question: 'Intersection :',
+    question: 'En observant la figure, où la droite \\((IJ)\\) intersecte-t-elle le plan \\((BCD)\\) ?',
     options: [
-      '\\(E\\)',
-      '\\(F\\)',
-      'autre',
-      'aucune'
+      'Le point d\'intersection est \\(E\\)',
+      'Le point d\'intersection est \\(F\\)',
+      'Le point d\'intersection est ailleurs',
+      'Aucune intersection'
     ],
     correctAnswer: [0, 1],
     requiresImage: true,
