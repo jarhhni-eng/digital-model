@@ -42,6 +42,8 @@ import { VECTORS_TEST_ID } from '@/lib/geo-vectors-lesson'
 import { TRIG_TEST_ID } from '@/lib/trigonometry-lesson'
 import { SPATIAL_GEOMETRY_TEST_ID } from '@/lib/geometry/spatial-geometry'
 import { SpatialGeometryQuiz } from '@/components/geometry/spatial-geometry-quiz'
+import { SYMETRIE_AXIALE_TEST_ID } from '@/lib/geometry/symetrie-axiale'
+import { SymetrieAxialeQuiz } from '@/components/geometry/symetrie-axiale-quiz'
 
 interface TestPageProps {
   params: Promise<{ testId: string }>
@@ -111,6 +113,9 @@ export default function TestPage({ params }: TestPageProps) {
   }
   if (testId === SPATIAL_GEOMETRY_TEST_ID) {
     return <SpatialGeometryQuiz />
+  }
+  if (testId === SYMETRIE_AXIALE_TEST_ID) {
+    return <SymetrieAxialeQuiz />
   }
 
   return <GenericTestRunner test={test} />

@@ -137,7 +137,7 @@ export const platformDomains: MainDomain[] = [
         name: 'Symétrie axiale',
         nameFr: 'Symétrie axiale',
         capacities: [
-          { id: 'geo-axial-sym-cap', name: 'Axial symmetry', nameFr: 'Symétrie axiale', testId: 'test-geo-axial-sym' },
+          { id: 'geo-axial-sym-cap', name: 'Axial symmetry', nameFr: 'Symétrie axiale', testId: 'test-geo-symetrie-axiale' },
         ],
       },
       {
