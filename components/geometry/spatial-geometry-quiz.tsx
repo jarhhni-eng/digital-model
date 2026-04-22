@@ -183,11 +183,15 @@ interface TrialViewProps {
   total: number
   question: {
     id: string
+    competencies: string[]
     question: string
     options: string[]
     requiresImage: boolean
     imagePath?: string
     imageOptions?: string[]
+    part: string
+    correctAnswer: number | null
+    correction?: string
   }
   selected: number | null
   onSelectOption: (index: number) => void
@@ -262,7 +266,19 @@ function TrialView({
         <h2 className="text-xl font-bold">
           Question {index + 1} / {total}
         </h2>
-        <span className="text-sm text-muted-foreground">{question.id}</span>
+        <div className="text-right">
+          <span className="text-sm font-semibold text-blue-600">{question.id}</span>
+          {question.competencies.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              Compétence: {question.competencies.join(', ')}
+            </p>
+          )}
+          <p className="text-xs text-muted-foreground capitalize">
+            {question.part === 'metacognition' && 'Auto-évaluation'}
+            {question.part === 'qcm' && 'QCM - Géométrie'}
+            {question.part === 'deductive' && 'Raisonnement Déductif'}
+          </p>
+        </div>
       </div>
       <Progress value={((index + 1) / total) * 100} className="mb-6" />
 
