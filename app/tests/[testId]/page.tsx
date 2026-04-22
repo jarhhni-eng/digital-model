@@ -40,8 +40,6 @@ import { TrigonometryQuizTest } from '@/components/trigonometry/trigonometry-qui
 import { GenericTestRunner } from '@/components/assessment/generic-test-runner'
 import { VECTORS_TEST_ID } from '@/lib/geo-vectors-lesson'
 import { TRIG_TEST_ID } from '@/lib/trigonometry-lesson'
-import { SPATIAL_GEOMETRY_TEST_ID } from '@/lib/geometry/spatial-geometry'
-import { SpatialGeometryQuiz } from '@/components/geometry/spatial-geometry-quiz'
 import { SYMETRIE_AXIALE_TEST_ID } from '@/lib/geometry/symetrie-axiale'
 import { SymetrieAxialeQuiz } from '@/components/geometry/symetrie-axiale-quiz'
 
@@ -110,9 +108,6 @@ export default function TestPage({ params }: TestPageProps) {
   }
   if (testId === TRIG_TEST_ID) {
     return <TrigonometryQuizTest />
-  }
-  if (testId === SPATIAL_GEOMETRY_TEST_ID) {
-    return <SpatialGeometryQuiz />
   }
   if (testId === SYMETRIE_AXIALE_TEST_ID) {
     return <SymetrieAxialeQuiz />
