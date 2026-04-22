@@ -151,12 +151,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q7',
     competencies: ['C2'],
-    question: 'Une droite \\((D)\\) est parallèle à un plan \\((P)\\) si et seulement si la droite \\((D)\\) est :',
+    question: 'Une droite $((D))$ est parallèle à un plan $((P))$ si et seulement si :',
     options: [
-      'Parallèle à au moins une droite du plan \\((P)\\)',
-      'Parallèle à une seule droite du plan \\((P)\\)',
-      'Incluse dans le plan \\((P)\\)',
-      'Aucune réponse'
+      '$((D))$ est parallèle à toute droite incluse dans $((P))$',
+      '$((D))$ est parallèle à une seule droite incluse dans $((P))$',
+      '$((D))$ est incluse dans $((P))$',
+      'aucune réponse'
     ],
     correctAnswer: 0,
     requiresImage: false,
@@ -167,12 +167,12 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q8',
     competencies: ['C1'],
-    question: 'Deux plans \\((P)\\) et \\((P\')\\) sont parallèles, et une droite \\((D)\\) coupe l\'un des deux plans. Laquelle des affirmations suivantes est correcte ?',
+    question: 'Deux plans $((P))$ et $((P\'))$ sont parallèles :',
     options: [
-      'Toute droite \\((D)\\) qui coupe l\'un des deux plans coupe aussi l\'autre plan',
-      'Toute droite \\((D)\\) orthogonale à l\'un des deux plans est aussi orthogonale à l\'autre',
-      'Une droite \\((D)\\) qui coupe l\'un des plans ne coupe pas l\'autre plan',
-      'Aucune réponse'
+      'Toute droite $((D))$ coupe l\'un des deux plans, elle coupe l\'autre plan aussi',
+      'Toute droite $((D))$ orthogonale à l\'un des deux plans est orthogonale à l\'autre',
+      'Toute droite $((D))$ coupe l\'un des deux plans, elle ne coupe pas l\'autre',
+      'aucune réponse'
     ],
     correctAnswer: [0, 1],
     requiresImage: true,
@@ -184,14 +184,16 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
   {
     id: 'Q9',
     competencies: ['C2'],
-    question: 'Deux plans parallèles sont coupés par un troisième plan sécant. Quelle est la relation entre les deux droites d\'intersection obtenues ?',
+    question: 'Deux plans parallèles $((P))$ et $((P\'))$ sont coupés par un plan $((Q))$. Les droites d\'intersection sont parallèles. Quelle figure représente cette propriété ?',
     options: [
-      'Image A - Les deux droites sont parallèles',
-      'Image B - Les deux droites sont sécantes'
+      '[Image A]',
+      '[Image B]',
+      '[Image C]',
+      '[Image D]'
     ],
     correctAnswer: [0, 1],
     requiresImage: false,
-    imageOptions: ['/images/geometry/3d/q9_a.png', '/images/geometry/3d/q9_b.png'],
+    imageOptions: ['/images/geometry/3d/q9_a.png', '/images/geometry/3d/q9_b.png', '/images/geometry/3d/q9_c.png', '/images/geometry/3d/q9_d.png'],
     part: 'qcm',
     correction: 'Réponses correctes: A, B'
   },
