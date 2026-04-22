@@ -276,7 +276,7 @@ function TrialView({
   }, [question.options])
 
   // Determine if this question has image options (Q6, Q9)
-  const hasImageOptions = question.imageOptions && question.imageOptions.length === 4
+  const hasImageOptions = question.imageOptions && question.imageOptions.length > 0 && question.imageOptions.length === question.options.length
   // Determine if this question has a main image before options (Q8, Q10-Q21)
   const hasMainImage = question.imagePath && !hasImageOptions
 

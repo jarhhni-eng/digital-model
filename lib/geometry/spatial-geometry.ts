@@ -139,13 +139,11 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
     question: 'Deux plans parallèles et un plan \\((Q)\\) parallèle à l\'un.',
     options: [
       'Image A',
-      'Image B',
-      'Image C',
-      'Image D'
+      'Image B'
     ],
     correctAnswer: 0,
     requiresImage: false,
-    imageOptions: ['/images/geometry/3d/q6_a.jpg', '/images/geometry/3d/q6_b.png', '/images/geometry/3d/q6_c.jpg', '/images/geometry/3d/q6_d.png'],
+    imageOptions: ['/images/geometry/3d/q6_a.jpg', '/images/geometry/3d/q6_b.png'],
     part: 'qcm',
     correction: 'Réponse correcte: A'
   },
@@ -189,13 +187,11 @@ export const SPATIAL_GEOMETRY_QUESTIONS: SpatialGeometryQuestion[] = [
     question: 'Plans parallèles coupés par un plan :',
     options: [
       'Image A',
-      'Image B',
-      'Image C',
-      'Image D'
+      'Image B'
     ],
     correctAnswer: [0, 1],
     requiresImage: false,
-    imageOptions: ['/images/geometry/3d/q9_a.png', '/images/geometry/3d/q9_b.png', '/images/geometry/3d/q9_c.png', '/images/geometry/3d/q9_d.png'],
+    imageOptions: ['/images/geometry/3d/q9_a.png', '/images/geometry/3d/q9_b.png'],
     part: 'qcm',
     correction: 'Réponses correctes: A, B'
   },
