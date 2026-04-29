@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import KaTeX from 'katex'
+import 'katex/dist/katex.min.css'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -17,40 +18,61 @@ import {
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
 
+function arrayEquals(a: number[], b: number[]) {
+  if (a.length !== b.length) return false
+  const as = [...a].sort()
+  const bs = [...b].sort()
+  return as.every((v, i) => v === bs[i])
+}
+
 export function SymetrieAxialeQuiz() {
   const router = useRouter()
   const { user } = useAuth()
   const [phase, setPhase] = useState<Phase>('intro')
   const [current, setCurrent] = useState(0)
   const [trials, setTrials] = useState<SymetrieAxialeTrialResult[]>([])
-  const [selected, setSelected] = useState<number | null>(null)
+  const [selectedList, setSelectedList] = useState<number[]>([])
   const [startedAt, setStartedAt] = useState<number>(0)
   const trialStart = useRef(0)
 
+  const currentQuestion = SYMETRIE_AXIALE_QUESTIONS[current]
+  const isMulti =
+    Array.isArray(currentQuestion?.correctAnswer) &&
+    (currentQuestion.correctAnswer as number[]).length > 1
+
+  const toggleSelect = (idx: number) => {
+    if (isMulti) {
+      setSelectedList((prev) =>
+        prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx],
+      )
+    } else {
+      setSelectedList([idx])
+    }
+  }
+
   const submit = useCallback(() => {
-    if (selected === null) return
+    if (selectedList.length === 0) return
 
     const question = SYMETRIE_AXIALE_QUESTIONS[current]
 
-    // Handle multiple correct answers
     let correct = false
     if (question.correctAnswer === null) {
-      correct = false // Self-assessment/pre-question never marked correct
+      correct = false
     } else if (Array.isArray(question.correctAnswer)) {
-      correct = question.correctAnswer.includes(selected)
+      correct = arrayEquals(selectedList, question.correctAnswer as number[])
     } else {
-      correct = selected === question.correctAnswer
+      correct = selectedList.length === 1 && selectedList[0] === question.correctAnswer
     }
 
     const trial: SymetrieAxialeTrialResult = {
       index: current,
       questionId: question.id,
-      selected,
+      selected: selectedList[0],
       correct,
       reactionTimeMs: Date.now() - trialStart.current,
     }
     setTrials((t) => [...t, trial])
-    setSelected(null)
+    setSelectedList([])
 
     if (current + 1 >= SYMETRIE_AXIALE_QUESTIONS.length) {
       setPhase('done')
@@ -60,7 +82,7 @@ export function SymetrieAxialeQuiz() {
         trialStart.current = Date.now()
       }, 100)
     }
-  }, [current, selected])
+  }, [current, selectedList])
 
   useEffect(() => {
     if (phase === 'done' && trials.length > 0) {
@@ -113,15 +135,14 @@ export function SymetrieAxialeQuiz() {
     return <Results trials={trials} onExit={() => router.push('/dashboard')} />
   }
 
-  const question = SYMETRIE_AXIALE_QUESTIONS[current]
-
   return (
     <TrialView
       index={current}
       total={SYMETRIE_AXIALE_QUESTIONS.length}
-      question={question}
-      selected={selected}
-      onSelectOption={setSelected}
+      question={currentQuestion}
+      selectedList={selectedList}
+      isMulti={isMulti}
+      onToggle={toggleSelect}
       onSubmit={submit}
     />
   )
@@ -204,72 +225,33 @@ interface TrialViewProps {
     correctAnswer: number | number[] | null
     correction?: string
   }
-  selected: number | null
-  onSelectOption: (index: number) => void
+  selectedList: number[]
+  isMulti: boolean
+  onToggle: (index: number) => void
   onSubmit: () => void
+}
+
+function renderInlineLatex(text: string): string {
+  return text.replace(/\$([^$]+)\$/g, (match, latex) => {
+    try {
+      return `<span class="inline-math">${KaTeX.renderToString(latex, {
+        throwOnError: false,
+      })}</span>`
+    } catch {
+      return match
+    }
+  })
 }
 
 function TrialView({
   index,
   total,
   question,
-  selected,
-  onSelectOption,
+  selectedList,
+  isMulti,
+  onToggle,
   onSubmit,
 }: TrialViewProps) {
-  const questionRef = useRef<HTMLDivElement>(null)
-  const optionsRef = useRef<(HTMLDivElement | null)[]>([])
-
-  // Render LaTeX in question text
-  useEffect(() => {
-    if (questionRef.current) {
-      const content = questionRef.current.innerHTML
-      try {
-        const rendered = content.replace(
-          /\$([^$]+)\$/g,
-          (match, latex) => {
-            try {
-              return `<span class="inline-math">${KaTeX.renderToString(latex, {
-                throwOnError: false,
-              })}</span>`
-            } catch {
-              return match
-            }
-          }
-        )
-        questionRef.current.innerHTML = rendered
-      } catch (e) {
-        console.error('KaTeX rendering error:', e)
-      }
-    }
-  }, [question.question])
-
-  // Render LaTeX in options
-  useEffect(() => {
-    optionsRef.current.forEach((el) => {
-      if (el) {
-        const content = el.innerHTML
-        try {
-          const rendered = content.replace(
-            /\$([^$]+)\$/g,
-            (match, latex) => {
-              try {
-                return `<span class="inline-math">${KaTeX.renderToString(latex, {
-                  throwOnError: false,
-                })}</span>`
-              } catch {
-                return match
-              }
-            }
-          )
-          el.innerHTML = rendered
-        } catch (e) {
-          console.error('KaTeX rendering error in options:', e)
-        }
-      }
-    })
-  }, [question.options])
-
   const hasMainImage = question.imagePath && question.requiresImage
 
   return (
@@ -312,25 +294,30 @@ function TrialView({
 
           {/* Question and answers column */}
           <div className={hasMainImage ? '' : 'space-y-6'}>
-            {/* Question text with LaTeX */}
+            {/* Question text with LaTeX (rendered at build) */}
             <div
-              ref={questionRef}
               className="text-base leading-relaxed"
               dangerouslySetInnerHTML={{
-                __html: question.question,
+                __html: renderInlineLatex(question.question),
               }}
             />
+
+            {isMulti && (
+              <div className="rounded border border-blue-200 bg-blue-50 p-2 text-xs text-blue-900 dark:border-blue-900/40 dark:bg-blue-950/30">
+                ℹ️ Plusieurs réponses correctes possibles — cochez toutes les bonnes réponses.
+              </div>
+            )}
 
             {/* Answer options */}
             <div className="space-y-2">
               {question.options.map((option, idx) => {
                 const answerLabel = String.fromCharCode(65 + idx) // A, B, C, D
-                const isSelected = selected === idx
+                const isSelected = selectedList.includes(idx)
 
                 return (
                   <button
                     key={idx}
-                    onClick={() => onSelectOption(idx)}
+                    onClick={() => onToggle(idx)}
                     className={`w-full rounded-lg border-2 p-4 text-left transition-all ${
                       isSelected
                         ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
@@ -339,7 +326,9 @@ function TrialView({
                   >
                     <div className="flex items-start gap-3">
                       <div
-                        className={`mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border-2 ${
+                        className={`mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center ${
+                          isMulti ? 'rounded' : 'rounded-full'
+                        } border-2 ${
                           isSelected
                             ? 'border-blue-500 bg-blue-500 text-white'
                             : 'border-gray-300'
@@ -350,11 +339,8 @@ function TrialView({
                       <div className="flex-1">
                         <div
                           className="font-semibold text-gray-900 dark:text-white"
-                          ref={(el) => {
-                            if (el) optionsRef.current[idx] = el
-                          }}
                           dangerouslySetInnerHTML={{
-                            __html: `${answerLabel}. ${option}`,
+                            __html: renderInlineLatex(`${answerLabel}. ${option}`),
                           }}
                         />
                       </div>
@@ -367,7 +353,7 @@ function TrialView({
             {/* Submit button */}
             <Button
               onClick={onSubmit}
-              disabled={selected === null}
+              disabled={selectedList.length === 0}
               className="w-full"
               size="lg"
             >

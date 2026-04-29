@@ -10,19 +10,14 @@
 import { NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { readJsonFile, writeJsonFile } from '@/lib/server/json-store'
-import { scoreLesson, VECTORS_TEST_ID, VECTORS_LESSON_TITLE } from '@/lib/geo-vectors-lesson'
 import type { LessonResultRecord } from '@/lib/submissions-types'
 
 const FILE = 'lesson-results.json'
 
 // Registry: map testId → scorer function (extend here for new lessons)
-const SCORERS: Record<string, typeof scoreLesson> = {
-  [VECTORS_TEST_ID]: scoreLesson,
-}
+const SCORERS: Record<string, Function> = {}
 
-const LESSON_TITLES: Record<string, string> = {
-  [VECTORS_TEST_ID]: VECTORS_LESSON_TITLE,
-}
+const LESSON_TITLES: Record<string, string> = {}
 
 export async function POST(request: Request) {
   try {

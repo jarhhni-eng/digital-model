@@ -18,6 +18,9 @@ import { SELECTIVE_ATTENTION_TEST_ID } from '@/lib/attentional/selective-attenti
 import { SUSTAINED_ATTENTION_TEST_ID } from '@/lib/attentional/sustained-attention'
 import { TRAIL_MAKING_TEST_ID } from '@/lib/attentional/trail-making'
 import { SHIFTING_ATTENTION_TEST_ID } from '@/lib/attentional/shifting-attention'
+import { INHIBITION_TEST_ID } from '@/lib/attentional/inhibition'
+import { PROCESSING_SPEED_TEST_ID } from '@/lib/attentional/processing-speed'
+import { COGNITIVE_FLEXIBILITY_TEST_ID } from '@/lib/attentional/cognitive-flexibility'
 import { RAVLT_TEST_ID } from '@/lib/memory/ravlt'
 import { DIGIT_SPAN_TEST_ID } from '@/lib/memory/digit-span'
 import { DividedAttentionTest } from '@/components/attentional/divided-attention-test'
@@ -27,6 +30,9 @@ import { SelectiveAttentionTest } from '@/components/attentional/selective-atten
 import { SustainedAttentionTest } from '@/components/attentional/sustained-attention-test'
 import { TrailMakingTest } from '@/components/attentional/trail-making-test'
 import { ShiftingAttentionTest } from '@/components/attentional/shifting-attention-test'
+import { InhibitionTest } from '@/components/attentional/inhibition-test'
+import { ProcessingSpeedTest } from '@/components/attentional/processing-speed-test'
+import { CognitiveFlexibilityTest } from '@/components/attentional/cognitive-flexibility-test'
 import { BeeryMotriceTest } from '@/components/beery-motrice/beery-motrice-test'
 import { VisuoConstructiveTest } from '@/components/visuo-constructive/visuo-constructive-test'
 import { SyllogismTest } from '@/components/syllogism/syllogism-test'
@@ -35,13 +41,21 @@ import { SpatialOrientationTest } from '@/components/spatial-orientation/spatial
 import { MentalRotationTest } from '@/components/mental-rotation/mental-rotation-test'
 import { MentalCuttingTest } from '@/components/mental-cutting/mental-cutting-test'
 import { CorsiTest } from '@/components/corsi/corsi-test'
-import { VectorsQuizTest } from '@/components/geometry/vectors-quiz'
-import { TrigonometryQuizTest } from '@/components/trigonometry/trigonometry-quiz'
 import { GenericTestRunner } from '@/components/assessment/generic-test-runner'
-import { VECTORS_TEST_ID } from '@/lib/geo-vectors-lesson'
-import { TRIG_TEST_ID } from '@/lib/trigonometry-lesson'
+import { VECTORS_TEST_ID } from '@/lib/geometry/geo-vectors-complete'
+import { VectorsQuizTest } from '@/components/geometry/vectors-quiz'
 import { SYMETRIE_AXIALE_TEST_ID } from '@/lib/geometry/symetrie-axiale'
 import { SymetrieAxialeQuiz } from '@/components/geometry/symetrie-axiale-quiz'
+import { TRIG_CIRCLE_TEST_ID } from '@/lib/geometry/trig-unit-circle'
+import { TrigCircleQuiz } from '@/components/geometry/trig-circle-quiz'
+import { GEO_SPACE_TEST_ID } from '@/lib/geometry/geo-space'
+import { GeoSpaceQuiz } from '@/components/geometry/geo-space-quiz'
+import { DROITE_PLAN_TEST_ID } from '@/lib/geometry/droite-plan'
+import { DroitePlanQuiz } from '@/components/geometry/droite-plan-quiz'
+import { SYMETRIE_CENTRALE_TEST_ID } from '@/lib/geometry/symetrie-centrale'
+import { SymetrieCentraleQuiz } from '@/components/geometry/symetrie-centrale-quiz'
+import { PRODUIT_SCALAIRE_TEST_ID } from '@/lib/geometry/produit-scalaire'
+import { ProduitScalaireQuiz } from '@/components/geometry/produit-scalaire-quiz'
 
 interface TestPageProps {
   params: Promise<{ testId: string }>
@@ -97,6 +111,15 @@ export default function TestPage({ params }: TestPageProps) {
   if (testId === SHIFTING_ATTENTION_TEST_ID) {
     return <ShiftingAttentionTest />
   }
+  if (testId === INHIBITION_TEST_ID) {
+    return <InhibitionTest />
+  }
+  if (testId === PROCESSING_SPEED_TEST_ID) {
+    return <ProcessingSpeedTest />
+  }
+  if (testId === COGNITIVE_FLEXIBILITY_TEST_ID) {
+    return <CognitiveFlexibilityTest />
+  }
   if (testId === RAVLT_TEST_ID) {
     return <RAVLTTest />
   }
@@ -106,11 +129,23 @@ export default function TestPage({ params }: TestPageProps) {
   if (testId === VECTORS_TEST_ID) {
     return <VectorsQuizTest />
   }
-  if (testId === TRIG_TEST_ID) {
-    return <TrigonometryQuizTest />
-  }
   if (testId === SYMETRIE_AXIALE_TEST_ID) {
     return <SymetrieAxialeQuiz />
+  }
+  if (testId === TRIG_CIRCLE_TEST_ID) {
+    return <TrigCircleQuiz />
+  }
+  if (testId === GEO_SPACE_TEST_ID) {
+    return <GeoSpaceQuiz />
+  }
+  if (testId === DROITE_PLAN_TEST_ID) {
+    return <DroitePlanQuiz />
+  }
+  if (testId === SYMETRIE_CENTRALE_TEST_ID) {
+    return <SymetrieCentraleQuiz />
+  }
+  if (testId === PRODUIT_SCALAIRE_TEST_ID) {
+    return <ProduitScalaireQuiz />
   }
 
   return <GenericTestRunner test={test} />

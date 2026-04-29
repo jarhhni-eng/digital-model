@@ -1,0 +1,105 @@
+<!doctype html><html lang='fr'><head><meta charset='utf-8'><title>Évaluation — Droite dans le plan</title>
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+  :root { --accent:#4f46e5; --ok:#16a34a; --bad:#dc2626; --muted:#6b7280; }
+  *{box-sizing:border-box} body{font-family:system-ui,sans-serif;margin:0;background:#f9fafb;color:#111}
+  header{background:#fff;border-bottom:1px solid #e5e7eb;padding:16px 24px}
+  header h1{margin:0;font-size:1.1rem} header .sub{color:var(--muted);font-size:.85rem}
+  main{max-width:820px;margin:0 auto;padding:24px}
+  .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .qid{font-size:.75rem;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
+  .stem{margin:8px 0 12px;font-size:1.02rem;line-height:1.5}
+  .choice{display:block;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;margin:6px 0;cursor:pointer}
+  .choice:hover{border-color:var(--accent)}
+  .choice.correct{border-color:var(--ok);background:#f0fdf4}
+  .badge{display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:999px;border:1px solid currentColor;margin-right:6px}
+  .b-skill{color:var(--accent)} .b-type{color:#b45309} .b-ok{color:var(--ok)} .b-diag{color:#b45309}
+  img.figure{max-width:100%;border-radius:8px;margin:8px 0;border:1px solid #e5e7eb;background:#fff}
+  .nav{display:flex;justify-content:space-between;margin-top:16px}
+  button{background:var(--accent);color:#fff;border:0;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:.9rem}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:8px}
+  .stat{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;text-align:center}
+  .stat .v{font-size:1.5rem;font-weight:700;color:var(--accent)}
+  .stat .l{font-size:.75rem;color:var(--muted);margin-top:4px}
+  .meta{font-size:.8rem;color:var(--muted);margin-top:6px}
+  table.comp{border-collapse:collapse;width:100%;margin-top:8px;font-size:.9rem}
+  table.comp th,table.comp td{border:1px solid #e5e7eb;padding:8px 10px;text-align:left}
+  table.comp th{background:#f3f4f6}
+  .insight{border-left:3px solid var(--accent);padding:8px 12px;background:#eef2ff;border-radius:6px;margin:8px 0;font-size:.9rem}
+  details{margin-top:8px} details summary{cursor:pointer;color:var(--muted);font-size:.85rem}
+</style>
+</head><body>
+    <header>
+      <h1>Évaluation — Droite dans le plan</h1>
+      <div class="sub">Une question à la fois. Répondez puis cliquez sur « Suivant ».</div>
+    </header>
+    <main>
+      <div id="progress" class="meta"></div>
+      <div id="qcard" class="card"></div>
+      <div class="nav">
+        <button id="prev">Précédent</button>
+        <button id="next">Suivant</button>
+      </div>
+      <div id="done" style="display:none" class="card">
+        <h3>Terminé ✅</h3>
+        <p>Vos réponses ont été enregistrées localement (copiez-les pour les transmettre).</p>
+        <pre id="summary" style="background:#f3f4f6;padding:12px;border-radius:8px;overflow:auto"></pre>
+      </div>
+    </main>
+    <script>
+      const QUESTIONS = [{"id": "T1-D2-Q1", "number": 1, "stem": "À quel degré te rappelles-tu la leçon « Droite dans le plan » ?", "image": null, "choices": [{"letter": "A", "text": "J'ai tout oublié"}, {"letter": "B", "text": "Je me rappelle quelques parties"}, {"letter": "C", "text": "Je me rappelle bien"}, {"letter": "D", "text": "Je me rappelle tout"}], "expected_free_text": false}, {"id": "T1-D2-Q2", "number": 2, "stem": "Dans le repère orthonormé $(O, \\vec{i}, \\vec{j})$ ci-dessous, placer les points $A(2,\\,-3)$, $B(-1,\\,0)$ et $C(0,\\,2)$, puis tracer la droite $(\\Delta)$ d'équation $2x - 3y + 2 = 0$.", "image": "tools\\droite_plan\\output\\images\\q2_repere.png", "choices": [], "expected_free_text": true}, {"id": "T1-D2-Q3", "number": 3, "stem": "Toute droite du plan admet une équation cartésienne de la forme :", "image": null, "choices": [{"letter": "A", "text": "$ax + by + c = 0$ avec $(a,b) \\neq (0,0)$"}, {"letter": "B", "text": "$y = ax^2 + bx + c$"}, {"letter": "C", "text": "$ax + by = 0$ uniquement"}, {"letter": "D", "text": "$\\dfrac{x}{a} + \\dfrac{y}{b} = 1$ uniquement"}], "expected_free_text": false}, {"id": "T1-D2-Q4", "number": 4, "stem": "Un vecteur directeur de la droite d'équation $ax + by + c = 0$ est :", "image": null, "choices": [{"letter": "A", "text": "$\\vec{u}(-b,\\,a)$"}, {"letter": "B", "text": "$\\vec{u}(a,\\,b)$"}, {"letter": "C", "text": "$\\vec{u}(b,\\,a)$"}, {"letter": "D", "text": "$\\vec{u}(a,\\,-b)$"}], "expected_free_text": false}, {"id": "T1-D2-Q5", "number": 5, "stem": "Si $b \\neq 0$, le coefficient directeur (pente) de la droite d'équation $ax + by + c = 0$ est :", "image": null, "choices": [{"letter": "A", "text": "$m = -\\dfrac{a}{b}$"}, {"letter": "B", "text": "$m = \\dfrac{a}{b}$"}, {"letter": "C", "text": "$m = -\\dfrac{b}{a}$"}, {"letter": "D", "text": "$m = \\dfrac{b}{a}$"}], "expected_free_text": false}, {"id": "T2-D2-Q6", "number": 6, "stem": "Mettre la droite $(\\Delta)$ : $2x - 3y + 2 = 0$ sous forme réduite $y = mx + p$ :", "image": null, "choices": [{"letter": "A", "text": "$y = \\dfrac{2}{3}x + \\dfrac{2}{3}$"}, {"letter": "B", "text": "$y = \\dfrac{3}{2}x + 1$"}, {"letter": "C", "text": "$y = -\\dfrac{2}{3}x + \\dfrac{2}{3}$"}, {"letter": "D", "text": "$y = \\dfrac{2}{3}x - \\dfrac{2}{3}$"}], "expected_free_text": false}, {"id": "T2-D2-Q7", "number": 7, "stem": "Pour $(\\Delta)$ : $2x - 3y + 2 = 0$, un vecteur directeur $\\vec{u}$ et un vecteur normal $\\vec{n}$ sont :", "image": null, "choices": [{"letter": "A", "text": "$\\vec{u}(3,\\,2)$ et $\\vec{n}(2,\\,-3)$"}, {"letter": "B", "text": "$\\vec{u}(2,\\,-3)$ et $\\vec{n}(3,\\,2)$"}, {"letter": "C", "text": "$\\vec{u}(-2,\\,3)$ et $\\vec{n}(3,\\,2)$"}, {"letter": "D", "text": "$\\vec{u}(2,\\,3)$ et $\\vec{n}(-3,\\,2)$"}], "expected_free_text": false}, {"id": "T2-D2-Q8", "number": 8, "stem": "Équation de la droite passant par $A(2,\\,-3)$ et de coefficient directeur $m = \\tfrac{2}{3}$ :", "image": null, "choices": [{"letter": "A", "text": "$y = \\dfrac{2}{3}x - \\dfrac{13}{3}$"}, {"letter": "B", "text": "$y = \\dfrac{2}{3}x - 3$"}, {"letter": "C", "text": "$y = \\dfrac{2}{3}x + \\dfrac{13}{3}$"}, {"letter": "D", "text": "$y = -\\dfrac{2}{3}x - \\dfrac{13}{3}$"}], "expected_free_text": false}, {"id": "T3-D2-Q9", "number": 9, "stem": "Le point $A(2,\\,-3)$ appartient-il à la droite $(\\Delta)$ d'équation $2x - 3y + 2 = 0$ ?", "image": null, "choices": [{"letter": "A", "text": "Oui, car $2(2) - 3(-3) + 2 = 15 \\neq 0$"}, {"letter": "B", "text": "Non, car $2(2) - 3(-3) + 2 = 15 \\neq 0$"}, {"letter": "C", "text": "Oui, car $A$ a une abscisse positive"}, {"letter": "D", "text": "On ne peut pas conclure"}], "expected_free_text": false}, {"id": "T3-D2-Q10", "number": 10, "stem": "Parmi les droites suivantes, laquelle est parallèle à $(\\Delta)$ : $2x - 3y + 2 = 0$ ?", "image": null, "choices": [{"letter": "A", "text": "$4x - 6y + 7 = 0$"}, {"letter": "B", "text": "$3x + 2y - 1 = 0$"}, {"letter": "C", "text": "$2x + 3y + 2 = 0$"}, {"letter": "D", "text": "$x - y + 1 = 0$"}], "expected_free_text": false}, {"id": "T3-D2-Q11", "number": 11, "stem": "Équation de la droite $(\\Delta')$ passant par $A(2,\\,-3)$ et perpendiculaire à $(\\Delta)$ : $2x - 3y + 2 = 0$ :", "image": null, "choices": [{"letter": "A", "text": "$3x + 2y = 0$"}, {"letter": "B", "text": "$2x - 3y - 13 = 0$"}, {"letter": "C", "text": "$3x - 2y - 12 = 0$"}, {"letter": "D", "text": "$2x + 3y + 5 = 0$"}], "expected_free_text": false}, {"id": "T3-D2-Q12", "number": 12, "stem": "Distance du point $A(2,\\,-3)$ à la droite $(\\Delta)$ : $2x - 3y + 2 = 0$, donnée par $d(A, \\Delta) = \\dfrac{|2x_A - 3y_A + 2|}{\\sqrt{2^2 + 3^2}}$ :", "image": null, "choices": [{"letter": "A", "text": "$d = \\dfrac{15}{\\sqrt{13}} = \\dfrac{15\\sqrt{13}}{13}$"}, {"letter": "B", "text": "$d = \\dfrac{15}{\\sqrt{5}}$"}, {"letter": "C", "text": "$d = \\dfrac{13}{\\sqrt{15}}$"}, {"letter": "D", "text": "$d = 15$"}], "expected_free_text": false}];
+      const answers = {};
+      let i = 0;
+      const card = document.getElementById('qcard');
+      const prog = document.getElementById('progress');
+      const btnPrev = document.getElementById('prev');
+      const btnNext = document.getElementById('next');
+
+      function render() {
+        const q = QUESTIONS[i];
+        prog.textContent = `Question ${i+1} / ${QUESTIONS.length}`;
+        const img = q.image ? `<img class="figure" src="${q.image}" alt="">` : '';
+        const choices = q.choices.map(c => `
+          <label class="choice">
+            <input type="radio" name="ans" value="${c.letter}" ${answers[q.id]===c.letter?'checked':''}>
+            <strong>${c.letter}.</strong> ${c.text}
+          </label>`).join('');
+        const freeBox = q.expected_free_text ? `
+          <textarea rows="4" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:8px"
+            placeholder="Votre réponse…">${answers[q.id+':text']||''}</textarea>` : '';
+        card.innerHTML = `
+          <div class="qid">${q.id}</div>
+          <div class="stem">${q.stem}</div>
+          ${img}
+          ${choices}
+          ${freeBox}`;
+        card.querySelectorAll('input[name=ans]').forEach(r => r.onchange = e => answers[q.id] = e.target.value);
+        const ta = card.querySelector('textarea');
+        if (ta) ta.oninput = e => answers[q.id+':text'] = e.target.value;
+        btnPrev.disabled = i === 0;
+        btnNext.textContent = i === QUESTIONS.length - 1 ? 'Terminer' : 'Suivant';
+        if (window.MathJax) MathJax.typesetPromise([card]);
+      }
+
+      btnPrev.onclick = () => { if (i > 0) { i--; render(); } };
+      btnNext.onclick = () => {
+        if (i < QUESTIONS.length - 1) { i++; render(); }
+        else {
+          document.querySelector('main > .card').style.display = 'none';
+          document.querySelector('.nav').style.display = 'none';
+          prog.style.display = 'none';
+          document.getElementById('done').style.display = 'block';
+          document.getElementById('summary').textContent = JSON.stringify(answers, null, 2);
+        }
+      };
+      render();
+    </script>
+    </body></html>

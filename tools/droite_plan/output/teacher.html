@@ -1,0 +1,168 @@
+<!doctype html><html lang='fr'><head><meta charset='utf-8'><title>Enseignant — Droite dans le plan</title>
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+  :root { --accent:#4f46e5; --ok:#16a34a; --bad:#dc2626; --muted:#6b7280; }
+  *{box-sizing:border-box} body{font-family:system-ui,sans-serif;margin:0;background:#f9fafb;color:#111}
+  header{background:#fff;border-bottom:1px solid #e5e7eb;padding:16px 24px}
+  header h1{margin:0;font-size:1.1rem} header .sub{color:var(--muted);font-size:.85rem}
+  main{max-width:820px;margin:0 auto;padding:24px}
+  .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .qid{font-size:.75rem;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
+  .stem{margin:8px 0 12px;font-size:1.02rem;line-height:1.5}
+  .choice{display:block;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;margin:6px 0;cursor:pointer}
+  .choice:hover{border-color:var(--accent)}
+  .choice.correct{border-color:var(--ok);background:#f0fdf4}
+  .badge{display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:999px;border:1px solid currentColor;margin-right:6px}
+  .b-skill{color:var(--accent)} .b-type{color:#b45309} .b-ok{color:var(--ok)} .b-diag{color:#b45309}
+  img.figure{max-width:100%;border-radius:8px;margin:8px 0;border:1px solid #e5e7eb;background:#fff}
+  .nav{display:flex;justify-content:space-between;margin-top:16px}
+  button{background:var(--accent);color:#fff;border:0;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:.9rem}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:8px}
+  .stat{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;text-align:center}
+  .stat .v{font-size:1.5rem;font-weight:700;color:var(--accent)}
+  .stat .l{font-size:.75rem;color:var(--muted);margin-top:4px}
+  .meta{font-size:.8rem;color:var(--muted);margin-top:6px}
+  table.comp{border-collapse:collapse;width:100%;margin-top:8px;font-size:.9rem}
+  table.comp th,table.comp td{border:1px solid #e5e7eb;padding:8px 10px;text-align:left}
+  table.comp th{background:#f3f4f6}
+  .insight{border-left:3px solid var(--accent);padding:8px 12px;background:#eef2ff;border-radius:6px;margin:8px 0;font-size:.9rem}
+  details{margin-top:8px} details summary{cursor:pointer;color:var(--muted);font-size:.85rem}
+</style>
+</head><body>
+      <header>
+        <h1>Vue enseignant — Droite dans le plan</h1>
+        <div class="sub">Bonnes réponses, compétences, type de question et analytique.</div>
+      </header>
+      <main>
+        
+      <div class="card">
+        <h2 style="margin-top:0">Analytique</h2>
+        <div class="stat-grid">
+          <div class="stat"><div class="v">100%</div>
+            <div class="l">Score total<br>10/10</div></div>
+          <div class='stat'><div class='v'>100%</div><div class='l'>T1 · Questions du cours<br>3/3</div></div><div class='stat'><div class='v'>100%</div><div class='l'>T2 · Questions de la construction<br>3/3</div></div><div class='stat'><div class='v'>100%</div><div class='l'>T3 · Questions de raisonnement<br>4/4</div></div>
+        </div>
+        <h3>Tableau des compétences</h3>
+        <table class='comp'><thead><tr><th>Compétence</th><th>Score</th><th>Total</th><th>%</th></tr></thead><tbody><tr><td><strong>C1</strong> — Traduction des concepts et propriétés de la géométrie affine et vectorielle à l'aide des coordonnées.</td><td>6</td><td>6</td><td>100%</td></tr><tr><td><strong>C2</strong> — Utilisation de l'outil analytique (colinéarité, alignement, projection, distance, …).</td><td>4</td><td>4</td><td>100%</td></tr></tbody></table>
+        <div class='insight'>💡 Maîtrise globale satisfaisante — continuer sur des cas plus complexes.</div>
+      </div>
+    
+        
+          <div class="card">
+            <div class="qid">T1-D2-Q1 · Question 1</div>
+            <div style="margin:6px 0"><span class='badge b-type'>T1 — Questions du cours</span><span class='badge b-diag'>Diagnostique</span></div>
+            <div class="stem">À quel degré te rappelles-tu la leçon « Droite dans le plan » ?</div>
+            
+            <div class='choice '><strong>A.</strong> J'ai tout oublié</div><div class='choice '><strong>B.</strong> Je me rappelle quelques parties</div><div class='choice '><strong>C.</strong> Je me rappelle bien</div><div class='choice '><strong>D.</strong> Je me rappelle tout</div>
+            
+          </div>
+        
+          <div class="card">
+            <div class="qid">T1-D2-Q2 · Question 2</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C1</span><span class='badge b-type'>T1 — Questions du cours</span></div>
+            <div class="stem">Dans le repère orthonormé $(O, \vec{i}, \vec{j})$ ci-dessous, placer les points $A(2,\,-3)$, $B(-1,\,0)$ et $C(0,\,2)$, puis tracer la droite $(\Delta)$ d'équation $2x - 3y + 2 = 0$.</div>
+            <img class="figure" src="tools\droite_plan\output\images\q2_repere.png" alt="Figure Q2">
+            <div class='meta'>Réponse attendue : Points correctement placés sur la grille ; la droite $(\Delta)$ passe par $(-1, 0)$ et $(2, 2)$ (pente $\tfrac{2}{3}$).</div>
+            <details><summary>Correction détaillée</summary><div class='meta'>Points correctement placés sur la grille ; la droite $(\Delta)$ passe par $(-1, 0)$ et $(2, 2)$ (pente $\tfrac{2}{3}$).</div></details>
+          </div>
+        
+          <div class="card">
+            <div class="qid">T1-D2-Q3 · Question 3</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C1</span><span class='badge b-type'>T1 — Questions du cours</span></div>
+            <div class="stem">Toute droite du plan admet une équation cartésienne de la forme :</div>
+            
+            <div class='choice correct'><span class='badge b-ok'>correct</span><strong>A.</strong> $ax + by + c = 0$ avec $(a,b) \neq (0,0)$</div><div class='choice '><strong>B.</strong> $y = ax^2 + bx + c$</div><div class='choice '><strong>C.</strong> $ax + by = 0$ uniquement</div><div class='choice '><strong>D.</strong> $\dfrac{x}{a} + \dfrac{y}{b} = 1$ uniquement</div>
+            
+          </div>
+        
+          <div class="card">
+            <div class="qid">T1-D2-Q4 · Question 4</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C1</span><span class='badge b-type'>T1 — Questions du cours</span></div>
+            <div class="stem">Un vecteur directeur de la droite d'équation $ax + by + c = 0$ est :</div>
+            
+            <div class='choice correct'><span class='badge b-ok'>correct</span><strong>A.</strong> $\vec{u}(-b,\,a)$</div><div class='choice '><strong>B.</strong> $\vec{u}(a,\,b)$</div><div class='choice '><strong>C.</strong> $\vec{u}(b,\,a)$</div><div class='choice '><strong>D.</strong> $\vec{u}(a,\,-b)$</div>
+            
+          </div>
+        
+          <div class="card">
+            <div class="qid">T1-D2-Q5 · Question 5</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C1</span><span class='badge b-type'>T1 — Questions du cours</span></div>
+            <div class="stem">Si $b \neq 0$, le coefficient directeur (pente) de la droite d'équation $ax + by + c = 0$ est :</div>
+            
+            <div class='choice correct'><span class='badge b-ok'>correct</span><strong>A.</strong> $m = -\dfrac{a}{b}$</div><div class='choice '><strong>B.</strong> $m = \dfrac{a}{b}$</div><div class='choice '><strong>C.</strong> $m = -\dfrac{b}{a}$</div><div class='choice '><strong>D.</strong> $m = \dfrac{b}{a}$</div>
+            
+          </div>
+        
+          <div class="card">
+            <div class="qid">T2-D2-Q6 · Question 6</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C1</span><span class='badge b-type'>T2 — Questions de la construction</span></div>
+            <div class="stem">Mettre la droite $(\Delta)$ : $2x - 3y + 2 = 0$ sous forme réduite $y = mx + p$ :</div>
+            
+            <div class='choice correct'><span class='badge b-ok'>correct</span><strong>A.</strong> $y = \dfrac{2}{3}x + \dfrac{2}{3}$</div><div class='choice '><strong>B.</strong> $y = \dfrac{3}{2}x + 1$</div><div class='choice '><strong>C.</strong> $y = -\dfrac{2}{3}x + \dfrac{2}{3}$</div><div class='choice '><strong>D.</strong> $y = \dfrac{2}{3}x - \dfrac{2}{3}$</div>
+            
+          </div>
+        
+          <div class="card">
+            <div class="qid">T2-D2-Q7 · Question 7</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C1</span><span class='badge b-type'>T2 — Questions de la construction</span></div>
+            <div class="stem">Pour $(\Delta)$ : $2x - 3y + 2 = 0$, un vecteur directeur $\vec{u}$ et un vecteur normal $\vec{n}$ sont :</div>
+            
+            <div class='choice correct'><span class='badge b-ok'>correct</span><strong>A.</strong> $\vec{u}(3,\,2)$ et $\vec{n}(2,\,-3)$</div><div class='choice '><strong>B.</strong> $\vec{u}(2,\,-3)$ et $\vec{n}(3,\,2)$</div><div class='choice '><strong>C.</strong> $\vec{u}(-2,\,3)$ et $\vec{n}(3,\,2)$</div><div class='choice '><strong>D.</strong> $\vec{u}(2,\,3)$ et $\vec{n}(-3,\,2)$</div>
+            
+          </div>
+        
+          <div class="card">
+            <div class="qid">T2-D2-Q8 · Question 8</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C1</span><span class='badge b-type'>T2 — Questions de la construction</span></div>
+            <div class="stem">Équation de la droite passant par $A(2,\,-3)$ et de coefficient directeur $m = \tfrac{2}{3}$ :</div>
+            
+            <div class='choice correct'><span class='badge b-ok'>correct</span><strong>A.</strong> $y = \dfrac{2}{3}x - \dfrac{13}{3}$</div><div class='choice '><strong>B.</strong> $y = \dfrac{2}{3}x - 3$</div><div class='choice '><strong>C.</strong> $y = \dfrac{2}{3}x + \dfrac{13}{3}$</div><div class='choice '><strong>D.</strong> $y = -\dfrac{2}{3}x - \dfrac{13}{3}$</div>
+            
+          </div>
+        
+          <div class="card">
+            <div class="qid">T3-D2-Q9 · Question 9</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C2</span><span class='badge b-type'>T3 — Questions de raisonnement</span></div>
+            <div class="stem">Le point $A(2,\,-3)$ appartient-il à la droite $(\Delta)$ d'équation $2x - 3y + 2 = 0$ ?</div>
+            
+            <div class='choice '><strong>A.</strong> Oui, car $2(2) - 3(-3) + 2 = 15 \neq 0$</div><div class='choice correct'><span class='badge b-ok'>correct</span><strong>B.</strong> Non, car $2(2) - 3(-3) + 2 = 15 \neq 0$</div><div class='choice '><strong>C.</strong> Oui, car $A$ a une abscisse positive</div><div class='choice '><strong>D.</strong> On ne peut pas conclure</div>
+            
+          </div>
+        
+          <div class="card">
+            <div class="qid">T3-D2-Q10 · Question 10</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C2</span><span class='badge b-type'>T3 — Questions de raisonnement</span></div>
+            <div class="stem">Parmi les droites suivantes, laquelle est parallèle à $(\Delta)$ : $2x - 3y + 2 = 0$ ?</div>
+            
+            <div class='choice correct'><span class='badge b-ok'>correct</span><strong>A.</strong> $4x - 6y + 7 = 0$</div><div class='choice '><strong>B.</strong> $3x + 2y - 1 = 0$</div><div class='choice '><strong>C.</strong> $2x + 3y + 2 = 0$</div><div class='choice '><strong>D.</strong> $x - y + 1 = 0$</div>
+            
+          </div>
+        
+          <div class="card">
+            <div class="qid">T3-D2-Q11 · Question 11</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C2</span><span class='badge b-type'>T3 — Questions de raisonnement</span></div>
+            <div class="stem">Équation de la droite $(\Delta')$ passant par $A(2,\,-3)$ et perpendiculaire à $(\Delta)$ : $2x - 3y + 2 = 0$ :</div>
+            
+            <div class='choice correct'><span class='badge b-ok'>correct</span><strong>A.</strong> $3x + 2y = 0$</div><div class='choice '><strong>B.</strong> $2x - 3y - 13 = 0$</div><div class='choice '><strong>C.</strong> $3x - 2y - 12 = 0$</div><div class='choice '><strong>D.</strong> $2x + 3y + 5 = 0$</div>
+            
+          </div>
+        
+          <div class="card">
+            <div class="qid">T3-D2-Q12 · Question 12</div>
+            <div style="margin:6px 0"><span class='badge b-skill'>C2</span><span class='badge b-type'>T3 — Questions de raisonnement</span></div>
+            <div class="stem">Distance du point $A(2,\,-3)$ à la droite $(\Delta)$ : $2x - 3y + 2 = 0$, donnée par $d(A, \Delta) = \dfrac{|2x_A - 3y_A + 2|}{\sqrt{2^2 + 3^2}}$ :</div>
+            
+            <div class='choice correct'><span class='badge b-ok'>correct</span><strong>A.</strong> $d = \dfrac{15}{\sqrt{13}} = \dfrac{15\sqrt{13}}{13}$</div><div class='choice '><strong>B.</strong> $d = \dfrac{15}{\sqrt{5}}$</div><div class='choice '><strong>C.</strong> $d = \dfrac{13}{\sqrt{15}}$</div><div class='choice '><strong>D.</strong> $d = 15$</div>
+            <details><summary>Correction détaillée</summary><div class='meta'>$d(A, \Delta) = \dfrac{|2\cdot 2 - 3\cdot(-3) + 2|}{\sqrt{13}} = \dfrac{15}{\sqrt{13}} = \dfrac{15\sqrt{13}}{13}$</div></details>
+          </div>
+        
+      </main>
+    </body></html>

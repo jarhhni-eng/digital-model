@@ -52,7 +52,6 @@ const DOMAINS = [
     color: '#8b5cf6',
     score: 68,
     tests: [
-      { id: 'test-abstract-reasoning',  name: 'Abstract reasoning',  status: 'completed', score: 70 },
       { id: 'test-deductive-reasoning', name: 'Deductive reasoning', status: 'completed', score: 75 },
       { id: 'test-inductive-reasoning', name: 'Inductive reasoning', status: 'upcoming',  score: 0  },
     ],
@@ -114,22 +113,6 @@ const DOMAINS = [
       { id: 'test-cognitive-flexibility', name: 'Cognitive flexibility', status: 'completed',   score: 68 },
       { id: 'test-inhibition',            name: 'Inhibition',            status: 'completed',   score: 60 },
       { id: 'test-processing-speed',      name: 'Processing speed',      status: 'upcoming',    score: 0  },
-    ],
-  },
-  {
-    id: 'geometry-learning',
-    name: 'Cognition et apprentissage de la géométrie',
-    nameFr: 'Cognition et apprentissage de la géométrie',
-    icon: <Triangle className="w-4 h-4" />,
-    color: '#6366f1',
-    score: 0,
-    tests: [
-      { id: 'test-geo-vectors',      name: 'Vecteurs et translation', status: 'upcoming', score: 0 },
-      { id: 'test-geo-central-sym',  name: 'Symétrie centrale',        status: 'upcoming', score: 0 },
-      { id: 'test-geo-axial-sym',    name: 'Symétrie axiale',          status: 'upcoming', score: 0 },
-      { id: 'test-geo-dot-product',  name: 'Produit scalaire',         status: 'upcoming', score: 0 },
-      { id: 'test-geo-trigonometry', name: 'Trigonométrie',            status: 'upcoming', score: 0 },
-      { id: 'test-geo-line-plane',   name: 'Droite dans le plan',      status: 'upcoming', score: 0 },
     ],
   },
 ]

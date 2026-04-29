@@ -1,0 +1,141 @@
+{
+  "total": {
+    "score": 10,
+    "max": 10,
+    "percent": 100
+  },
+  "by_type": {
+    "1": {
+      "score": 3,
+      "max": 3,
+      "label": "Questions du cours",
+      "percent": 100
+    },
+    "2": {
+      "score": 3,
+      "max": 3,
+      "label": "Questions de la construction",
+      "percent": 100
+    },
+    "3": {
+      "score": 4,
+      "max": 4,
+      "label": "Questions de raisonnement",
+      "percent": 100
+    }
+  },
+  "by_skill": {
+    "C1": {
+      "score": 6,
+      "max": 6,
+      "percent": 100
+    },
+    "C2": {
+      "score": 4,
+      "max": 4,
+      "percent": 100
+    }
+  },
+  "by_lesson": {
+    "D2": {
+      "score": 10,
+      "max": 10,
+      "percent": 100
+    }
+  },
+  "insights": [
+    "Maîtrise globale satisfaisante — continuer sur des cas plus complexes."
+  ],
+  "details": [
+    {
+      "question_id": "T1-D2-Q3",
+      "type_code": 1,
+      "skill": "C1",
+      "score": 1,
+      "max_score": 1,
+      "correct_letter": "A",
+      "selected_letter": "A"
+    },
+    {
+      "question_id": "T1-D2-Q4",
+      "type_code": 1,
+      "skill": "C1",
+      "score": 1,
+      "max_score": 1,
+      "correct_letter": "A",
+      "selected_letter": "A"
+    },
+    {
+      "question_id": "T1-D2-Q5",
+      "type_code": 1,
+      "skill": "C1",
+      "score": 1,
+      "max_score": 1,
+      "correct_letter": "A",
+      "selected_letter": "A"
+    },
+    {
+      "question_id": "T2-D2-Q6",
+      "type_code": 2,
+      "skill": "C1",
+      "score": 1,
+      "max_score": 1,
+      "correct_letter": "A",
+      "selected_letter": "A"
+    },
+    {
+      "question_id": "T2-D2-Q7",
+      "type_code": 2,
+      "skill": "C1",
+      "score": 1,
+      "max_score": 1,
+      "correct_letter": "A",
+      "selected_letter": "A"
+    },
+    {
+      "question_id": "T2-D2-Q8",
+      "type_code": 2,
+      "skill": "C1",
+      "score": 1,
+      "max_score": 1,
+      "correct_letter": "A",
+      "selected_letter": "A"
+    },
+    {
+      "question_id": "T3-D2-Q9",
+      "type_code": 3,
+      "skill": "C2",
+      "score": 1,
+      "max_score": 1,
+      "correct_letter": "B",
+      "selected_letter": "B"
+    },
+    {
+      "question_id": "T3-D2-Q10",
+      "type_code": 3,
+      "skill": "C2",
+      "score": 1,
+      "max_score": 1,
+      "correct_letter": "A",
+      "selected_letter": "A"
+    },
+    {
+      "question_id": "T3-D2-Q11",
+      "type_code": 3,
+      "skill": "C2",
+      "score": 1,
+      "max_score": 1,
+      "correct_letter": "A",
+      "selected_letter": "A"
+    },
+    {
+      "question_id": "T3-D2-Q12",
+      "type_code": 3,
+      "skill": "C2",
+      "score": 1,
+      "max_score": 1,
+      "correct_letter": "A",
+      "selected_letter": "A"
+    }
+  ]
+}

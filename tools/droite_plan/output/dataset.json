@@ -1,0 +1,321 @@
+[
+  {
+    "type": 1,
+    "lesson": 2,
+    "id": "T1-D2-Q1",
+    "question": "À quel degré te rappelles-tu la leçon « Droite dans le plan » ?",
+    "competency": null,
+    "answers": [
+      {
+        "text": "J'ai tout oublié",
+        "correct": false
+      },
+      {
+        "text": "Je me rappelle quelques parties",
+        "correct": false
+      },
+      {
+        "text": "Je me rappelle bien",
+        "correct": false
+      },
+      {
+        "text": "Je me rappelle tout",
+        "correct": false
+      }
+    ],
+    "image": null,
+    "expected_text": null,
+    "is_diagnostic": true
+  },
+  {
+    "type": 1,
+    "lesson": 2,
+    "id": "T1-D2-Q2",
+    "question": "Dans le repère orthonormé $(O, \\vec{i}, \\vec{j})$ ci-dessous, placer les points $A(2,\\,-3)$, $B(-1,\\,0)$ et $C(0,\\,2)$, puis tracer la droite $(\\Delta)$ d'équation $2x - 3y + 2 = 0$.",
+    "competency": "C1",
+    "answers": [],
+    "image": "tools\\droite_plan\\output\\images\\q2_repere.png",
+    "expected_text": "Points correctement placés sur la grille ; la droite $(\\Delta)$ passe par $(-1, 0)$ et $(2, 2)$ (pente $\\tfrac{2}{3}$).",
+    "is_diagnostic": false
+  },
+  {
+    "type": 1,
+    "lesson": 2,
+    "id": "T1-D2-Q3",
+    "question": "Toute droite du plan admet une équation cartésienne de la forme :",
+    "competency": "C1",
+    "answers": [
+      {
+        "text": "$ax + by + c = 0$ avec $(a,b) \\neq (0,0)$",
+        "correct": true
+      },
+      {
+        "text": "$y = ax^2 + bx + c$",
+        "correct": false
+      },
+      {
+        "text": "$ax + by = 0$ uniquement",
+        "correct": false
+      },
+      {
+        "text": "$\\dfrac{x}{a} + \\dfrac{y}{b} = 1$ uniquement",
+        "correct": false
+      }
+    ],
+    "image": null,
+    "expected_text": null,
+    "is_diagnostic": false
+  },
+  {
+    "type": 1,
+    "lesson": 2,
+    "id": "T1-D2-Q4",
+    "question": "Un vecteur directeur de la droite d'équation $ax + by + c = 0$ est :",
+    "competency": "C1",
+    "answers": [
+      {
+        "text": "$\\vec{u}(-b,\\,a)$",
+        "correct": true
+      },
+      {
+        "text": "$\\vec{u}(a,\\,b)$",
+        "correct": false
+      },
+      {
+        "text": "$\\vec{u}(b,\\,a)$",
+        "correct": false
+      },
+      {
+        "text": "$\\vec{u}(a,\\,-b)$",
+        "correct": false
+      }
+    ],
+    "image": null,
+    "expected_text": null,
+    "is_diagnostic": false
+  },
+  {
+    "type": 1,
+    "lesson": 2,
+    "id": "T1-D2-Q5",
+    "question": "Si $b \\neq 0$, le coefficient directeur (pente) de la droite d'équation $ax + by + c = 0$ est :",
+    "competency": "C1",
+    "answers": [
+      {
+        "text": "$m = -\\dfrac{a}{b}$",
+        "correct": true
+      },
+      {
+        "text": "$m = \\dfrac{a}{b}$",
+        "correct": false
+      },
+      {
+        "text": "$m = -\\dfrac{b}{a}$",
+        "correct": false
+      },
+      {
+        "text": "$m = \\dfrac{b}{a}$",
+        "correct": false
+      }
+    ],
+    "image": null,
+    "expected_text": null,
+    "is_diagnostic": false
+  },
+  {
+    "type": 2,
+    "lesson": 2,
+    "id": "T2-D2-Q6",
+    "question": "Mettre la droite $(\\Delta)$ : $2x - 3y + 2 = 0$ sous forme réduite $y = mx + p$ :",
+    "competency": "C1",
+    "answers": [
+      {
+        "text": "$y = \\dfrac{2}{3}x + \\dfrac{2}{3}$",
+        "correct": true
+      },
+      {
+        "text": "$y = \\dfrac{3}{2}x + 1$",
+        "correct": false
+      },
+      {
+        "text": "$y = -\\dfrac{2}{3}x + \\dfrac{2}{3}$",
+        "correct": false
+      },
+      {
+        "text": "$y = \\dfrac{2}{3}x - \\dfrac{2}{3}$",
+        "correct": false
+      }
+    ],
+    "image": null,
+    "expected_text": null,
+    "is_diagnostic": false
+  },
+  {
+    "type": 2,
+    "lesson": 2,
+    "id": "T2-D2-Q7",
+    "question": "Pour $(\\Delta)$ : $2x - 3y + 2 = 0$, un vecteur directeur $\\vec{u}$ et un vecteur normal $\\vec{n}$ sont :",
+    "competency": "C1",
+    "answers": [
+      {
+        "text": "$\\vec{u}(3,\\,2)$ et $\\vec{n}(2,\\,-3)$",
+        "correct": true
+      },
+      {
+        "text": "$\\vec{u}(2,\\,-3)$ et $\\vec{n}(3,\\,2)$",
+        "correct": false
+      },
+      {
+        "text": "$\\vec{u}(-2,\\,3)$ et $\\vec{n}(3,\\,2)$",
+        "correct": false
+      },
+      {
+        "text": "$\\vec{u}(2,\\,3)$ et $\\vec{n}(-3,\\,2)$",
+        "correct": false
+      }
+    ],
+    "image": null,
+    "expected_text": null,
+    "is_diagnostic": false
+  },
+  {
+    "type": 2,
+    "lesson": 2,
+    "id": "T2-D2-Q8",
+    "question": "Équation de la droite passant par $A(2,\\,-3)$ et de coefficient directeur $m = \\tfrac{2}{3}$ :",
+    "competency": "C1",
+    "answers": [
+      {
+        "text": "$y = \\dfrac{2}{3}x - \\dfrac{13}{3}$",
+        "correct": true
+      },
+      {
+        "text": "$y = \\dfrac{2}{3}x - 3$",
+        "correct": false
+      },
+      {
+        "text": "$y = \\dfrac{2}{3}x + \\dfrac{13}{3}$",
+        "correct": false
+      },
+      {
+        "text": "$y = -\\dfrac{2}{3}x - \\dfrac{13}{3}$",
+        "correct": false
+      }
+    ],
+    "image": null,
+    "expected_text": null,
+    "is_diagnostic": false
+  },
+  {
+    "type": 3,
+    "lesson": 2,
+    "id": "T3-D2-Q9",
+    "question": "Le point $A(2,\\,-3)$ appartient-il à la droite $(\\Delta)$ d'équation $2x - 3y + 2 = 0$ ?",
+    "competency": "C2",
+    "answers": [
+      {
+        "text": "Oui, car $2(2) - 3(-3) + 2 = 15 \\neq 0$",
+        "correct": false
+      },
+      {
+        "text": "Non, car $2(2) - 3(-3) + 2 = 15 \\neq 0$",
+        "correct": true
+      },
+      {
+        "text": "Oui, car $A$ a une abscisse positive",
+        "correct": false
+      },
+      {
+        "text": "On ne peut pas conclure",
+        "correct": false
+      }
+    ],
+    "image": null,
+    "expected_text": null,
+    "is_diagnostic": false
+  },
+  {
+    "type": 3,
+    "lesson": 2,
+    "id": "T3-D2-Q10",
+    "question": "Parmi les droites suivantes, laquelle est parallèle à $(\\Delta)$ : $2x - 3y + 2 = 0$ ?",
+    "competency": "C2",
+    "answers": [
+      {
+        "text": "$4x - 6y + 7 = 0$",
+        "correct": true
+      },
+      {
+        "text": "$3x + 2y - 1 = 0$",
+        "correct": false
+      },
+      {
+        "text": "$2x + 3y + 2 = 0$",
+        "correct": false
+      },
+      {
+        "text": "$x - y + 1 = 0$",
+        "correct": false
+      }
+    ],
+    "image": null,
+    "expected_text": null,
+    "is_diagnostic": false
+  },
+  {
+    "type": 3,
+    "lesson": 2,
+    "id": "T3-D2-Q11",
+    "question": "Équation de la droite $(\\Delta')$ passant par $A(2,\\,-3)$ et perpendiculaire à $(\\Delta)$ : $2x - 3y + 2 = 0$ :",
+    "competency": "C2",
+    "answers": [
+      {
+        "text": "$3x + 2y = 0$",
+        "correct": true
+      },
+      {
+        "text": "$2x - 3y - 13 = 0$",
+        "correct": false
+      },
+      {
+        "text": "$3x - 2y - 12 = 0$",
+        "correct": false
+      },
+      {
+        "text": "$2x + 3y + 5 = 0$",
+        "correct": false
+      }
+    ],
+    "image": null,
+    "expected_text": null,
+    "is_diagnostic": false
+  },
+  {
+    "type": 3,
+    "lesson": 2,
+    "id": "T3-D2-Q12",
+    "question": "Distance du point $A(2,\\,-3)$ à la droite $(\\Delta)$ : $2x - 3y + 2 = 0$, donnée par $d(A, \\Delta) = \\dfrac{|2x_A - 3y_A + 2|}{\\sqrt{2^2 + 3^2}}$ :",
+    "competency": "C2",
+    "answers": [
+      {
+        "text": "$d = \\dfrac{15}{\\sqrt{13}} = \\dfrac{15\\sqrt{13}}{13}$",
+        "correct": true
+      },
+      {
+        "text": "$d = \\dfrac{15}{\\sqrt{5}}$",
+        "correct": false
+      },
+      {
+        "text": "$d = \\dfrac{13}{\\sqrt{15}}$",
+        "correct": false
+      },
+      {
+        "text": "$d = 15$",
+        "correct": false
+      }
+    ],
+    "image": null,
+    "expected_text": "$d(A, \\Delta) = \\dfrac{|2\\cdot 2 - 3\\cdot(-3) + 2|}{\\sqrt{13}} = \\dfrac{15}{\\sqrt{13}} = \\dfrac{15\\sqrt{13}}{13}$",
+    "is_diagnostic": false
+  }
+]

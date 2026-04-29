@@ -34,7 +34,26 @@
       "Bash(mv Q9.png q9.png)",
       "Bash(mv q6.jpg q6.png)",
       "Bash(curl -s \"http://localhost:3005/images/geometry/3d/q9.png\" -I)",
-      "Bash(curl -s http://localhost:3006)"
+      "Bash(curl -s http://localhost:3006)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(grep -n \"^]$\" lib/mock-data.ts)",
+      "Bash(python -m tools.droite_plan.main --answers tools/droite_plan/sample_answers.json)",
+      "Bash(python -m http.server 8000 --directory tools/droite_plan/output)",
+      "Bash(curl -s -o /dev/null -w \"student.html → HTTP %{http_code}\\\\n\" http://localhost:8000/student.html)",
+      "Bash(curl -s -o /dev/null -w \"teacher.html → HTTP %{http_code}\\\\n\" http://localhost:8000/teacher.html)",
+      "Bash(curl -s -o /dev/null -w \"domains → HTTP %{http_code}\\\\n\" http://localhost:3007/domains)",
+      "Bash(curl -s -o /dev/null -w \"test → HTTP %{http_code}\\\\n\" http://localhost:3007/tests/test-geo-line-plane)",
+      "Bash(curl -s http://localhost:3007/tests/test-geo-line-plane -o /tmp/page.html -w \"HTTP %{http_code}\\\\n\")",
+      "Read(//tmp/**)",
+      "Bash(netstat -ano -p tcp)",
+      "Bash(curl -s -o /dev/null -w \"domains → HTTP %{http_code}\\\\n\" http://localhost:3000/domains)",
+      "Bash(curl -s -o /dev/null -w \"test → HTTP %{http_code}\\\\n\" http://localhost:3000/tests/test-geo-line-plane)",
+      "Bash(curl -s -o /dev/null -w \"test-geo-central-sym → HTTP %{http_code}\\\\n\" http://localhost:3000/tests/test-geo-central-sym)",
+      "Bash(powershell -Command \"\\(Get-Content 'C:\\\\Users\\\\dell\\\\Downloads\\\\digital-model\\\\.claude\\\\worktrees\\\\laughing-jang-e005b7\\\\lib\\\\geometry\\\\symetrie-axiale.ts'\\) -replace '/images/geometry/symetrie-axiale/shared-figure.png', '/images/geometry/symetrie-axiale/shared-i.png' | Set-Content 'C:\\\\Users\\\\dell\\\\Downloads\\\\digital-model\\\\.claude\\\\worktrees\\\\laughing-jang-e005b7\\\\lib\\\\geometry\\\\symetrie-axiale.ts'\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "Bash(rm -f lib/trigonometry-lesson.ts components/trigonometry/trigonometry-quiz.tsx)",
+      "Bash(rmdir components/trigonometry)",
+      "Bash(python -c \"from tools.produit_scalaire.dataset import build_dataset; from tools.produit_scalaire.scoring import grade, summarize; from tools.produit_scalaire.models import StudentAnswer; qs = build_dataset\\(\\); print\\(f'questions: {len\\(qs\\)}'\\); ans = {q.id: StudentAnswer\\(question_id=q.id, selected_letters=[c.letter for c in q.choices if c.is_correct]\\) for q in qs if q.choices}; g = grade\\(qs, ans\\); s = summarize\\(g\\); print\\('total:', s['total']\\); print\\('by_lesson:', list\\(s['by_lesson'].keys\\(\\)\\)\\); print\\('by_skill:', list\\(s['by_skill'].keys\\(\\)\\)\\)\")"
     ]
   }
 }

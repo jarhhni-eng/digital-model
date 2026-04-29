@@ -193,7 +193,7 @@ export const SYMETRIE_AXIALE_QUESTIONS: SymetrieAxialeQuestion[] = [
     ],
     correctAnswer: null,
     requiresImage: true,
-    imagePath: '/images/geometry/symetrie-axiale/shared-figure.png',
+    imagePath: '/images/geometry/symetrie-axiale/shared-i.png',
     part: 'visualization',
     correction: 'À déterminer selon la figure'
   },
@@ -210,7 +210,7 @@ export const SYMETRIE_AXIALE_QUESTIONS: SymetrieAxialeQuestion[] = [
     ],
     correctAnswer: null,
     requiresImage: true,
-    imagePath: '/images/geometry/symetrie-axiale/shared-figure.png',
+    imagePath: '/images/geometry/symetrie-axiale/shared-i.png',
     part: 'visualization',
     correction: 'À déterminer selon la figure'
   },
@@ -227,7 +227,7 @@ export const SYMETRIE_AXIALE_QUESTIONS: SymetrieAxialeQuestion[] = [
     ],
     correctAnswer: null,
     requiresImage: true,
-    imagePath: '/images/geometry/symetrie-axiale/shared-figure.png',
+    imagePath: '/images/geometry/symetrie-axiale/shared-i.png',
     part: 'visualization',
     correction: 'À déterminer selon la figure'
   },
@@ -244,7 +244,7 @@ export const SYMETRIE_AXIALE_QUESTIONS: SymetrieAxialeQuestion[] = [
     ],
     correctAnswer: null,
     requiresImage: true,
-    imagePath: '/images/geometry/symetrie-axiale/shared-figure.png',
+    imagePath: '/images/geometry/symetrie-axiale/shared-i.png',
     part: 'visualization',
     correction: 'À déterminer selon la figure'
   },
@@ -261,7 +261,7 @@ export const SYMETRIE_AXIALE_QUESTIONS: SymetrieAxialeQuestion[] = [
     ],
     correctAnswer: null,
     requiresImage: true,
-    imagePath: '/images/geometry/symetrie-axiale/shared-figure.png',
+    imagePath: '/images/geometry/symetrie-axiale/shared-i.png',
     part: 'visualization',
     correction: 'À déterminer selon la figure'
   },
@@ -278,7 +278,7 @@ export const SYMETRIE_AXIALE_QUESTIONS: SymetrieAxialeQuestion[] = [
     ],
     correctAnswer: null,
     requiresImage: true,
-    imagePath: '/images/geometry/symetrie-axiale/shared-figure.png',
+    imagePath: '/images/geometry/symetrie-axiale/shared-i.png',
     part: 'visualization',
     correction: 'À déterminer selon la figure'
   },
@@ -295,7 +295,7 @@ export const SYMETRIE_AXIALE_QUESTIONS: SymetrieAxialeQuestion[] = [
     ],
     correctAnswer: null,
     requiresImage: true,
-    imagePath: '/images/geometry/symetrie-axiale/shared-figure.png',
+    imagePath: '/images/geometry/symetrie-axiale/shared-i.png',
     part: 'visualization',
     correction: 'À déterminer selon la figure'
   },

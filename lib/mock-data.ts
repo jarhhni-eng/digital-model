@@ -164,7 +164,6 @@ export const mainDomains: MainDomain[] = [
         capacities: [
           { id: 'deductive', name: 'Deductive Reasoning', nameFr: 'Raisonnement déductif', testId: 'test-deductive-reasoning' },
           { id: 'inductive', name: 'Inductive Reasoning', nameFr: 'Raisonnement inductif', testId: 'test-inductive-reasoning' },
-          { id: 'abstract', name: 'Abstract Reasoning', nameFr: 'Raisonnement abstrait', testId: 'test-abstract-reasoning' },
         ],
       },
       {
@@ -204,7 +203,6 @@ export const mainDomains: MainDomain[] = [
           { id: 'visuo-spatial-attention', name: 'Visuo-Spatial Attention', nameFr: 'Attention visuo-spatiale', testId: 'test-visuo-spatial-attention' },
           { id: 'inhibition', name: 'Inhibition', testId: 'test-inhibition' },
           { id: 'cognitive-flexibility', name: 'Cognitive Flexibility', testId: 'test-cognitive-flexibility' },
-          { id: 'planning', name: 'Planning', testId: 'test-planning' },
         ],
       },
     ],
@@ -235,69 +233,6 @@ export const mainDomains: MainDomain[] = [
         name: '3D Geometry',
         capacities: [
           { id: 'dot-product-space', name: 'Dot Product in Space', testId: 'test-dot-product-space' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'geometry-learning',
-    name: 'Cognition et apprentissage de la géométrie',
-    description: "Évaluer les capacités cognitives mobilisées dans l'apprentissage de la géométrie du secondaire qualifiant",
-    subdomains: [
-      {
-        id: 'geo-vectors',
-        name: 'Vecteurs et translation',
-        nameFr: 'Vecteurs et translation',
-        capacities: [
-          { id: 'geo-vectors-cap', name: 'Vectors and translation', nameFr: 'Vecteurs et translation', testId: 'test-geo-vectors', competencyCode: 'C₁–C₅' },
-        ],
-      },
-      {
-        id: 'geo-central-sym',
-        name: 'Symétrie centrale',
-        nameFr: 'Symétrie centrale',
-        capacities: [
-          { id: 'geo-central-sym-cap', name: 'Central symmetry', nameFr: 'Symétrie centrale', testId: 'test-geo-central-sym', competencyCode: 'C₁–C₅' },
-        ],
-      },
-      {
-        id: 'geo-axial-sym',
-        name: 'Symétrie axiale',
-        nameFr: 'Symétrie axiale',
-        capacities: [
-          { id: 'geo-axial-sym-cap', name: 'Axial symmetry', nameFr: 'Symétrie axiale', testId: 'test-geo-axial-sym', competencyCode: 'C₁–C₅' },
-        ],
-      },
-      {
-        id: 'geo-dot-product',
-        name: 'Produit scalaire',
-        nameFr: 'Produit scalaire',
-        capacities: [
-          { id: 'geo-dot-product-cap', name: 'Dot product', nameFr: 'Produit scalaire', testId: 'test-geo-dot-product', competencyCode: 'C₁–C₅' },
-        ],
-      },
-      {
-        id: 'geo-trigonometry',
-        name: 'Trigonométrie',
-        nameFr: 'Trigonométrie',
-        capacities: [
-          { id: 'geo-trig-cap', name: 'Trigonometry', nameFr: 'Trigonométrie', testId: 'test-geo-trigonometry', competencyCode: 'C₁–C₅' },
-        ],
-      },
-      {
-        id: 'geo-line-plane',
-        name: 'Droite dans le plan',
-        nameFr: 'Droite dans le plan',
-        capacities: [
-          { id: 'geo-line-plane-cap', name: 'Line in the plane', nameFr: 'Droite dans le plan', testId: 'test-geo-line-plane', competencyCode: 'C₁–C₅' },
-        ],
-      },
-      {
-        id: 'geo-3d-geometry',
-        name: 'Géométrie dans l\'espace',
-        nameFr: 'Géométrie dans l\'espace',
-        capacities: [
-          { id: 'geo-3d-geometry-cap', name: 'Spatial Geometry', nameFr: 'Géométrie dans l\'espace', testId: 'test-geo-3d-geometry', competencyCode: 'C₁–C₅' },
         ],
       },
     ],
@@ -341,7 +276,6 @@ export const mockTests: Test[] = [
   // Cognitive Domain tests
   { id: 'test-deductive-reasoning', title: 'Deductive Reasoning', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
   { id: 'test-inductive-reasoning', title: 'Inductive Reasoning', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
-  { id: 'test-abstract-reasoning', title: 'Abstract Reasoning', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
   { id: 'test-visuo-motor', title: 'Visuo-Motor Capacity', domain: 'Cognitive Capacity', status: 'upcoming', type: 'drawing', duration: 2400 },
   { id: 'test-visuo-constructive', title: 'Visuo-Constructive Capacity', domain: 'Cognitive Capacity', status: 'upcoming', type: 'drawing', duration: 2400 },
   { id: 'test-visuo-perceptive', title: 'Visuo-Perceptive Capacity (hub)', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
@@ -365,25 +299,8 @@ export const mockTests: Test[] = [
   { id: 'test-visuo-spatial-attention', title: 'Visuo-Spatial Attention', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1500 },
   { id: 'test-inhibition', title: 'Inhibition', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1200 },
   { id: 'test-cognitive-flexibility', title: 'Cognitive Flexibility', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
-  { id: 'test-planning', title: 'Planning', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
   { id: 'test-processing-speed', title: 'Processing Speed', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 900 },
-
   // ── Cognition et apprentissage de la géométrie ────────────────────────────
-  {
-    id: 'test-geo-vectors',
-    title: 'Vecteurs et translation',
-    domain: 'Cognition et apprentissage de la géométrie',
-    status: 'upcoming',
-    type: 'mcq',
-    duration: 1200,
-    questions: [
-      { id: 'geo-vec-q1', label: 'Q1', competencyCode: 'C₁', type: 'mcq', question: 'Un vecteur est caractérisé par :', options: ['Sa direction uniquement', 'Sa direction, son sens et sa norme', 'Sa longueur uniquement', 'Son point de départ et sa direction'], correctOptionIndex: 1, timeLimit: 45 },
-      { id: 'geo-vec-q2', label: 'Q2', competencyCode: 'C₂', type: 'mcq', question: 'Si u⃗ = (3, 2) et v⃗ = (−1, 4), alors u⃗ + v⃗ est égal à :', options: ['(2, 6)', '(4, −2)', '(3, −2)', '(−3, 8)'], correctOptionIndex: 0, timeLimit: 45 },
-      { id: 'geo-vec-q3', label: 'Q3', competencyCode: 'C₃', type: 'mcq', question: 'La translation de vecteur v⃗ = (2, −3) envoie le point A(1, 5) sur le point :', options: ['A\'(3, 2)', 'A\'(−1, 8)', 'A\'(2, 3)', 'A\'(3, 8)'], correctOptionIndex: 0, timeLimit: 45 },
-      { id: 'geo-vec-q4', label: 'Q4', competencyCode: 'C₄', type: 'mcq', question: 'Si u⃗ = (4, −2), alors 3u⃗ est égal à :', options: ['(7, 1)', '(12, −6)', '(1, −5)', '(4, −6)'], correctOptionIndex: 1, timeLimit: 45 },
-      { id: 'geo-vec-q5', label: 'Q5', competencyCode: 'C₅', type: 'mcq', question: 'Les vecteurs u⃗ = (2, 4) et v⃗ = (1, 2) sont :', options: ['Perpendiculaires', 'De même norme', 'Colinéaires', 'Opposés'], correctOptionIndex: 2, timeLimit: 45 },
-    ],
-  },
   {
     id: 'test-geo-central-sym',
     title: 'Symétrie centrale',
@@ -400,7 +317,7 @@ export const mockTests: Test[] = [
     ],
   },
   {
-    id: 'test-geo-axial-sym',
+    id: 'test-geo-symetrie-axiale',
     title: 'Symétrie axiale',
     domain: 'Cognition et apprentissage de la géométrie',
     status: 'upcoming',
@@ -412,36 +329,6 @@ export const mockTests: Test[] = [
       { id: 'geo-as-q3', label: 'Q3', competencyCode: 'C₃', type: 'mcq', question: 'La symétrie axiale est :', options: ['Une isométrie directe', 'Une isométrie indirecte', 'Une rotation', 'Une translation'], correctOptionIndex: 1, timeLimit: 45 },
       { id: 'geo-as-q4', label: 'Q4', competencyCode: 'C₄', type: 'mcq', question: 'Parmi ces figures, laquelle possède un axe de symétrie ?', options: ['Un parallélogramme quelconque', 'Un triangle scalène', 'Un losange', 'Un quadrilatère quelconque'], correctOptionIndex: 2, timeLimit: 45 },
       { id: 'geo-as-q5', label: 'Q5', competencyCode: 'C₅', type: 'mcq', question: 'La composée de deux symétries axiales d\'axes parallèles est :', options: ['Une rotation', 'Une symétrie centrale', 'Une translation', 'Une symétrie axiale'], correctOptionIndex: 2, timeLimit: 45 },
-    ],
-  },
-  {
-    id: 'test-geo-dot-product',
-    title: 'Produit scalaire',
-    domain: 'Cognition et apprentissage de la géométrie',
-    status: 'upcoming',
-    type: 'mcq',
-    duration: 1200,
-    questions: [
-      { id: 'geo-dp-q1', label: 'Q1', competencyCode: 'C₁', type: 'mcq', question: 'Le produit scalaire u⃗·v⃗ avec u⃗ = (x₁, y₁) et v⃗ = (x₂, y₂) est :', options: ['x₁·y₂ + x₂·y₁', 'x₁·x₂ − y₁·y₂', 'x₁·x₂ + y₁·y₂', 'x₁·y₁ + x₂·y₂'], correctOptionIndex: 2, timeLimit: 45 },
-      { id: 'geo-dp-q2', label: 'Q2', competencyCode: 'C₂', type: 'mcq', question: 'Si u⃗ = (3, 4) et v⃗ = (2, −1), alors u⃗·v⃗ est égal à :', options: ['2', '6', '10', '−4'], correctOptionIndex: 0, timeLimit: 45 },
-      { id: 'geo-dp-q3', label: 'Q3', competencyCode: 'C₃', type: 'mcq', question: 'Deux vecteurs sont perpendiculaires si et seulement si leur produit scalaire est :', options: ['1', '−1', '0', 'Égal à la norme'], correctOptionIndex: 2, timeLimit: 45 },
-      { id: 'geo-dp-q4', label: 'Q4', competencyCode: 'C₄', type: 'mcq', question: 'La norme ‖u⃗‖ du vecteur u⃗ = (3, 4) est :', options: ['7', '5', '√7', '12'], correctOptionIndex: 1, timeLimit: 45 },
-      { id: 'geo-dp-q5', label: 'Q5', competencyCode: 'C₅', type: 'mcq', question: 'Si u⃗ et v⃗ sont unitaires et u⃗·v⃗ = 1/2, alors l\'angle entre eux est :', options: ['30°', '45°', '60°', '90°'], correctOptionIndex: 2, timeLimit: 45 },
-    ],
-  },
-  {
-    id: 'test-geo-trigonometry',
-    title: 'Trigonométrie',
-    domain: 'Cognition et apprentissage de la géométrie',
-    status: 'upcoming',
-    type: 'mcq',
-    duration: 1200,
-    questions: [
-      { id: 'geo-trig-q1', label: 'Q1', competencyCode: 'C₁', type: 'mcq', question: 'Quelle est la valeur de sin(30°) ?', options: ['√3/2', '1/2', '√2/2', '1'], correctOptionIndex: 1, timeLimit: 45 },
-      { id: 'geo-trig-q2', label: 'Q2', competencyCode: 'C₂', type: 'mcq', question: 'Laquelle de ces expressions est une identité trigonométrique ?', options: ['sin²x + cos²x = 2', 'sin²x − cos²x = 1', 'sin²x + cos²x = 1', 'sin x + cos x = 1'], correctOptionIndex: 2, timeLimit: 45 },
-      { id: 'geo-trig-q3', label: 'Q3', competencyCode: 'C₃', type: 'mcq', question: 'Les solutions de sin(x) = 0 dans [0, 2π] sont :', options: ['x = π/2 et x = 3π/2', 'x = 0 et x = π', 'x = 0, x = π et x = 2π', 'x = π/6 et x = 5π/6'], correctOptionIndex: 2, timeLimit: 45 },
-      { id: 'geo-trig-q4', label: 'Q4', competencyCode: 'C₄', type: 'mcq', question: 'Dans un triangle rectangle d\'hypoténuse 10 et d\'angle 30°, le côté opposé mesure :', options: ['5√3', '5', '10√3', '5√2'], correctOptionIndex: 1, timeLimit: 45 },
-      { id: 'geo-trig-q5', label: 'Q5', competencyCode: 'C₅', type: 'mcq', question: 'Avec a² = b² + c² − 2bc·cos(A), si b = 5, c = 7 et A = 60°, alors a² vaut :', options: ['39', '25', '74', '11'], correctOptionIndex: 0, timeLimit: 45 },
     ],
   },
   {
@@ -460,12 +347,36 @@ export const mockTests: Test[] = [
     ],
   },
   {
-    id: 'test-geo-3d-geometry',
-    title: 'Géométrie dans l\'espace',
+    id: 'test-geo-vectors-complete',
+    title: 'Vecteurs et translation',
     domain: 'Cognition et apprentissage de la géométrie',
     status: 'upcoming',
     type: 'mcq',
     duration: 900,
+  },
+  {
+    id: 'test-geo-trig-circle',
+    title: 'Cercle trigonométrique interactif',
+    domain: 'Cognition et apprentissage de la géométrie',
+    status: 'upcoming',
+    type: 'mcq',
+    duration: 900,
+  },
+  {
+    id: 'test-geo-space',
+    title: 'Géométrie dans l\'espace',
+    domain: 'Cognition et apprentissage de la géométrie',
+    status: 'upcoming',
+    type: 'mcq',
+    duration: 1200,
+  },
+  {
+    id: 'test-geo-produit-scalaire',
+    title: 'Produit scalaire',
+    domain: 'Cognition et apprentissage de la géométrie',
+    status: 'upcoming',
+    type: 'mcq',
+    duration: 1500,
   },
 ]
 

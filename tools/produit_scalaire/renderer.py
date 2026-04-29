@@ -65,11 +65,16 @@ def render_student(questions: list[Question], out_path: str) -> str:
     """
     payload = []
     for q in questions:
+        n_correct = sum(1 for c in q.choices if c.is_correct)
         payload.append({
             "id": q.id,
             "number": q.number,
             "stem": q.stem,
             "image": q.image,
+            "type_code": q.type_code,
+            "lesson_code": q.lesson_code,
+            "is_diagnostic": q.is_diagnostic,
+            "multi": n_correct > 1,
             "choices": [{"letter": c.letter, "text": c.text} for c in q.choices],
             "expected_free_text": bool(q.expected_text and not q.choices),
         })
@@ -192,6 +197,11 @@ def render_teacher(questions: list[Question], stats: dict, out_path: str) -> str
         f"<div class='l'>Compétence {k}<br>{v['score']}/{v['max']}</div></div>"
         for k, v in stats["by_skill"].items()
     )
+    lesson_rows = "".join(
+        f"<div class='stat'><div class='v'>{v['percent']}%</div>"
+        f"<div class='l'>{k} · {v['label']}<br>{v['score']}/{v['max']}</div></div>"
+        for k, v in stats.get("by_lesson", {}).items()
+    )
 
     analytics = f"""
       <div class="card">
@@ -199,6 +209,7 @@ def render_teacher(questions: list[Question], stats: dict, out_path: str) -> str
         <div class="stat-grid">
           <div class="stat"><div class="v">{total['percent']}%</div><div class="l">Score total<br>{total['score']}/{total['max']}</div></div>
           {type_rows}
+          {lesson_rows}
           {skill_rows}
         </div>
       </div>
