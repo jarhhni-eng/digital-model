@@ -36,11 +36,28 @@ def load_questions(docx_path: str | None):
 
 
 def load_answers(path: str | None) -> dict[str, StudentAnswer]:
-    """answers.json format: {"T1-D1-Q2": "A", "T1-D1-Q3": "A", ...}"""
+    """answers.json formats accepted (both work):
+        {"T1-D1-Q2": "A"}                            (single-letter shortcut)
+        {"T1-D1-Q2": ["A", "C"]}                     (multi-select list)
+        {"T1-D1-Q2": {"selected": ["A"], "dont_know": false, "free_text": null}}
+    """
     if not path:
         return {}
     raw = json.loads(Path(path).read_text(encoding="utf-8"))
-    return {qid: StudentAnswer(question_id=qid, selected_letter=letter) for qid, letter in raw.items()}
+    out: dict[str, StudentAnswer] = {}
+    for qid, val in raw.items():
+        if isinstance(val, str):
+            out[qid] = StudentAnswer(question_id=qid, selected_letters=[val])
+        elif isinstance(val, list):
+            out[qid] = StudentAnswer(question_id=qid, selected_letters=list(val))
+        elif isinstance(val, dict):
+            out[qid] = StudentAnswer(
+                question_id=qid,
+                selected_letters=list(val.get("selected", []) or []),
+                free_text=val.get("free_text"),
+                dont_know=bool(val.get("dont_know", False)),
+            )
+    return out
 
 
 def main():

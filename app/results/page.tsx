@@ -24,6 +24,8 @@ import { getLatestSAResult, SAResult } from '@/lib/attentional/selective-attenti
 import { getLatestSARTResult, SARTResult } from '@/lib/attentional/sustained-attention'
 import { getLatestTMTResult, TMTResult } from '@/lib/attentional/trail-making'
 import { getLatestShAResult, ShAResult } from '@/lib/attentional/shifting-attention'
+import { getLatestRAVLTResult, RAVLTResult } from '@/lib/memory/ravlt'
+import { getLatestDigitSpanResult, DigitSpanResult } from '@/lib/memory/digit-span'
 
 // ─── Exact same domain/test definitions as dashboard ──────────────────────────
 
@@ -50,7 +52,6 @@ const DOMAINS = [
     color: '#8b5cf6',
     score: 68,
     tests: [
-      { id: 'test-abstract-reasoning',  name: 'Abstract reasoning',  status: 'completed', score: 70 },
       { id: 'test-deductive-reasoning', name: 'Deductive reasoning', status: 'completed', score: 75 },
       { id: 'test-inductive-reasoning', name: 'Inductive reasoning', status: 'upcoming',  score: 0  },
     ],
@@ -114,22 +115,6 @@ const DOMAINS = [
       { id: 'test-processing-speed',      name: 'Processing speed',      status: 'upcoming',    score: 0  },
     ],
   },
-  {
-    id: 'geometry-learning',
-    name: 'Cognition et apprentissage de la géométrie',
-    nameFr: 'Cognition et apprentissage de la géométrie',
-    icon: <Triangle className="w-4 h-4" />,
-    color: '#6366f1',
-    score: 0,
-    tests: [
-      { id: 'test-geo-vectors',      name: 'Vecteurs et translation', status: 'upcoming', score: 0 },
-      { id: 'test-geo-central-sym',  name: 'Symétrie centrale',        status: 'upcoming', score: 0 },
-      { id: 'test-geo-axial-sym',    name: 'Symétrie axiale',          status: 'upcoming', score: 0 },
-      { id: 'test-geo-dot-product',  name: 'Produit scalaire',         status: 'upcoming', score: 0 },
-      { id: 'test-geo-trigonometry', name: 'Trigonométrie',            status: 'upcoming', score: 0 },
-      { id: 'test-geo-line-plane',   name: 'Droite dans le plan',      status: 'upcoming', score: 0 },
-    ],
-  },
 ]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -181,6 +166,8 @@ export default function ResultsPage() {
   const [sart, setSart] = useState<SARTResult | null>(null)
   const [tmt, setTmt] = useState<TMTResult | null>(null)
   const [sha, setSha] = useState<ShAResult | null>(null)
+  const [ravlt, setRavlt] = useState<RAVLTResult | null>(null)
+  const [digitSpan, setDigitSpan] = useState<DigitSpanResult | null>(null)
 
   useEffect(() => {
     const refresh = () => {
@@ -188,6 +175,7 @@ export default function ResultsPage() {
       if (!name) {
         setBeery(null)
         setDa(null); setSa(null); setSart(null); setTmt(null); setSha(null)
+        setRavlt(null); setDigitSpan(null)
         return
       }
       setBeery(getLatestResultForUser(name) ?? null)
@@ -196,14 +184,20 @@ export default function ResultsPage() {
       setSart(getLatestSARTResult(name) ?? null)
       setTmt(getLatestTMTResult(name) ?? null)
       setSha(getLatestShAResult(name) ?? null)
+      setRavlt(getLatestRAVLTResult(name) ?? null)
+      setDigitSpan(getLatestDigitSpanResult(name) ?? null)
     }
     refresh()
     window.addEventListener('beery-motrice-changed', refresh)
     window.addEventListener('attentional-changed', refresh)
+    window.addEventListener('memory-changed', refresh)
+    window.addEventListener('geometry-changed', refresh)
     window.addEventListener('storage', refresh)
     return () => {
       window.removeEventListener('beery-motrice-changed', refresh)
       window.removeEventListener('attentional-changed', refresh)
+      window.removeEventListener('memory-changed', refresh)
+      window.removeEventListener('geometry-changed', refresh)
       window.removeEventListener('storage', refresh)
     }
   }, [user])
@@ -249,6 +243,36 @@ export default function ResultsPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* ── Mémoire (résultats persistés) ────────────────────────────────── */}
+          {(ravlt || digitSpan) && (
+            <Card className="mb-6 border-rose-200 bg-rose-50/40 dark:border-rose-900/40 dark:bg-rose-950/20">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-rose-600" />
+                  <CardTitle className="text-base">Capacités de mémoire — derniers résultats</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="grid gap-2 md:grid-cols-2">
+                  {digitSpan && (
+                    <AttStat
+                      label="Digit Span"
+                      value={`${digitSpan.score}%`}
+                      detail={`${digitSpan.correctCount}/${digitSpan.trials.length}`}
+                    />
+                  )}
+                  {ravlt && (
+                    <AttStat
+                      label="RAVLT"
+                      value={`${ravlt.totalScore}`}
+                      detail={`/80 · ${Object.keys(ravlt.levels).length}/6 niveaux`}
+                    />
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* ── Beery VMI (résultat corrigé par l'admin) ────────────────────── */}
           {beery && (
