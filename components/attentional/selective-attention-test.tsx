@@ -15,7 +15,9 @@ import {
   SAResult,
   buildSATrials,
   saveSAResult,
+  SELECTIVE_ATTENTION_TEST_ID,
 } from '@/lib/attentional/selective-attention'
+import { TestIntroSection } from '@/components/assessment/test-intro-section'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
 
@@ -126,6 +128,11 @@ function Intro({ onNext, onQuit }: { onNext: () => void; onQuit: () => void }) {
         <p className="text-xs italic text-muted-foreground">
           Références : Stroop (1935) · Elcin, Velasquez &amp; Colombo (2024)
         </p>
+
+        <div className="mt-6">
+          <TestIntroSection testId={SELECTIVE_ATTENTION_TEST_ID} />
+        </div>
+
         <Button className="mt-6" onClick={onNext}>
           Suivant <ArrowRight className="ml-2 h-4 w-4" />
         </Button>

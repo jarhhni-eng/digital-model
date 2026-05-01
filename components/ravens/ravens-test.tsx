@@ -12,10 +12,12 @@ import {
   interpretScore,
   RAVENS_STORAGE_KEY,
   RAVENS_DURATION_SECONDS,
+  RAVENS_TEST_ID,
   type RavensAnswers,
   type RavensResult,
   type SeriesId,
 } from '@/lib/ravens-test'
+import { TestIntroSection } from '@/components/assessment/test-intro-section'
 import { Brain, CheckCircle, Clock, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react'
 
 // ─── Timer hook ───────────────────────────────────────────────────────────────
@@ -134,6 +136,8 @@ function WelcomeScreen({ onBegin }: { onBegin: () => void }) {
             </ul>
           </div>
         </div>
+
+        <TestIntroSection testId={RAVENS_TEST_ID} />
 
         <Button className="w-full h-12 text-base font-semibold" onClick={onBegin}>
           Commencer le test
@@ -409,32 +413,22 @@ export function RavensTest() {
               ))}
           </div>
 
-          {/* Navigation buttons */}
-          <div className="flex items-center justify-between gap-4 pb-8">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentIndex((i) => i - 1)}
-              disabled={currentIndex === 0}
-              className="flex items-center gap-2"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Précédent
-            </Button>
-
+          {/* Navigation — forward-only (no back) */}
+          <div className="flex items-center justify-end gap-4 pb-8">
             {isLast ? (
               <Button
                 onClick={handleSubmit}
                 className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
               >
                 <CheckCircle className="w-4 h-4" />
-                Soumettre
+                Valider et soumettre
               </Button>
             ) : (
               <Button
                 onClick={() => setCurrentIndex((i) => i + 1)}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 px-8"
               >
-                Suivant
+                Valider
                 <ChevronRight className="w-4 h-4" />
               </Button>
             )}

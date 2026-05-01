@@ -11,9 +11,11 @@ import {
   computeCuttingResult,
   NUM_CHOICES,
   MENTAL_CUTTING_STORAGE_KEY,
+  MENTAL_CUTTING_TEST_ID,
   TOTAL_QUESTIONS,
   type CuttingResult,
 } from '@/lib/mental-cutting-test'
+import { TestIntroSection } from '@/components/assessment/test-intro-section'
 import { Scissors, CheckCircle, XCircle, ChevronRight, BookOpen } from 'lucide-react'
 
 // ─── Image with fallback ──────────────────────────────────────────────────────
@@ -131,6 +133,8 @@ function IntroScreen({ onBegin }: { onBegin: () => void }) {
             </div>
           )}
         </div>
+
+        <TestIntroSection testId={MENTAL_CUTTING_TEST_ID} />
 
         <Button className="w-full h-12 text-base font-semibold" onClick={onBegin}>
           Commencer le test

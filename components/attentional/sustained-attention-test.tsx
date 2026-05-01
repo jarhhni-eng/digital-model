@@ -15,7 +15,9 @@ import {
   SARTResult,
   buildSARTTrials,
   saveSARTResult,
+  SUSTAINED_ATTENTION_TEST_ID,
 } from '@/lib/attentional/sustained-attention'
+import { TestIntroSection } from '@/components/assessment/test-intro-section'
 
 type Phase = 'intro' | 'instructions' | 'fixation' | 'stimulus' | 'isi' | 'done'
 
@@ -151,6 +153,11 @@ function Intro({ onNext, onQuit }: { onNext: () => void; onQuit: () => void }) {
         <p className="text-xs italic text-muted-foreground">
           Référence : Vallesi et al. (2021)
         </p>
+
+        <div className="mt-6">
+          <TestIntroSection testId={SUSTAINED_ATTENTION_TEST_ID} />
+        </div>
+
         <Button className="mt-6" onClick={onNext}>
           Suivant <ArrowRight className="ml-2 h-4 w-4" />
         </Button>

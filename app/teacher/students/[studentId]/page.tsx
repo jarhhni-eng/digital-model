@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
@@ -8,7 +9,8 @@ import { cn } from '@/lib/utils'
 import { StatCard, ProgressCard } from '@/components/dashboard-cards'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { mockTeacherStudents, mockStudentProfile, mockStudentResults, mockDomains } from '@/lib/mock-data'
+import { useAuth } from '@/lib/auth-context'
+import { getStudentsForTeacher, mockStudentProfile, mockStudentResults, mockDomains } from '@/lib/mock-data'
 import { 
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, 
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, 
@@ -34,7 +36,26 @@ interface StudentDetailsPageProps {
 export default function StudentDetailsPage({ params }: StudentDetailsPageProps) {
   const router = useRouter()
   const isMobile = useIsMobile()
-  const student = mockTeacherStudents.find((s) => s.id === params.studentId) || mockTeacherStudents[0]
+  const { user } = useAuth()
+  const myStudents = getStudentsForTeacher(user?.username, user?.role === 'admin')
+  const student = myStudents.find((s) => s.id === params.studentId)
+
+  // Block access if the student doesn't belong to this teacher
+  useEffect(() => {
+    if (user && !student) {
+      router.replace('/teacher/dashboard')
+    }
+  }, [user, student, router])
+
+  if (!student) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground text-sm">
+          Élève introuvable ou hors de votre périmètre.
+        </p>
+      </div>
+    )
+  }
   const profile = mockStudentProfile
 
   const attemptHistory = [

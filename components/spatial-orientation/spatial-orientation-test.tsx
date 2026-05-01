@@ -11,9 +11,11 @@ import {
   computeSpatialResult,
   ANSWER_CHOICES,
   SPATIAL_ORIENTATION_STORAGE_KEY,
+  SPATIAL_ORIENTATION_TEST_ID,
   type AnswerValue,
   type SpatialResult,
 } from '@/lib/spatial-orientation-test'
+import { TestIntroSection } from '@/components/assessment/test-intro-section'
 import {
   CheckCircle,
   XCircle,
@@ -148,9 +150,45 @@ function ScoreScreen({ result }: { result: SpatialResult }) {
   )
 }
 
+// ─── Intro screen (FIRST screen, shown before Q1) ───────────────────────────
+function SpatialIntroScreen({ onBegin }: { onBegin: () => void }) {
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl space-y-6">
+        <div className="text-center space-y-3">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+            <Compass className="w-8 h-8 text-primary" />
+          </div>
+          <h1 className="text-2xl font-bold leading-tight">
+            Test d&apos;Orientation Spatiale
+          </h1>
+          <p className="text-sm text-muted-foreground font-medium">
+            Hegarty &amp; Waller (2004) — adapté par Achraf Jarhni (2026)
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
+          <p className="text-sm font-semibold">Consigne principale</p>
+          <p className="text-sm mt-1">
+            Imagine que tu te trouves au centre du cercle et détermine l&apos;objet
+            indiqué par la flèche.
+          </p>
+        </div>
+
+        <TestIntroSection testId={SPATIAL_ORIENTATION_TEST_ID} />
+
+        <Button className="w-full h-12 text-base font-semibold" onClick={onBegin}>
+          Commencer le test
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 // ─── Main test component ──────────────────────────────────────────────────────
 export function SpatialOrientationTest() {
   const total = spatialQuestions.length
+  const [phase, setPhase] = useState<'intro' | 'test'>('intro')
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<number, AnswerValue>>({})
   const [timings, setTimings] = useState<Record<number, number>>({})   // ms per question
@@ -180,10 +218,6 @@ export function SpatialOrientationTest() {
     setCurrentIndex((i) => i + 1)
   }
 
-  function handlePrev() {
-    recordTime(q.number)
-    setCurrentIndex((i) => i - 1)
-  }
 
   function handleSubmit() {
     recordTime(q.number)
@@ -198,6 +232,7 @@ export function SpatialOrientationTest() {
   }
 
   if (result) return <ScoreScreen result={result} />
+  if (phase === 'intro') return <SpatialIntroScreen onBegin={() => setPhase('test')} />
 
   const progress = ((currentIndex + 1) / total) * 100
   const selectedAnswer = answers[q.number]
@@ -239,10 +274,16 @@ export function SpatialOrientationTest() {
             </span>
           </div>
 
-          {/* Images — side by side on desktop, stacked on mobile */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Main image */}
-            <div className="space-y-1.5">
+          {/* Persistent instruction reminder (per requirement) */}
+          <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-2.5 text-center text-sm text-amber-900 font-medium">
+            Imagine que tu te trouves au centre du cercle et détermine l&apos;objet
+            indiqué par la flèche.
+          </div>
+
+          {/* Images — main left, zoomed direction indicator on right */}
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+            {/* Main image — left, narrower */}
+            <div className="space-y-1.5 sm:col-span-2">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                 Main image
               </p>
@@ -253,16 +294,18 @@ export function SpatialOrientationTest() {
               />
             </div>
 
-            {/* Orientation image */}
-            <div className="space-y-1.5">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                Direction indicator
+            {/* Orientation image — right, ZOOMED (larger) */}
+            <div className="space-y-1.5 sm:col-span-3">
+              <p className="text-xs font-semibold text-primary uppercase tracking-wide">
+                Direction indicator (zoom)
               </p>
-              <TestImage
-                src={q.orientationImage}
-                alt={`Orientation for question ${q.number}`}
-                className="w-full aspect-square"
-              />
+              <div className="rounded-xl overflow-hidden ring-2 ring-primary/30 bg-white">
+                <TestImage
+                  src={q.orientationImage}
+                  alt={`Orientation for question ${q.number}`}
+                  className="w-full aspect-square scale-110 origin-center"
+                />
+              </div>
             </div>
           </div>
 
@@ -326,59 +369,31 @@ export function SpatialOrientationTest() {
             })}
           </div>
 
-          {/* Navigation */}
-          <div className="flex items-center justify-between gap-4 pb-8">
-            <Button
-              variant="outline"
-              onClick={handlePrev}
-              disabled={currentIndex === 0}
-              className="flex items-center gap-2"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Previous
-            </Button>
-
-            {/* Dot navigator */}
-            <div className="flex gap-1.5 flex-wrap justify-center">
-              {spatialQuestions.map((sq, i) => (
-                <button
-                  key={sq.number}
-                  onClick={() => {
-                    recordTime(q.number)
-                    setCurrentIndex(i)
-                  }}
-                  title={`Q${sq.number}`}
-                  className={[
-                    'w-2.5 h-2.5 rounded-full transition-all',
-                    i === currentIndex
-                      ? 'bg-primary scale-125'
-                      : answers[sq.number]
-                        ? 'bg-primary/50'
-                        : 'bg-muted-foreground/30',
-                  ].join(' ')}
-                />
-              ))}
-            </div>
-
+          {/* Navigation — forward-only (no back) */}
+          <div className="flex items-center justify-end gap-4 pb-8">
             {isLast ? (
               <Button
                 onClick={handleSubmit}
+                disabled={!selectedAnswer}
                 className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
               >
                 <CheckCircle className="w-4 h-4" />
-                Submit
+                Valider et soumettre
               </Button>
             ) : (
               <Button
                 onClick={handleNext}
                 disabled={!selectedAnswer}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 px-8"
               >
-                Next
+                Valider
                 <ChevronRight className="w-4 h-4" />
               </Button>
             )}
           </div>
+          <p className="text-center text-xs text-muted-foreground pb-2">
+            Navigation uniquement vers l&apos;avant · Pas de retour possible
+          </p>
 
           {isLast && answered < total && (
             <p className="text-center text-xs text-muted-foreground pb-4">

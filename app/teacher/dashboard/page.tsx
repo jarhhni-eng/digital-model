@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 import { StatCard } from '@/components/dashboard-cards'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { mockTeacherStudents, mockStudentProfile } from '@/lib/mock-data'
+import { getStudentsForTeacher, mockStudentProfile } from '@/lib/mock-data'
 import { 
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, 
   Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, Cell,
@@ -59,14 +59,14 @@ export default function TeacherDashboard() {
     }
   }, [loading, user, router])
 
-  const totalStudents = mockTeacherStudents.length
-  const avgClassScore = (
-    mockTeacherStudents.reduce((sum, s) => sum + s.averageScore, 0) /
-    totalStudents
-  ).toFixed(1)
-  const studentsNeedingSupport = mockTeacherStudents.filter(
-    (s) => s.averageScore < 70
-  ).length
+  // Scope to the logged-in teacher's roster only (admins see all).
+  const myStudents = getStudentsForTeacher(user?.username, user?.role === 'admin')
+  const totalStudents = myStudents.length
+  const avgClassScore =
+    totalStudents > 0
+      ? (myStudents.reduce((sum, s) => sum + s.averageScore, 0) / totalStudents).toFixed(1)
+      : '0.0'
+  const studentsNeedingSupport = myStudents.filter((s) => s.averageScore < 70).length
 
   if (loading || !user) {
     return (
@@ -111,7 +111,7 @@ export default function TeacherDashboard() {
               icon={<BookOpen className="w-5 h-5" />}
               title="Avg Tests/Student"
               value={(
-                mockTeacherStudents.reduce((sum, s) => sum + s.completedTests, 0) /
+                myStudents.reduce((sum, s) => sum + s.completedTests, 0) /
                 totalStudents
               ).toFixed(1)}
               description="Completed assessments"
@@ -333,7 +333,7 @@ export default function TeacherDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {mockTeacherStudents.map((student) => (
+                    {myStudents.map((student) => (
                       <tr
                         key={student.id}
                         className="border-b border-border hover:bg-muted/30 transition-colors"

@@ -11,6 +11,7 @@ import { SYLLOGISM_TEST_ID } from '@/lib/syllogism-test'
 import { RAVENS_TEST_ID } from '@/lib/ravens-test'
 import { SPATIAL_ORIENTATION_TEST_ID } from '@/lib/spatial-orientation-test'
 import { MENTAL_ROTATION_TEST_ID } from '@/lib/mental-rotation-test'
+import { MENTAL_ROTATION_2D_TEST_ID } from '@/lib/mental-rotation-2d-test'
 import { MENTAL_CUTTING_TEST_ID } from '@/lib/mental-cutting-test'
 import { CORSI_TEST_ID } from '@/lib/corsi-test'
 import { DIVIDED_ATTENTION_TEST_ID } from '@/lib/attentional/divided-attention'
@@ -39,6 +40,7 @@ import { SyllogismTest } from '@/components/syllogism/syllogism-test'
 import { RavensTest } from '@/components/ravens/ravens-test'
 import { SpatialOrientationTest } from '@/components/spatial-orientation/spatial-orientation-test'
 import { MentalRotationTest } from '@/components/mental-rotation/mental-rotation-test'
+import { MentalRotation2DTest } from '@/components/mental-rotation-2d/mental-rotation-2d-test'
 import { MentalCuttingTest } from '@/components/mental-cutting/mental-cutting-test'
 import { CorsiTest } from '@/components/corsi/corsi-test'
 import { GenericTestRunner } from '@/components/assessment/generic-test-runner'
@@ -89,6 +91,9 @@ export default function TestPage({ params }: TestPageProps) {
   }
   if (testId === MENTAL_ROTATION_TEST_ID) {
     return <MentalRotationTest />
+  }
+  if (testId === MENTAL_ROTATION_2D_TEST_ID) {
+    return <MentalRotation2DTest />
   }
   if (testId === MENTAL_CUTTING_TEST_ID) {
     return <MentalCuttingTest />

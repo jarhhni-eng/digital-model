@@ -23,8 +23,16 @@ export const PROC_SPEED_GRID_COLS = 6
 export const PROC_SPEED_GRID_ROWS = 5
 export const PROC_SPEED_FILL_RATIO = 0.7 // proportion de cellules occupées
 
-export type RectColor = 'red' | 'green'
+export type RectColor =
+  | 'red'
+  | 'green'
+  | 'blue'
+  | 'yellow'
+  | 'orange'
+  | 'purple'
+  | 'cyan'
 export type RectOrient = 'vertical' | 'horizontal'
+export type RectShape = 'rect' | 'circle' | 'triangle' | 'diamond'
 
 export interface RectStim {
   id: string
@@ -34,7 +42,9 @@ export interface RectStim {
   row: number
   color: RectColor
   orient: RectOrient
-  /** Vrai uniquement si rouge ET vertical */
+  /** distractor shape — target is always 'rect' */
+  shape: RectShape
+  /** Vrai uniquement si rouge ET vertical ET rectangle */
   isTarget: boolean
 }
 
@@ -100,31 +110,43 @@ function makeRects(hasTarget: boolean): RectStim[] {
   }
   const chosen = shuffle(cells).slice(0, fill)
 
-  const distractorTypes: { color: RectColor; orient: RectOrient }[] = [
-    { color: 'red', orient: 'horizontal' },
-    { color: 'green', orient: 'vertical' },
-    { color: 'green', orient: 'horizontal' },
-  ]
+  // Expanded distractor set: more colors AND more shapes increase
+  // perceptual load without changing the cognitive task.
+  // The TARGET is always: red + vertical + rectangle.
+  // Distractors are anything that is NOT (red+vertical+rect).
+  const colors: RectColor[] = ['red', 'green', 'blue', 'yellow', 'orange', 'purple', 'cyan']
+  const orients: RectOrient[] = ['vertical', 'horizontal']
+  const shapes: RectShape[] = ['rect', 'circle', 'triangle', 'diamond']
 
   const rects: RectStim[] = chosen.map((cell, i) => {
-    const d = pickRandom(distractorTypes)
+    // Pick random color/orient/shape — but reject the exact target combination
+    let color: RectColor
+    let orient: RectOrient
+    let shape: RectShape
+    do {
+      color = pickRandom(colors)
+      orient = pickRandom(orients)
+      shape = pickRandom(shapes)
+    } while (color === 'red' && orient === 'vertical' && shape === 'rect')
     return {
       id: `r${i}`,
       col: cell.col,
       row: cell.row,
-      color: d.color,
-      orient: d.orient,
+      color,
+      orient,
+      shape,
       isTarget: false,
     }
   })
 
   if (hasTarget && rects.length > 0) {
-    // remplace 1 rect aléatoire par la cible
+    // remplace 1 rect aléatoire par la cible (toujours rouge+vertical+rectangle)
     const idx = Math.floor(Math.random() * rects.length)
     rects[idx] = {
       ...rects[idx],
       color: 'red',
       orient: 'vertical',
+      shape: 'rect',
       isTarget: true,
     }
   }

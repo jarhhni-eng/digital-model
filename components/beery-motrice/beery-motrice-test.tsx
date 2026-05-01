@@ -19,6 +19,9 @@ import {
   BeeryMotriceSession,
   clearCurrentSessionId,
 } from '@/lib/beery-motrice'
+import { TestIntroSection } from '@/components/assessment/test-intro-section'
+
+const BEERY_VMI_TEST_ID_LOCAL = 'test-visuo-motor'
 
 export function BeeryMotriceTest() {
   const router = useRouter()
@@ -27,6 +30,7 @@ export function BeeryMotriceTest() {
   const [currentItem, setCurrentItem] = useState(1)
   const [drawingUrl, setDrawingUrl] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
+  const [introAccepted, setIntroAccepted] = useState(false)
 
   // Init or resume session
   useEffect(() => {
@@ -67,6 +71,27 @@ export function BeeryMotriceTest() {
   }
 
   if (!session) return null
+
+  // First screen: introduction + references gate
+  if (!introAccepted) {
+    return (
+      <div className="container mx-auto max-w-2xl py-10 space-y-6">
+        <Card className="p-8">
+          <h1 className="mb-2 text-2xl font-bold">Beery VMI — Intégration visuo-motrice</h1>
+          <p className="text-sm text-muted-foreground mb-6">
+            Veuillez prendre connaissance de l&apos;introduction avant de commencer.
+          </p>
+          <TestIntroSection testId={BEERY_VMI_TEST_ID_LOCAL} />
+          <Button
+            className="mt-6 w-full h-11"
+            onClick={() => setIntroAccepted(true)}
+          >
+            J&apos;ai lu — commencer le test
+          </Button>
+        </Card>
+      </div>
+    )
+  }
 
   const isLast = currentItem === BEERY_MOTRICE_ITEM_COUNT
 

@@ -18,7 +18,9 @@ import {
   TMT_TEST_COUNT_B,
   buildNodes,
   saveTMTResult,
+  TRAIL_MAKING_TEST_ID,
 } from '@/lib/attentional/trail-making'
+import { TestIntroSection } from '@/components/assessment/test-intro-section'
 
 type Phase = 'intro' | 'train-a' | 'test-a' | 'train-b' | 'test-b' | 'done'
 
@@ -80,6 +82,11 @@ export function TrailMakingTest() {
             </li>
             <li>Chaque partie commence par un entraînement, puis un test.</li>
           </ul>
+
+          <div className="mb-6">
+            <TestIntroSection testId={TRAIL_MAKING_TEST_ID} />
+          </div>
+
           <Button onClick={() => { startedRef.current = Date.now(); setPhase('train-a') }}>
             Commencer <ArrowRight className="ml-2 h-4 w-4" />
           </Button>

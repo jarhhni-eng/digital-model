@@ -23,6 +23,18 @@ const defaultMeta: TestTheoreticalMeta = {
 }
 
 const byTest: Record<string, Partial<TestTheoreticalMeta>> = {
+  'test-mental-rotation-2d': {
+    definition:
+      '2D mental rotation is the ability to mentally rotate a planar figure and recognise it among candidate figures presented at different orientations.',
+    background:
+      'Two-dimensional mental rotation tasks (Collins & Kimura, 1997) measure the speed and accuracy of imagined planar transformations and are widely used in cognitive and developmental psychology.',
+    author: 'Adapted from Collins & Kimura (1997) — 2D mental rotation paradigm',
+    source: 'Internal adaptation for the CogniTest platform',
+    objective:
+      'Quantify 2D mental rotation accuracy through a binary forced-choice (LEFT / RIGHT) over 19 items.',
+    instructions:
+      'Le test comporte 19 questions. Pour chaque écran, observez la figure de référence puis choisissez LEFT ou RIGHT. Une seule réponse par question, pas de retour en arrière. Durée totale : 15 minutes. Choisissez aussi rapidement et précisément que possible.',
+  },
   'test-selective-attention': {
     definition:
       'Selective attention is the ability to focus on task-relevant stimuli while ignoring distractors.',

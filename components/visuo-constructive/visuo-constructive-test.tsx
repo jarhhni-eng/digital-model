@@ -25,6 +25,7 @@ import {
 } from '@/lib/visuo-constructive'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { TestIntroSection } from '@/components/assessment/test-intro-section'
 
 const TEST_DURATION_SECONDS = 2400 // 40 min
 
@@ -51,6 +52,7 @@ export function VisuoConstructiveTest() {
   const router = useRouter()
   const [session, setSession] = useState<VisuoConstructiveSession | null>(null)
   const [currentQuestion, setCurrentQuestion] = useState(1)
+  const [introAccepted, setIntroAccepted] = useState(false)
 
   useEffect(() => {
     const loaded = loadVisuoConstructiveSession()
@@ -131,6 +133,31 @@ export function VisuoConstructiveTest() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <p className="text-muted-foreground">Loading test…</p>
+      </div>
+    )
+  }
+
+  // First screen: introduction + references
+  if (!introAccepted) {
+    return (
+      <div className="container mx-auto max-w-2xl py-10">
+        <Card className="p-8">
+          <CardHeader className="px-0 pt-0">
+            <CardTitle className="text-2xl">WAIS Puzzles — Construction visuelle</CardTitle>
+            <CardDescription>
+              Veuillez prendre connaissance de l&apos;introduction avant de commencer.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-0 pb-0">
+            <TestIntroSection testId={VISUO_CONSTRUCTIVE_TEST_ID} />
+            <Button
+              className="mt-6 w-full h-11"
+              onClick={() => setIntroAccepted(true)}
+            >
+              J&apos;ai lu — commencer le test
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }

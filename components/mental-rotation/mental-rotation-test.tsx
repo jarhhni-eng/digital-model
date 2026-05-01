@@ -12,9 +12,11 @@ import {
   OPTIONS,
   MENTAL_ROTATION_STORAGE_KEY,
   MENTAL_ROTATION_DURATION_SECONDS,
+  MENTAL_ROTATION_TEST_ID,
   type OptionLetter,
   type RotationResult,
 } from '@/lib/mental-rotation-test'
+import { TestIntroSection } from '@/components/assessment/test-intro-section'
 import { Brain, Clock, CheckCircle, ChevronRight, AlertTriangle } from 'lucide-react'
 
 // ─── Countdown hook ───────────────────────────────────────────────────────────
@@ -173,6 +175,8 @@ function IntroScreen({ onBegin }: { onBegin: () => void }) {
             </ol>
           )}
         </div>
+
+        <TestIntroSection testId={MENTAL_ROTATION_TEST_ID} />
 
         <Button className="w-full h-12 text-base font-semibold" onClick={onBegin}>
           Commencer le test

@@ -15,7 +15,9 @@ import {
   parseDigitAnswer,
   saveDigitSpanResult,
   speakDigits,
+  DIGIT_SPAN_TEST_ID,
 } from '@/lib/memory/digit-span'
+import { TestIntroSection } from '@/components/assessment/test-intro-section'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
 
@@ -135,6 +137,11 @@ function Intro({ onStart, onQuit }: { onStart: () => void; onQuit: () => void })
         <div className="mb-6 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
           <strong>Durée estimée :</strong> ~5 minutes. Assurez-vous que le son est activé.
         </div>
+
+        <div className="mb-6">
+          <TestIntroSection testId={DIGIT_SPAN_TEST_ID} />
+        </div>
+
         <Button onClick={onStart}>
           Commencer <ArrowRight className="ml-2 h-4 w-4" />
         </Button>

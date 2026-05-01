@@ -18,7 +18,9 @@ import {
   type NBackResult,
   type NBackTrial,
   type NBackTrialResult,
+  COGNITIVE_FLEXIBILITY_TEST_ID,
 } from '@/lib/attentional/cognitive-flexibility'
+import { TestIntroSection } from '@/components/assessment/test-intro-section'
 
 type Phase = 'intro' | 'instructions' | 'fixation' | 'stimulus' | 'isi' | 'done'
 
@@ -162,6 +164,11 @@ function Intro({ onNext, onQuit }: { onNext: () => void; onQuit: () => void }) {
           Cette version mesure la flexibilité cognitive et la mise à jour de la mémoire
           de travail à un niveau N = {NBACK_LEVEL}.
         </p>
+
+        <div className="mt-6">
+          <TestIntroSection testId={COGNITIVE_FLEXIBILITY_TEST_ID} />
+        </div>
+
         <Button className="mt-6" onClick={onNext}>
           Suivant <ArrowRight className="ml-2 h-4 w-4" />
         </Button>

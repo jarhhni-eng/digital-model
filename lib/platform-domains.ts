@@ -47,7 +47,8 @@ export const platformDomains: MainDomain[] = [
         id: 'spatial-core',
         name: 'Spatial cognition',
         capacities: [
-          { id: 'mental-rotation', name: '2D and 3D mental rotation', testId: 'test-mental-rotation' },
+          { id: 'mental-rotation', name: '3D mental rotation', testId: 'test-mental-rotation' },
+          { id: 'mental-rotation-2d', name: '2D mental rotation', testId: 'test-mental-rotation-2d' },
           { id: 'mental-transformation', name: 'Mental transformation', testId: 'test-spatial-transformation' },
           { id: 'spatial-orientation', name: 'Spatial orientation', testId: 'test-spatial-orientation' },
         ],

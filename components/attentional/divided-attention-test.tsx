@@ -19,7 +19,9 @@ import {
   buildDATrials,
   saveDAResult,
   toCSV,
+  DIVIDED_ATTENTION_TEST_ID,
 } from '@/lib/attentional/divided-attention'
+import { TestIntroSection } from '@/components/assessment/test-intro-section'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
 
@@ -133,6 +135,11 @@ function IntroScreen({ onNext, onQuit }: { onNext: () => void; onQuit: () => voi
           diminuer : le cerveau ne peut traiter qu’une quantité limitée d’informations.
           L’entraînement permet toutefois d’améliorer cette capacité.
         </p>
+
+        <div className="mb-6">
+          <TestIntroSection testId={DIVIDED_ATTENTION_TEST_ID} />
+        </div>
+
         <Button onClick={onNext}>
           Suivant <ArrowRight className="ml-2 h-4 w-4" />
         </Button>

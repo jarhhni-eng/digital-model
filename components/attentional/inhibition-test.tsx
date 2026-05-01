@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { ArrowLeft, ArrowRight, CheckCircle2, ShieldAlert } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
+import { TestIntroSection } from '@/components/assessment/test-intro-section'
+import { INHIBITION_TEST_ID } from '@/lib/attentional/inhibition'
 import {
   INHIBITION_FIXATION_MS,
   INHIBITION_ISI_MS,
@@ -143,21 +145,32 @@ function Intro({ onNext, onQuit }: { onNext: () => void; onQuit: () => void }) {
           <ShieldAlert className="h-4 w-4" /> Inhibition · CPT
         </div>
         <h1 className="mb-3 text-3xl font-bold">
-          Test de Performance Continue (CPT) — Inhibition de réponse
+          Test de Performance Continue (CPT) — Inhibition
         </h1>
-        <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
-          Cette tâche évalue plusieurs fonctions exécutives :
+        <p className="mb-4 text-sm leading-relaxed text-foreground">
+          Vous allez voir une série de lettres apparaître à l&apos;écran, une à la fois.
+          La règle est simple :
         </p>
-        <ul className="mb-4 ml-6 list-disc space-y-1 text-sm text-muted-foreground">
-          <li>l'attention soutenue</li>
-          <li>l'inhibition de la réponse automatique</li>
-          <li>le contrôle cognitif</li>
+        <ul className="mb-4 ml-6 list-disc space-y-1.5 text-sm text-foreground">
+          <li>
+            Appuyez sur <kbd className="rounded bg-muted px-1.5 py-0.5">Espace</kbd> dès
+            qu&apos;une lettre apparaît — <strong>aussi vite que possible</strong>.
+          </li>
+          <li>
+            <strong>Exception :</strong> ne réagissez <strong>pas</strong> quand la lettre
+            cible apparaît.
+          </li>
         </ul>
-        <p className="text-xs italic text-muted-foreground">
-          Une série de lettres apparaîtra à l'écran, une à la fois. Vous devrez réagir
-          rapidement — sauf à la lettre cible.
+        <p className="mb-4 text-xs italic text-muted-foreground">
+          Cette tâche mesure votre attention soutenue et votre capacité à inhiber une
+          réponse automatique. Soyez rapide, mais précis.
         </p>
-        <Button className="mt-6" onClick={onNext}>
+
+        <div className="mb-6">
+          <TestIntroSection testId={INHIBITION_TEST_ID} />
+        </div>
+
+        <Button className="mt-2" onClick={onNext}>
           Suivant <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </Card>

@@ -19,7 +19,9 @@ import {
   buildShATrials,
   correctSide,
   saveShAResult,
+  SHIFTING_ATTENTION_TEST_ID,
 } from '@/lib/attentional/shifting-attention'
+import { TestIntroSection } from '@/components/assessment/test-intro-section'
 
 type Phase = 'intro' | 'instructions' | 'training' | 'training-done' | 'test' | 'done'
 type SubPhase = 'fixation' | 'cue' | 'stimulus' | 'iti'
@@ -86,22 +88,27 @@ export function ShiftingAttentionTest() {
     return () => clearTimeout(timer)
   }, [sub, phase, finish])
 
+  // shared response handler — used by both keyboard and on-screen F / J buttons
+  const respond = useCallback(
+    (side: 'left' | 'right') => {
+      if (sub !== 'stimulus') return
+      if (pressed.current) return
+      pressed.current = side
+      finish()
+    },
+    [sub, finish],
+  )
+
   // key input during stimulus
   useEffect(() => {
     if (sub !== 'stimulus') return
     const onKey = (e: KeyboardEvent) => {
-      if (pressed.current) return
-      if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'f') {
-        pressed.current = 'left'
-        finish()
-      } else if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'j') {
-        pressed.current = 'right'
-        finish()
-      }
+      if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'f') respond('left')
+      else if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'j') respond('right')
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [sub, finish])
+  }, [sub, respond])
 
   // save result
   useEffect(() => {
@@ -143,6 +150,7 @@ export function ShiftingAttentionTest() {
       index={current}
       total={trials.length}
       feedback={isTraining ? feedback : null}
+      onRespond={respond}
     />
   )
 }
@@ -163,6 +171,11 @@ function Intro({ onNext, onQuit }: { onNext: () => void; onQuit: () => void }) {
           déplacer vers une autre tâche lorsque c’est nécessaire. Le paradigme de commutation de
           tâches mesure la flexibilité cognitive et le contrôle exécutif.
         </p>
+
+        <div className="mb-6">
+          <TestIntroSection testId={SHIFTING_ATTENTION_TEST_ID} />
+        </div>
+
         <Button onClick={onNext}>
           Suivant <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
@@ -241,15 +254,18 @@ function TrialScreen({
   index,
   total,
   feedback,
+  onRespond,
 }: {
   trial: ShATrial
   sub: SubPhase
   index: number
   total: number
   feedback: 'ok' | 'ko' | null
+  onRespond?: (side: 'left' | 'right') => void
 }) {
   const cue = trial.task === 'parity' ? 'PARITÉ (pair/impair)' : 'MAGNITUDE (< 5 / > 5)'
   const cueColor = trial.task === 'parity' ? '#2563eb' : '#dc2626'
+  const buttonsActive = sub === 'stimulus' && !!onRespond
   return (
     <main className="container mx-auto max-w-4xl py-8">
       <div className="mb-3 flex items-center justify-between text-sm text-muted-foreground">
@@ -282,6 +298,40 @@ function TrialScreen({
           </div>
         )}
       </Card>
+
+      {/* On-screen F / J response buttons (also keyboard-accessible) */}
+      <div className="mt-6 grid grid-cols-2 gap-4 max-w-xl mx-auto">
+        <button
+          type="button"
+          onClick={() => onRespond?.('left')}
+          disabled={!buttonsActive}
+          className={[
+            'flex items-center justify-center gap-3 rounded-2xl border-2 px-6 py-5 text-lg font-bold transition-all',
+            buttonsActive
+              ? 'border-blue-300 bg-blue-50 text-blue-700 hover:border-blue-500 hover:bg-blue-100 cursor-pointer'
+              : 'border-border bg-muted/30 text-muted-foreground cursor-not-allowed opacity-50',
+          ].join(' ')}
+          aria-label="Réponse gauche (F)"
+        >
+          <kbd className="rounded bg-white/80 border border-current px-2 py-0.5 text-base">F</kbd>
+          <span>← Gauche</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => onRespond?.('right')}
+          disabled={!buttonsActive}
+          className={[
+            'flex items-center justify-center gap-3 rounded-2xl border-2 px-6 py-5 text-lg font-bold transition-all',
+            buttonsActive
+              ? 'border-red-300 bg-red-50 text-red-700 hover:border-red-500 hover:bg-red-100 cursor-pointer'
+              : 'border-border bg-muted/30 text-muted-foreground cursor-not-allowed opacity-50',
+          ].join(' ')}
+          aria-label="Réponse droite (J)"
+        >
+          <span>Droite →</span>
+          <kbd className="rounded bg-white/80 border border-current px-2 py-0.5 text-base">J</kbd>
+        </button>
+      </div>
     </main>
   )
 }

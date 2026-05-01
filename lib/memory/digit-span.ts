@@ -17,6 +17,9 @@ export const DIGIT_SPAN_SEQUENCES: number[][] = [
   [2, 4, 5, 6],
   [5, 6, 8, 1],
   [8, 4, 2, 0],
+  // Two new 6-digit sequences (added per requirement)
+  [3, 8, 2, 7, 5, 1],
+  [9, 4, 6, 1, 8, 3],
 ]
 
 export interface DigitSpanTrialResult {
@@ -63,7 +66,7 @@ export function getLatestDigitSpanResult(userName?: string): DigitSpanResult | u
   return all[0]
 }
 
-export function speakDigits(digits: number[], intervalMs = 900): Promise<void> {
+export function speakDigits(digits: number[], intervalMs = 650): Promise<void> {
   return new Promise((resolve) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
       setTimeout(resolve, digits.length * intervalMs)
@@ -78,7 +81,8 @@ export function speakDigits(digits: number[], intervalMs = 900): Promise<void> {
       }
       const u = new SpeechSynthesisUtterance(String(digits[i]))
       u.lang = 'fr-FR'
-      u.rate = 0.85
+      // Slightly faster digit playback (was 0.85)
+      u.rate = 1.05
       u.onend = () => {
         i++
         setTimeout(next, intervalMs)

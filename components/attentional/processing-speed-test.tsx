@@ -18,7 +18,9 @@ import {
   type ProcSpeedTrial,
   type ProcSpeedTrialResult,
   type RectStim,
+  PROCESSING_SPEED_TEST_ID,
 } from '@/lib/attentional/processing-speed'
+import { TestIntroSection } from '@/components/assessment/test-intro-section'
 
 type Phase = 'intro' | 'instructions' | 'fixation' | 'stimulus' | 'isi' | 'done'
 
@@ -178,6 +180,11 @@ function Intro({ onNext, onQuit }: { onNext: () => void; onQuit: () => void }) {
           <li><strong>Distracteurs</strong> : éléments non-cibles qui augmentent la difficulté.</li>
           <li><strong>Champ de recherche</strong> : la zone visuelle à explorer.</li>
         </ul>
+
+        <div className="mb-6">
+          <TestIntroSection testId={PROCESSING_SPEED_TEST_ID} />
+        </div>
+
         <Button className="mt-2" onClick={onNext}>
           Suivant <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
@@ -228,6 +235,16 @@ function Instructions({ onStart, onBack }: { onStart: () => void; onBack: () => 
 }
 
 // ─── Stimulus ────────────────────────────────────────────────────────────────
+const COLOR_HEX: Record<string, string> = {
+  red: '#dc2626',
+  green: '#16a34a',
+  blue: '#2563eb',
+  yellow: '#eab308',
+  orange: '#ea580c',
+  purple: '#9333ea',
+  cyan: '#0891b2',
+}
+
 function RectGlyph({
   rect,
   cx,
@@ -241,22 +258,46 @@ function RectGlyph({
 }) {
   const w = rect.orient === 'vertical' ? RECT_SHORT : RECT_LONG
   const h = rect.orient === 'vertical' ? RECT_LONG : RECT_SHORT
-  const fill = rect.color === 'red' ? '#dc2626' : '#16a34a'
-  return (
-    <rect
-      x={cx - w / 2}
-      y={cy - h / 2}
-      width={w}
-      height={h}
-      fill={fill}
-      rx={2}
-      className="cursor-pointer transition-opacity hover:opacity-80"
-      onClick={(e) => {
-        e.stopPropagation()
-        onClick()
-      }}
-    />
-  )
+  const fill = COLOR_HEX[rect.color] ?? '#16a34a'
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onClick()
+  }
+  const cls = 'cursor-pointer transition-opacity hover:opacity-80'
+
+  // Distractors can take various shapes. Target is always 'rect'.
+  if (rect.shape === 'rect') {
+    return (
+      <rect
+        x={cx - w / 2}
+        y={cy - h / 2}
+        width={w}
+        height={h}
+        fill={fill}
+        rx={2}
+        className={cls}
+        onClick={handleClick}
+      />
+    )
+  }
+  if (rect.shape === 'circle') {
+    const r = Math.min(w, h) / 2
+    return (
+      <circle cx={cx} cy={cy} r={r} fill={fill} className={cls} onClick={handleClick} />
+    )
+  }
+  if (rect.shape === 'diamond') {
+    const dx = w / 2
+    const dy = h / 2
+    const points = `${cx},${cy - dy} ${cx + dx},${cy} ${cx},${cy + dy} ${cx - dx},${cy}`
+    return <polygon points={points} fill={fill} className={cls} onClick={handleClick} />
+  }
+  // triangle (orientation flips it)
+  const flip = rect.orient === 'horizontal'
+  const points = flip
+    ? `${cx - w / 2},${cy} ${cx + w / 2},${cy - h / 2} ${cx + w / 2},${cy + h / 2}`
+    : `${cx},${cy - h / 2} ${cx + w / 2},${cy + h / 2} ${cx - w / 2},${cy + h / 2}`
+  return <polygon points={points} fill={fill} className={cls} onClick={handleClick} />
 }
 
 function StimulusView({

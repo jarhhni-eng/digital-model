@@ -77,14 +77,29 @@ export interface StudentResult {
   }[]
 }
 
+export type ScholarLevel =
+  | '3ème année collège'
+  | 'Tronc commun scientifique'
+  | '1ère année Baccalauréat – Sciences expérimentales'
+  | '1ère année Baccalauréat – Sciences mathématiques'
+
+export const SCHOLAR_LEVELS: ScholarLevel[] = [
+  '3ème année collège',
+  'Tronc commun scientifique',
+  '1ère année Baccalauréat – Sciences expérimentales',
+  '1ère année Baccalauréat – Sciences mathématiques',
+]
+
 export interface StudentProfile {
   id: string
   name: string
   email: string
   age: number
-  scholarLevel: string
-  lastYearMathScore: number
-  currentMathScore: number
+  scholarLevel: ScholarLevel | string
+  /** Average for academic year 2024 / 2025 */
+  mathAverage2024_2025: number
+  /** Average for academic year 2025 / 2026 */
+  mathAverage2025_2026: number
   teacher: string
   joinDate: string
 }
@@ -97,6 +112,9 @@ export interface TeacherStudent {
   averageScore: number
   completedTests: number
   weakAreas: string[]
+  /** Username (or email) of the teacher who owns this student. Used to scope the dashboard. */
+  teacherUsername?: string
+  scholarLevel?: ScholarLevel | string
 }
 
 // Mock data
@@ -240,39 +258,6 @@ export const mainDomains: MainDomain[] = [
 ]
 
 export const mockTests: Test[] = [
-  {
-    id: 'test-001',
-    title: 'Arithmetic Fundamentals',
-    domain: 'Numerical Reasoning',
-    status: 'completed',
-    type: 'mcq',
-    duration: 1800,
-  },
-  {
-    id: 'test-002',
-    title: 'Mental Rotation Challenge',
-    domain: 'Spatial Visualization',
-    status: 'in-progress',
-    type: 'drawing',
-    duration: 2400,
-  },
-  {
-    id: 'test-003',
-    title: 'Logic Puzzles',
-    domain: 'Problem Solving',
-    status: 'upcoming',
-    dueDate: '2025-03-15',
-    type: 'mcq',
-    duration: 1800,
-  },
-  {
-    id: 'test-004',
-    title: 'Number Patterns',
-    domain: 'Numerical Reasoning',
-    status: 'completed',
-    type: 'mcq',
-    duration: 1200,
-  },
   // Cognitive Domain tests
   { id: 'test-deductive-reasoning', title: 'Deductive Reasoning', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
   { id: 'test-inductive-reasoning', title: 'Inductive Reasoning', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
@@ -287,7 +272,8 @@ export const mockTests: Test[] = [
   { id: 'test-vp-figure-fond', title: 'VP · Figure-fond', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 900 },
   { id: 'test-vp-intrus', title: 'VP · Intrus', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 900 },
   { id: 'test-vp-fond-cache', title: 'VP · Fond caché', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 900 },
-  { id: 'test-mental-rotation', title: 'Mental Rotation', domain: 'Cognitive Capacity', status: 'upcoming', type: 'drawing', duration: 2400 },
+  { id: 'test-mental-rotation', title: 'Mental Rotation 3D', domain: 'Cognitive Capacity', status: 'upcoming', type: 'drawing', duration: 2400 },
+  { id: 'test-mental-rotation-2d', title: 'Mental Rotation 2D', domain: 'Cognitive Capacity', status: 'upcoming', type: 'drawing', duration: 900 },
   { id: 'test-spatial-orientation', title: 'Spatial Orientation', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1800 },
   { id: 'test-spatial-transformation', title: 'Spatial Transformation', domain: 'Cognitive Capacity', status: 'upcoming', type: 'drawing', duration: 2400 },
   { id: 'test-working-memory', title: 'Working Memory', domain: 'Cognitive Capacity', status: 'upcoming', type: 'mcq', duration: 1500 },
@@ -419,9 +405,9 @@ export const mockStudentProfile: StudentProfile = {
   name: 'Emma Johnson',
   email: 'emma.johnson@university.edu',
   age: 16,
-  scholarLevel: 'Grade 10',
-  lastYearMathScore: 72,
-  currentMathScore: 78,
+  scholarLevel: '1ère année Baccalauréat – Sciences expérimentales',
+  mathAverage2024_2025: 14.5,
+  mathAverage2025_2026: 15.8,
   teacher: 'Dr. Richard Smith',
   joinDate: '2025-01-15',
 }
@@ -435,6 +421,8 @@ export const mockTeacherStudents: TeacherStudent[] = [
     averageScore: 75.3,
     completedTests: 8,
     weakAreas: ['Algebra', 'Advanced Geometry'],
+    teacherUsername: 'teacher',
+    scholarLevel: '1ère année Baccalauréat – Sciences expérimentales',
   },
   {
     id: 's-002',
@@ -444,6 +432,8 @@ export const mockTeacherStudents: TeacherStudent[] = [
     averageScore: 82.1,
     completedTests: 9,
     weakAreas: ['Spatial Visualization'],
+    teacherUsername: 'teacher',
+    scholarLevel: 'Tronc commun scientifique',
   },
   {
     id: 's-003',
@@ -453,6 +443,8 @@ export const mockTeacherStudents: TeacherStudent[] = [
     averageScore: 68.5,
     completedTests: 5,
     weakAreas: ['Problem Solving', 'Logical Reasoning'],
+    teacherUsername: 'teacher',
+    scholarLevel: '3ème année collège',
   },
   {
     id: 's-004',
@@ -462,8 +454,20 @@ export const mockTeacherStudents: TeacherStudent[] = [
     averageScore: 79.8,
     completedTests: 8,
     weakAreas: ['Numerical Reasoning'],
+    teacherUsername: 'teacher2',
+    scholarLevel: '1ère année Baccalauréat – Sciences mathématiques',
   },
 ]
+
+/** Returns only the students owned by `teacherUsername`. Admins (no filter) see all. */
+export function getStudentsForTeacher(
+  teacherUsername: string | undefined,
+  isAdmin = false,
+): TeacherStudent[] {
+  if (isAdmin) return mockTeacherStudents
+  if (!teacherUsername) return []
+  return mockTeacherStudents.filter((s) => s.teacherUsername === teacherUsername)
+}
 
 export const mockTestQuestions: Question[] = [
   {
