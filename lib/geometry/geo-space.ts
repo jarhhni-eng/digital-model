@@ -23,7 +23,7 @@ export interface GeoSpaceQuestion {
   /** Single index, array of indices (multi-correct), or null (auto-eval). */
   correctAnswer: number | number[] | null
   requiresImage: boolean
-  imagePath?: string
+  imagePath?: string | string[]
   part: 'course' | 'reasoning'
 }
 
@@ -136,6 +136,7 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
     options: ['Figure 1', 'Figure 2', 'Figure 3'],
     correctAnswer: 0,
     requiresImage: true,
+    imagePath: ['/images/geometry/geo-space/q6.jpg', '/images/geometry/geo-space/q6-1.jpg'],
     part: 'course',
   },
   {
@@ -162,7 +163,8 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
       'toute droite \\( (D) \\) qui coupe l\'un des deux plans ne coupe pas l\'autre',
     ],
     correctAnswer: [0, 1],
-    requiresImage: false,
+    requiresImage: true,
+    imagePath: '/images/geometry/geo-space/q8.png',
     part: 'course',
   },
   {
@@ -173,6 +175,7 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
     options: ['Figure 1', 'Figure 2', 'Figure 3'],
     correctAnswer: [0, 1],
     requiresImage: true,
+    imagePath: ['/images/geometry/geo-space/Q9.png', '/images/geometry/geo-space/q9-1.png'],
     part: 'course',
   },
   {
@@ -182,7 +185,8 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
       'Si une droite \\( (D) \\) est strictement parallèle à deux plans sécants \\( (P) \\) et \\( (P\') \\) suivant une droite \\( (\\Delta) \\), alors les droites \\( (D) \\) et \\( (\\Delta) \\) sont …',
     options: ['Parallèles', 'Perpendiculaires', 'Sécantes'],
     correctAnswer: 0,
-    requiresImage: false,
+    requiresImage: true,
+    imagePath: '/images/geometry/geo-space/q10.png',
     part: 'course',
   },
   {
@@ -196,7 +200,8 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
       'est sécante à l\'autre droite',
     ],
     correctAnswer: 0,
-    requiresImage: false,
+    requiresImage: true,
+    imagePath: '/images/geometry/geo-space/q11.png',
     part: 'course',
   },
   {
@@ -210,7 +215,8 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
       '\\( (\\Delta) \\) est orthogonale à \\( (D) \\) seulement',
     ],
     correctAnswer: 1,
-    requiresImage: false,
+    requiresImage: true,
+    imagePath: '/images/geometry/geo-space/q12.png',
     part: 'course',
   },
   {
@@ -225,6 +231,7 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
     ],
     correctAnswer: [0, 1, 2],
     requiresImage: true,
+    imagePath: '/images/geometry/geo-space/q13.png',
     part: 'course',
   },
   {
@@ -238,6 +245,7 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
     ],
     correctAnswer: 2,
     requiresImage: true,
+    imagePath: '/images/geometry/geo-space/q14.png',
     part: 'course',
   },
   {
@@ -252,6 +260,7 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
     ],
     correctAnswer: [1, 2],
     requiresImage: true,
+    imagePath: '/images/geometry/geo-space/q15.png',
     part: 'course',
   },
   {
@@ -266,6 +275,7 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
     ],
     correctAnswer: [0, 1],
     requiresImage: true,
+    imagePath: '/images/geometry/geo-space/q16.png',
     part: 'course',
   },
   {
@@ -280,6 +290,7 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
     ],
     correctAnswer: [0, 1, 2],
     requiresImage: true,
+    imagePath: '/images/geometry/geo-space/q17.png',
     part: 'course',
   },
   {
@@ -294,6 +305,7 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
     ],
     correctAnswer: 0,
     requiresImage: true,
+    imagePath: '/images/geometry/geo-space/q18.png',
     part: 'course',
   },
 
@@ -311,6 +323,7 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
     ],
     correctAnswer: [0, 3],
     requiresImage: true,
+    imagePath: '/images/geometry/geo-space/q19.png',
     part: 'reasoning',
   },
   {
@@ -326,6 +339,7 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
     ],
     correctAnswer: [0, 3],
     requiresImage: true,
+    imagePath: '/images/geometry/geo-space/q20.png',
     part: 'reasoning',
   },
   {
@@ -341,6 +355,7 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
     ],
     correctAnswer: [1, 3],
     requiresImage: true,
+    imagePath: '/images/geometry/geo-space/q21.png',
     part: 'reasoning',
   },
   {

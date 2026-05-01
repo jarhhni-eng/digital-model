@@ -304,12 +304,20 @@ function TrialView({
           {question.requiresImage && (
             <div className="rounded-md border border-dashed bg-muted/30 p-6 text-center text-xs text-muted-foreground">
               {question.imagePath ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={question.imagePath}
-                  alt={question.id}
-                  className="mx-auto max-h-64"
-                />
+                <div className="flex flex-wrap items-center justify-center gap-4">
+                  {(Array.isArray(question.imagePath)
+                    ? question.imagePath
+                    : [question.imagePath]
+                  ).map((src, i) => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      key={i}
+                      src={src}
+                      alt={`${question.id} — figure ${i + 1}`}
+                      className="max-h-64 rounded border bg-white object-contain"
+                    />
+                  ))}
+                </div>
               ) : (
                 <span>📐 Figure de support — visualisez mentalement la configuration</span>
               )}
