@@ -4,7 +4,7 @@
  *
  * Structure:
  *  - Partie I  : Q1 → Q18 (Questions du cours)
- *  - Partie II : Q19 → Q28 (Questions de raisonnement)
+ *  - Partie II : Q19 → Q21 (Questions de raisonnement)
  *
  * Competencies:
  *  C1: Connaître les axiomes / déterminer un plan
@@ -312,16 +312,24 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
   // ─── Partie II — Questions de raisonnement ───────────────────────────────
   {
     id: 'Q19',
-    competencies: ['C1', 'C2'],
+    competencies: ['C1', 'C2', 'C3'],
     question:
-      'Dans l\'espace, on donne deux plans \\( (P) \\) et \\( (P\') \\) tels que \\( (P) \\cap (P\') = \\Delta \\). Soit \\( (D) \\subset (P) \\) avec \\( (D) \\parallel (P\') \\). Alors :',
+      'Voir la figure ci-dessous. Sélectionnez la bonne réponse pour chacune des trois sous-questions :<br/><br/>'
+      + '<strong>(1)</strong> Le point d\'intersection du plan \\( (ILB) \\) et du plan \\( (DCG) \\) est :<br/>'
+      + '<strong>(2)</strong> Le point d\'intersection du plan \\( (ABC) \\) et du plan \\( (BCG) \\) est :<br/>'
+      + '<strong>(3)</strong> Le point d\'intersection de la droite \\( (CG) \\) et du plan \\( (ABD) \\) est :',
     options: [
-      '\\( (D) \\parallel \\Delta \\)',
-      '\\( (D) \\) coupe \\( \\Delta \\) en un point',
-      '\\( (D) \\subset (P\') \\)',
-      '\\( (D) \\) et \\( \\Delta \\) sont coplanaires dans \\( (P) \\)',
+      '(1) Le point \\( C \\)',
+      '(1) La droite \\( (CG) \\)',
+      '(1) La droite \\( (CD) \\)',
+      '(2) La droite \\( (BC) \\)',
+      '(2) La droite \\( (AB) \\)',
+      '(2) La droite \\( (BF) \\)',
+      '(3) \\( C \\)',
+      '(3) \\( A \\)',
+      '(3) \\( B \\)',
     ],
-    correctAnswer: [0, 3],
+    correctAnswer: [1, 3, 6],
     requiresImage: true,
     imagePath: '/images/geometry/geo-space/q19.png',
     part: 'reasoning',
@@ -330,14 +338,13 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
     id: 'Q20',
     competencies: ['C2', 'C3'],
     question:
-      'Soient \\( (D) \\) et \\( (D\') \\) deux droites orthogonales à un même plan \\( (P) \\). Alors :',
+      '\\( ABCD \\) est un tétraèdre. \\( I \\in [AB] \\), \\( J \\in [AC] \\), \\( K \\in [CD] \\). La section en rose représente :',
     options: [
-      '\\( (D) \\parallel (D\') \\)',
-      '\\( (D) \\) et \\( (D\') \\) sont sécantes',
-      '\\( (D) \\) et \\( (D\') \\) sont non coplanaires',
-      '\\( (D) \\) et \\( (D\') \\) peuvent être confondues',
+      'La section d\'intersection du tétraèdre \\( ABCD \\) par le plan \\( (IJK) \\)',
+      'La section d\'intersection du tétraèdre \\( ABCD \\) par le plan \\( (ABD) \\)',
+      'La section d\'intersection du plan \\( (ABC) \\) par le plan \\( (IJK) \\)',
     ],
-    correctAnswer: [0, 3],
+    correctAnswer: 0,
     requiresImage: true,
     imagePath: '/images/geometry/geo-space/q20.png',
     part: 'reasoning',
@@ -346,121 +353,11 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
     id: 'Q21',
     competencies: ['C2', 'C3'],
     question:
-      'Soit \\( ABCDEFGH \\) un cube. On considère le plan \\( (ACH) \\). Alors :',
-    options: [
-      '\\( (BD) \\parallel (ACH) \\)',
-      '\\( (FG) \\parallel (ACH) \\)',
-      '\\( (EG) \\) est incluse dans \\( (ACH) \\)',
-      '\\( (BD) \\cap (ACH) \\) est réduit à un point',
-    ],
-    correctAnswer: [1, 3],
-    requiresImage: true,
-    imagePath: '/images/geometry/geo-space/q21.png',
-    part: 'reasoning',
-  },
-  {
-    id: 'Q22',
-    competencies: ['C2', 'C3'],
-    question:
-      'Soit \\( ABCDEFGH \\) un cube. Les plans \\( (ABF) \\) et \\( (DCG) \\) sont :',
-    options: [
-      'Sécants selon une droite',
-      'Strictement parallèles',
-      'Confondus',
-      'Orthogonaux',
-    ],
-    correctAnswer: 1,
-    requiresImage: true,
-    part: 'reasoning',
-  },
-  {
-    id: 'Q23',
-    competencies: ['C2', 'C3'],
-    question:
-      'Soient \\( (P) \\) un plan et \\( (D) \\) une droite orthogonale à \\( (P) \\) en \\( A \\). Si \\( (D\') \\) est une droite de \\( (P) \\) passant par \\( A \\), alors :',
-    options: [
-      '\\( (D) \\) et \\( (D\') \\) sont perpendiculaires',
-      '\\( (D) \\) et \\( (D\') \\) sont parallèles',
-      '\\( (D) \\) et \\( (D\') \\) sont coplanaires',
-      '\\( (D) \\) et \\( (D\') \\) sont non coplanaires',
-    ],
-    correctAnswer: [0, 2],
-    requiresImage: true,
-    part: 'reasoning',
-  },
-  {
-    id: 'Q24',
-    competencies: ['C3'],
-    question:
-      'Soit \\( ABCD \\) un tétraèdre régulier. Soit \\( I \\) le milieu de \\( [BC] \\). Alors :',
-    options: [
-      '\\( (AI) \\perp (BC) \\)',
-      '\\( (DI) \\perp (BC) \\)',
-      '\\( (BC) \\perp (ADI) \\)',
-      '\\( (AD) \\parallel (BC) \\)',
-    ],
-    correctAnswer: [0, 1, 2],
-    requiresImage: true,
-    part: 'reasoning',
-  },
-  {
-    id: 'Q25',
-    competencies: ['C3'],
-    question:
-      'Soit \\( ABCDEFGH \\) un cube d\'arête \\( a \\). La droite \\( (AG) \\) (grande diagonale) et la droite \\( (BH) \\) :',
-    options: [
-      'Sont sécantes au centre du cube',
-      'Sont parallèles',
-      'Sont coplanaires',
-      'Sont non coplanaires',
-    ],
-    correctAnswer: [0, 2],
-    requiresImage: true,
-    part: 'reasoning',
-  },
-  {
-    id: 'Q26',
-    competencies: ['C2', 'C3'],
-    question:
-      'Soient \\( (P_1), (P_2), (P_3) \\) trois plans de l\'espace, deux à deux sécants selon trois droites distinctes \\( \\Delta_1 = (P_2) \\cap (P_3) \\), \\( \\Delta_2 = (P_1) \\cap (P_3) \\), \\( \\Delta_3 = (P_1) \\cap (P_2) \\). Alors :',
-    options: [
-      'Les trois droites \\( \\Delta_1, \\Delta_2, \\Delta_3 \\) sont concourantes ou parallèles',
-      'Les trois droites sont toujours concourantes',
-      'Les trois droites sont toujours parallèles',
-      'Les trois droites peuvent être deux à deux parallèles',
-    ],
-    correctAnswer: [0, 3],
-    requiresImage: true,
-    part: 'reasoning',
-  },
-  {
-    id: 'Q27',
-    competencies: ['C3'],
-    question:
-      'Dans un cube \\( ABCDEFGH \\), soit \\( M \\) le milieu de \\( [EF] \\) et \\( N \\) le milieu de \\( [GH] \\). Alors :',
-    options: [
-      '\\( (MN) \\parallel (EH) \\)',
-      '\\( (MN) \\parallel (FG) \\)',
-      '\\( (MN) \\parallel (ABC) \\)',
-      '\\( (MN) \\) coupe \\( (ABCD) \\)',
-    ],
-    correctAnswer: [0, 1, 2],
-    requiresImage: true,
-    part: 'reasoning',
-  },
-  {
-    id: 'Q28',
-    competencies: ['C1', 'C2'],
-    question:
-      'Soit \\( (P) \\) un plan et \\( A \\) un point extérieur à \\( (P) \\). Par \\( A \\), il passe :',
-    options: [
-      'Une seule droite orthogonale à \\( (P) \\)',
-      'Un seul plan parallèle à \\( (P) \\)',
-      'Plusieurs droites orthogonales à \\( (P) \\)',
-      'Plusieurs plans parallèles à \\( (P) \\)',
-    ],
+      '\\( ABCD \\) est un tétraèdre. \\( I \\in (AB) \\) et \\( J \\in (ACD) \\). Le point d\'intersection de la droite \\( (IJ) \\) et du plan \\( (BCD) \\) est :',
+    options: ['\\( E \\)', '\\( F \\)'],
     correctAnswer: [0, 1],
     requiresImage: true,
+    imagePath: '/images/geometry/geo-space/q21.png',
     part: 'reasoning',
   },
 ]
