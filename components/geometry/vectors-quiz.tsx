@@ -1,522 +1,541 @@
 'use client'
-
-/**
- * VectorsQuizTest — Vecteurs et Translations lesson quiz
- *
- * Phases: intro → quiz → submitting → results
- *
- * Rules enforced here:
- * - No correctness feedback is shown during the quiz.
- * - The "J'ai oublié" option is visually de-emphasised but still selectable.
- * - Q1 is a diagnostic question (not scored) — labelled accordingly.
- * - Final results show global score + per-competency breakdown only.
- */
-
-import { useState, useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import KaTeX from 'katex'
+import 'katex/dist/katex.min.css'
+import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
+import { ArrowLeft, ArrowRight, CheckCircle2, BarChart3 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
-import { useToast } from '@/hooks/use-toast'
-import { cn } from '@/lib/utils'
 import {
-  BookOpen, ChevronLeft, ChevronRight, CheckCircle2,
-  BarChart3, ArrowLeft, Triangle,
-} from 'lucide-react'
-import {
-  getPublicQuestions,
-  VECTORS_LESSON_TITLE,
-  VECTORS_TEST_ID,
-  COMPETENCY_LABELS,
-  type PublicQuestion,
-  type LessonScoreResult,
-} from '@/lib/geo-vectors-lesson'
+  VECTORS_QUESTIONS,
+  VECTOR_POINTS,
+  VectorsResult,
+  VectorsTrialResult,
+  saveVectorsResult,
+} from '@/lib/geometry/geo-vectors-complete'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+type Phase = 'intro' | 'instructions' | 'running' | 'done'
 
-type Phase = 'intro' | 'quiz' | 'submitting' | 'results'
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function ProgressHeader({
-  current, total, lessonTitle,
-}: { current: number; total: number; lessonTitle: string }) {
-  const pct = Math.round(((current + 1) / total) * 100)
-  return (
-    <div className="fixed top-0 inset-x-0 z-50 bg-card border-b border-border shadow-sm">
-      <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-xs font-semibold text-muted-foreground truncate">{lessonTitle}</p>
-          <p className="text-xs text-muted-foreground">Question {current + 1} / {total}</p>
-        </div>
-        <div className="flex-1 max-w-xs">
-          <Progress value={pct} className="h-2" />
-        </div>
-        <span className="text-xs font-bold text-primary tabular-nums">{pct}%</span>
-      </div>
-    </div>
-  )
+function arrayEquals(a: number[], b: number[]) {
+  if (a.length !== b.length) return false
+  const as = [...a].sort()
+  const bs = [...b].sort()
+  return as.every((v, i) => v === bs[i])
 }
-
-function ChoiceButton({
-  text, selected, onSelect, isSkip,
-}: { text: string; selected: boolean; onSelect: () => void; isSkip?: boolean }) {
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className={cn(
-        'w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border-2 text-left text-sm transition-all',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
-        selected
-          ? 'border-primary bg-primary/8 text-primary font-medium'
-          : isSkip
-          ? 'border-dashed border-border text-muted-foreground hover:border-muted-foreground/40'
-          : 'border-border bg-card hover:border-primary/40 hover:bg-primary/4',
-      )}
-    >
-      {/* Radio dot */}
-      <span
-        className={cn(
-          'w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors',
-          selected ? 'border-primary bg-primary' : 'border-muted-foreground/30',
-        )}
-      >
-        {selected && <span className="w-2.5 h-2.5 rounded-full bg-white" />}
-      </span>
-      <span className="leading-snug">{text}</span>
-    </button>
-  )
-}
-
-// ─── Intro screen ─────────────────────────────────────────────────────────────
-
-function IntroScreen({ onStart }: { onStart: () => void }) {
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-12">
-      <div className="max-w-xl w-full space-y-6">
-        {/* Domain badge */}
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200">
-            <Triangle className="w-3 h-3" />
-            Cognition et apprentissage de la géométrie
-          </span>
-        </div>
-
-        <Card className="border-l-4 border-l-indigo-500">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-2xl font-bold text-foreground">
-              {VECTORS_LESSON_TITLE}
-            </CardTitle>
-            <CardDescription className="text-sm">
-              Leçon 1 — Mémorisation&nbsp;: prérequis &nbsp;|&nbsp; 1ère Bac Sciences
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 border border-border/50">
-              <BookOpen className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Cette évaluation mesure vos compétences sur le produit scalaire et les
-                théorèmes géométriques. Lisez attentivement chaque question et choisissez
-                la réponse qui vous semble correcte.
-              </p>
-            </div>
-
-            {/* Competency overview */}
-            <div className="space-y-2">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                Compétences évaluées
-              </p>
-              {Object.entries(COMPETENCY_LABELS).map(([code, label]) => (
-                <div key={code} className="flex items-center gap-2 text-sm">
-                  <Badge
-                    variant="outline"
-                    className="text-indigo-700 border-indigo-300 bg-indigo-50 font-bold text-xs"
-                  >
-                    {code}
-                  </Badge>
-                  <span className="text-muted-foreground">{label}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Stats row */}
-            <div className="grid grid-cols-3 gap-3 pt-1">
-              {[
-                { label: 'Questions', value: '9' },
-                { label: 'Durée estimée', value: '~10 min' },
-                { label: 'Correction', value: 'Non affichée' },
-              ].map((s) => (
-                <div key={s.label} className="text-center p-2 rounded-lg bg-muted/40">
-                  <p className="text-base font-bold text-foreground">{s.value}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Button
-          onClick={onStart}
-          size="lg"
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
-        >
-          Commencer l&apos;évaluation
-        </Button>
-      </div>
-    </div>
-  )
-}
-
-// ─── Results screen ───────────────────────────────────────────────────────────
-
-function ResultsScreen({
-  result, onBack,
-}: { result: LessonScoreResult; onBack: () => void }) {
-  const router = useRouter()
-  const pct = result.globalPercent
-
-  const scoreColor =
-    pct >= 75 ? 'text-green-600' :
-    pct >= 50 ? 'text-amber-600' :
-    'text-red-500'
-
-  const scoreRing =
-    pct >= 75 ? 'stroke-green-500' :
-    pct >= 50 ? 'stroke-amber-500' :
-    'stroke-red-400'
-
-  // SVG circle progress
-  const r = 38
-  const circumference = 2 * Math.PI * r
-  const dash = (pct / 100) * circumference
-
-  return (
-    <div className="min-h-screen bg-background px-4 py-12">
-      <div className="max-w-xl mx-auto space-y-6">
-
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <CheckCircle2 className="w-6 h-6 text-green-600" />
-          <div>
-            <h1 className="text-xl font-bold">Évaluation terminée</h1>
-            <p className="text-sm text-muted-foreground">{VECTORS_LESSON_TITLE}</p>
-          </div>
-        </div>
-
-        {/* Global score card */}
-        <Card className="border-l-4 border-l-indigo-500">
-          <CardContent className="pt-6 flex items-center gap-6">
-            {/* Circular progress */}
-            <div className="relative flex-shrink-0">
-              <svg width="96" height="96" viewBox="0 0 96 96" className="-rotate-90">
-                <circle cx="48" cy="48" r={r} fill="none" stroke="#e2e8f0" strokeWidth="8" />
-                <circle
-                  cx="48" cy="48" r={r} fill="none"
-                  strokeWidth="8"
-                  strokeDasharray={`${dash} ${circumference}`}
-                  strokeLinecap="round"
-                  className={cn('transition-all duration-700', scoreRing)}
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className={cn('text-2xl font-extrabold', scoreColor)}>{pct}%</span>
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-2xl font-bold text-foreground">
-                {result.globalCorrect}
-                <span className="text-muted-foreground font-normal text-lg">
-                  {' '}/ {result.globalTotal}
-                </span>
-              </p>
-              <p className="text-sm text-muted-foreground">Score global</p>
-              {result.diagnosticAnswer && (
-                <p className="text-xs text-muted-foreground mt-1 italic">
-                  Rappel déclaré&nbsp;: «&nbsp;{result.diagnosticAnswer}&nbsp;»
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Per-competency breakdown */}
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-indigo-600" />
-              <CardTitle className="text-base">Score par compétence</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {result.competencyScores.map((cs) => {
-              const cp =
-                cs.percent >= 75 ? 'bg-green-500' :
-                cs.percent >= 50 ? 'bg-amber-500' : 'bg-red-400'
-              const ct =
-                cs.percent >= 75 ? 'text-green-700' :
-                cs.percent >= 50 ? 'text-amber-700' : 'text-red-600'
-
-              return (
-                <div key={cs.competency} className="space-y-1.5">
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant="outline"
-                        className="text-indigo-700 border-indigo-300 bg-indigo-50 font-bold text-xs"
-                      >
-                        {cs.competency}
-                      </Badge>
-                      <span className="text-muted-foreground text-xs">{cs.label}</span>
-                    </div>
-                    <span className={cn('font-bold tabular-nums text-sm', ct)}>
-                      {cs.correct}/{cs.total} ({cs.percent}%)
-                    </span>
-                  </div>
-                  <div className="h-2 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className={cn('h-full rounded-full transition-all duration-500', cp)}
-                      style={{ width: `${cs.percent}%` }}
-                    />
-                  </div>
-                </div>
-              )
-            })}
-          </CardContent>
-        </Card>
-
-        {/* Actions */}
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={onBack} className="flex-1">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Retour au tableau de bord
-          </Button>
-          <Button
-            onClick={() => router.push('/results')}
-            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white"
-          >
-            Voir tous mes résultats
-          </Button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── Main quiz component ──────────────────────────────────────────────────────
 
 export function VectorsQuizTest() {
   const router = useRouter()
   const { user } = useAuth()
-  const { toast } = useToast()
+  const [phase, setPhase] = useState<Phase>('intro')
+  const [current, setCurrent] = useState(0)
+  const [trials, setTrials] = useState<VectorsTrialResult[]>([])
+  const [selectedList, setSelectedList] = useState<number[]>([])
+  const [startedAt, setStartedAt] = useState<number>(0)
+  const trialStart = useRef(0)
 
-  const questions = getPublicQuestions()
+  const question = VECTORS_QUESTIONS[current]
+  const isMulti =
+    Array.isArray(question?.correctAnswer) &&
+    (question.correctAnswer as number[]).length > 1
 
-  const [phase, setPhase]           = useState<Phase>('intro')
-  const [currentIdx, setCurrentIdx] = useState(0)
-  const [selected, setSelected]     = useState<Record<string, string>>({})
-  const [result, setResult]         = useState<LessonScoreResult | null>(null)
+  const toggleSelect = (idx: number) => {
+    if (isMulti) {
+      setSelectedList((prev) =>
+        prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx],
+      )
+    } else {
+      setSelectedList([idx])
+    }
+  }
 
-  const startedAtRef = useRef<string>(new Date().toISOString())
+  const submit = useCallback(() => {
+    if (selectedList.length === 0) return
+    const q = VECTORS_QUESTIONS[current]
 
-  // ── Navigation ─────────────────────────────────────────────────────────────
-
-  const handleSelect = useCallback((questionId: string, choiceId: string) => {
-    setSelected((prev) => ({ ...prev, [questionId]: choiceId }))
-  }, [])
-
-  const goNext = useCallback(() => {
-    setCurrentIdx((i) => Math.min(i + 1, questions.length - 1))
-  }, [questions.length])
-
-  const goPrev = useCallback(() => {
-    setCurrentIdx((i) => Math.max(i - 1, 0))
-  }, [])
-
-  // ── Submit ─────────────────────────────────────────────────────────────────
-
-  const handleSubmit = useCallback(async () => {
-    if (!user) {
-      toast({
-        title: 'Connexion requise',
-        description: 'Veuillez vous connecter pour enregistrer vos résultats.',
-        variant: 'destructive',
-      })
-      return
+    let correct = false
+    if (q.correctAnswer === null) {
+      correct = false
+    } else if (Array.isArray(q.correctAnswer)) {
+      correct = arrayEquals(selectedList, q.correctAnswer as number[])
+    } else {
+      correct = selectedList.length === 1 && selectedList[0] === q.correctAnswer
     }
 
-    setPhase('submitting')
-    try {
-      const res = await fetch('/api/lesson-results', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId:          user.userId,
-          testId:          VECTORS_TEST_ID,
-          selectedChoices: selected,
-        }),
-      })
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const data = await res.json() as { result: LessonScoreResult }
-      setResult(data.result)
-      setPhase('results')
-    } catch (err) {
-      console.error(err)
-      toast({
-        title: 'Erreur de soumission',
-        description: 'Impossible d\'enregistrer les résultats. Réessayez.',
-        variant: 'destructive',
-      })
-      setPhase('quiz')
+    const trial: VectorsTrialResult = {
+      index: current,
+      questionId: q.id,
+      selected: selectedList[0],
+      correct,
+      reactionTimeMs: Date.now() - trialStart.current,
     }
-  }, [user, selected, toast])
+    setTrials((t) => [...t, trial])
+    setSelectedList([])
 
-  // ── Render phases ──────────────────────────────────────────────────────────
+    if (current + 1 >= VECTORS_QUESTIONS.length) {
+      setPhase('done')
+    } else {
+      setCurrent((n) => n + 1)
+      setTimeout(() => {
+        trialStart.current = Date.now()
+      }, 100)
+    }
+  }, [current, selectedList])
+
+  useEffect(() => {
+    if (phase === 'done' && trials.length > 0) {
+      const scorable = trials.filter((t) => {
+        const q = VECTORS_QUESTIONS[t.index]
+        return q.correctAnswer !== null
+      })
+      const correct = scorable.filter((t) => t.correct).length
+      const r: VectorsResult = {
+        id: `vec-${Date.now()}`,
+        userName: user?.username,
+        startedAt: new Date(startedAt).toISOString(),
+        completedAt: new Date().toISOString(),
+        trials,
+        totalMs: Date.now() - startedAt,
+        correctCount: correct,
+        score: scorable.length > 0 ? Math.round((correct / scorable.length) * 100) : 0,
+      }
+      saveVectorsResult(r)
+    }
+  }, [phase, trials, startedAt, user])
 
   if (phase === 'intro') {
     return (
-      <IntroScreen
+      <Intro
+        onQuit={() => router.push('/dashboard')}
         onStart={() => {
-          startedAtRef.current = new Date().toISOString()
-          setPhase('quiz')
+          setStartedAt(Date.now())
+          trialStart.current = Date.now()
+          setPhase('instructions')
         }}
       />
     )
   }
 
-  if (phase === 'results' && result) {
-    return <ResultsScreen result={result} onBack={() => router.push('/dashboard')} />
+  if (phase === 'instructions') {
+    return (
+      <Instructions
+        onBegin={() => {
+          setPhase('running')
+          setCurrent(0)
+          trialStart.current = Date.now()
+        }}
+        onBack={() => setPhase('intro')}
+      />
+    )
   }
 
-  // ── Quiz phase (also covers 'submitting') ──────────────────────────────────
-
-  const q: PublicQuestion = questions[currentIdx]
-  const isFirst    = currentIdx === 0
-  const isLast     = currentIdx === questions.length - 1
-  const isAnswered = Boolean(selected[q.id])
-  const answeredCount = Object.keys(selected).length
-
-  const skipText = "J'ai oublié"
-  const skipTextAlt = "J'ai tout oublié"
+  if (phase === 'done') {
+    return <Results trials={trials} onExit={() => router.push('/dashboard')} />
+  }
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <ProgressHeader
-        current={currentIdx}
-        total={questions.length}
-        lessonTitle={VECTORS_LESSON_TITLE}
+    <TrialView
+      index={current}
+      total={VECTORS_QUESTIONS.length}
+      question={question}
+      selectedList={selectedList}
+      isMulti={isMulti}
+      onToggle={toggleSelect}
+      onSubmit={submit}
+    />
+  )
+}
+
+function Intro({ onStart, onQuit }: { onStart: () => void; onQuit: () => void }) {
+  return (
+    <main className="container mx-auto max-w-3xl py-10">
+      <Button variant="ghost" size="sm" onClick={onQuit} className="mb-4">
+        <ArrowLeft className="mr-2 h-4 w-4" /> Quitter
+      </Button>
+      <Card className="p-8">
+        <div className="mb-4 flex items-center gap-2 text-sm font-medium text-blue-600">
+          <BarChart3 className="h-4 w-4" /> Vecteurs &amp; Translation
+        </div>
+        <h1 className="mb-3 text-3xl font-bold">Vecteurs &amp; Translation — Partie I</h1>
+        <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
+          Ce test évalue votre compréhension des concepts de vecteurs et de translation à travers
+          une auto-évaluation suivie de 8 questions de cours portant sur la colinéarité,
+          la relation de Chasles, l&apos;égalité vectorielle et les propriétés de la translation.
+          Compétences évaluées : C1, C2, C4.
+        </p>
+        <div className="mb-6 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
+          <strong>Durée estimée :</strong> ~10 minutes. Certaines questions admettent plusieurs
+          réponses correctes.
+        </div>
+        <Button onClick={onStart}>
+          Commencer <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </Card>
+    </main>
+  )
+}
+
+function Instructions({ onBegin, onBack }: { onBegin: () => void; onBack: () => void }) {
+  return (
+    <main className="container mx-auto max-w-3xl py-10">
+      <Button variant="ghost" size="sm" onClick={onBack} className="mb-4">
+        <ArrowLeft className="mr-2 h-4 w-4" /> Retour
+      </Button>
+      <Card className="p-8">
+        <h2 className="mb-3 text-2xl font-bold">Consignes</h2>
+        <ol className="mb-6 space-y-2 text-sm text-muted-foreground">
+          <li>
+            <strong>1.</strong> Commencez par l&apos;auto-évaluation sur votre rappel de la leçon.
+          </li>
+          <li>
+            <strong>2.</strong> Lisez chaque question attentivement — les notations vectorielles
+            sont affichées en LaTeX.
+          </li>
+          <li>
+            <strong>3.</strong> Pour les questions à choix multiples, sélectionnez{' '}
+            <em>toutes</em> les réponses correctes avant de valider.
+          </li>
+          <li>
+            <strong>4.</strong> Cliquez « Valider » pour passer à la question suivante.
+          </li>
+          <li>
+            <strong>5.</strong> Une réponse est correcte uniquement si toutes les bonnes options
+            sont cochées (et aucune mauvaise).
+          </li>
+        </ol>
+        <div className="mb-6 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30">
+          💡 Prenez le temps de bien analyser chaque notation vectorielle avant de répondre.
+        </div>
+        <Button onClick={onBegin}>
+          Commencer les questions <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </Card>
+    </main>
+  )
+}
+
+interface TrialViewProps {
+  index: number
+  total: number
+  question: (typeof VECTORS_QUESTIONS)[number]
+  selectedList: number[]
+  isMulti: boolean
+  onToggle: (idx: number) => void
+  onSubmit: () => void
+}
+
+function renderInlineLatex(text: string): string {
+  return text.replace(/\\\(([^]+?)\\\)/g, (match, latex) => {
+    try {
+      return `<span class="inline-math">${KaTeX.renderToString(latex, {
+        throwOnError: false,
+      })}</span>`
+    } catch {
+      return match
+    }
+  })
+}
+
+function TrialView({
+  index,
+  total,
+  question,
+  selectedList,
+  isMulti,
+  onToggle,
+  onSubmit,
+}: TrialViewProps) {
+  const showPlane = question.showCoordPlane === true
+
+  const questionPanel = (
+    <div className="space-y-6">
+      <div
+        className="text-base leading-relaxed"
+        dangerouslySetInnerHTML={{ __html: renderInlineLatex(question.question) }}
       />
 
-      <div className="max-w-2xl mx-auto px-4 pt-20 pb-8">
+      {isMulti && (
+        <div className="rounded border border-blue-200 bg-blue-50 p-2 text-xs text-blue-900 dark:border-blue-900/40 dark:bg-blue-950/30">
+          ℹ️ Plusieurs réponses correctes possibles — cochez toutes les bonnes réponses.
+        </div>
+      )}
 
-        {/* Question card */}
-        <Card className="mt-4 border-l-4 border-l-indigo-500 shadow-sm">
-          <CardHeader className="pb-3">
-            {/* Labels row */}
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 border border-indigo-200">
-                {q.label}
-              </span>
-              {q.isDiagnostic && (
-                <span className="text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-700 border border-amber-200 font-medium">
-                  Question diagnostique
-                </span>
-              )}
-            </div>
-            <CardTitle className="text-lg font-semibold leading-snug">
-              {q.text}
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent className="space-y-2.5">
-            {q.choices.map((choice) => {
-              const isSkip = choice.text === skipText || choice.text === skipTextAlt
-              return (
-                <ChoiceButton
-                  key={choice.id}
-                  text={choice.text}
-                  selected={selected[q.id] === choice.id}
-                  isSkip={isSkip}
-                  onSelect={() => handleSelect(q.id, choice.id)}
-                />
-              )
-            })}
-          </CardContent>
-        </Card>
-
-        {/* Question navigator dots */}
-        <div className="flex flex-wrap gap-2 mt-6 justify-center">
-          {questions.map((_, idx) => (
+      <div className="space-y-2">
+        {question.options.map((option, idx) => {
+          const answerLabel = String.fromCharCode(65 + idx)
+          const isSelected = selectedList.includes(idx)
+          return (
             <button
               key={idx}
-              type="button"
-              onClick={() => setCurrentIdx(idx)}
-              className={cn(
-                'w-8 h-8 rounded-lg text-xs font-semibold border-2 transition-colors',
-                idx === currentIdx
-                  ? 'bg-indigo-600 text-white border-indigo-600'
-                  : selected[questions[idx].id]
-                  ? 'bg-indigo-100 text-indigo-700 border-indigo-300'
-                  : 'bg-card text-muted-foreground border-border hover:border-indigo-300',
-              )}
+              onClick={() => onToggle(idx)}
+              className={`w-full rounded-lg border-2 p-4 text-left transition-all ${
+                isSelected
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
+                  : 'border-gray-200 bg-white hover:border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-gray-600'
+              }`}
             >
-              {idx + 1}
+              <div className="flex items-start gap-3">
+                <div
+                  className={`mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center ${
+                    isMulti ? 'rounded' : 'rounded-full'
+                  } border-2 ${
+                    isSelected
+                      ? 'border-blue-500 bg-blue-500 text-white'
+                      : 'border-gray-300'
+                  }`}
+                >
+                  {isSelected && <span className="text-xs font-bold">✓</span>}
+                </div>
+                <div className="flex-1">
+                  <div
+                    className="font-semibold text-gray-900 dark:text-white"
+                    dangerouslySetInnerHTML={{
+                      __html: renderInlineLatex(`${answerLabel}. ${option}`),
+                    }}
+                  />
+                </div>
+              </div>
             </button>
-          ))}
-        </div>
-
-        {/* Progress note */}
-        <p className="text-center text-xs text-muted-foreground mt-3">
-          {answeredCount} / {questions.length} réponses saisies
-        </p>
+          )
+        })}
       </div>
 
-      {/* Fixed bottom navigation */}
-      <div className="fixed bottom-0 inset-x-0 bg-card border-t border-border px-4 py-3 z-40">
-        <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
-          <Button
-            variant="outline"
-            onClick={goPrev}
-            disabled={isFirst}
-            className="gap-1"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Précédent
-          </Button>
+      <Button
+        onClick={onSubmit}
+        disabled={selectedList.length === 0}
+        className="w-full"
+        size="lg"
+      >
+        Valider <ArrowRight className="ml-2 h-4 w-4" />
+      </Button>
+    </div>
+  )
 
-          {isLast ? (
-            <Button
-              onClick={handleSubmit}
-              disabled={phase === 'submitting'}
-              className="gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-6"
-            >
-              {phase === 'submitting' ? (
-                <>
-                  <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                  Envoi…
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-4 h-4" />
-                  Soumettre
-                </>
-              )}
-            </Button>
-          ) : (
-            <Button
-              onClick={goNext}
-              className="gap-1 bg-indigo-600 hover:bg-indigo-700 text-white"
-            >
-              Suivant
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+  return (
+    <main
+      className={`container mx-auto py-8 ${showPlane ? 'max-w-7xl' : 'max-w-4xl'}`}
+    >
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-xl font-bold">
+          Question {index + 1} / {total}
+        </h2>
+        <div className="text-right">
+          <span className="text-sm font-semibold text-blue-600">{question.id}</span>
+          {question.competencies.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              Compétence: {question.competencies.join(', ')}
+            </p>
           )}
         </div>
       </div>
+      <Progress value={((index + 1) / total) * 100} className="mb-6" />
+
+      {showPlane ? (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <Card className="p-4">
+            <CoordPlane />
+          </Card>
+          <Card className="p-6">{questionPanel}</Card>
+        </div>
+      ) : (
+        <Card className="p-6">{questionPanel}</Card>
+      )}
+    </main>
+  )
+}
+
+// ─── Coordinate plane (LEFT panel for Q8 → Q18) ─────────────────────────────
+//
+// Plotly is heavy and only needed for one screen — we render a lightweight
+// SVG grid with the labelled points instead. The viewBox spans
+// x ∈ [-4, 10], y ∈ [-6, 3].
+
+function CoordPlane() {
+  const xMin = -4, xMax = 10
+  const yMin = -6, yMax = 3
+  const padX = 28
+  const padY = 24
+  const w = 520
+  const h = 360
+  const innerW = w - 2 * padX
+  const innerH = h - 2 * padY
+  const sx = (x: number) => padX + ((x - xMin) / (xMax - xMin)) * innerW
+  const sy = (y: number) => padY + ((yMax - y) / (yMax - yMin)) * innerH
+
+  // Grid lines
+  const xs: number[] = []
+  for (let x = xMin; x <= xMax; x++) xs.push(x)
+  const ys: number[] = []
+  for (let y = yMin; y <= yMax; y++) ys.push(y)
+
+  // Distinct colours per point so labels stay readable.
+  const palette = [
+    '#2563eb', '#16a34a', '#dc2626', '#ea580c',
+    '#7c3aed', '#0891b2', '#db2777', '#a16207',
+    '#0d9488', '#9333ea',
+  ]
+
+  return (
+    <div>
+      <p className="mb-2 text-xs text-muted-foreground">
+        Repère orthonormé — points labellés (cliquez pour zoomer si nécessaire).
+      </p>
+      <svg
+        viewBox={`0 0 ${w} ${h}`}
+        className="mx-auto block w-full bg-white"
+        role="img"
+      >
+        {/* Background */}
+        <rect width={w} height={h} fill="#fafafa" />
+
+        {/* Grid */}
+        {xs.map((x) => (
+          <line
+            key={`vx-${x}`}
+            x1={sx(x)} y1={padY}
+            x2={sx(x)} y2={h - padY}
+            stroke={x === 0 ? '#94a3b8' : '#e5e7eb'}
+            strokeWidth={x === 0 ? 1.4 : 0.7}
+          />
+        ))}
+        {ys.map((y) => (
+          <line
+            key={`hy-${y}`}
+            x1={padX} y1={sy(y)}
+            x2={w - padX} y2={sy(y)}
+            stroke={y === 0 ? '#94a3b8' : '#e5e7eb'}
+            strokeWidth={y === 0 ? 1.4 : 0.7}
+          />
+        ))}
+
+        {/* Axis tick labels (every 2 units to stay readable) */}
+        {xs.filter((x) => x % 2 === 0).map((x) => (
+          <text
+            key={`xl-${x}`}
+            x={sx(x)} y={sy(0) + 12}
+            fontSize={10}
+            textAnchor="middle"
+            fill="#64748b"
+          >
+            {x}
+          </text>
+        ))}
+        {ys.filter((y) => y % 2 === 0 && y !== 0).map((y) => (
+          <text
+            key={`yl-${y}`}
+            x={sx(0) - 6} y={sy(y) + 3}
+            fontSize={10}
+            textAnchor="end"
+            fill="#64748b"
+          >
+            {y}
+          </text>
+        ))}
+
+        {/* Axis labels */}
+        <text x={w - padX + 4} y={sy(0) + 4} fontSize={11} fill="#475569">x</text>
+        <text x={sx(0) + 4} y={padY - 4} fontSize={11} fill="#475569">y</text>
+
+        {/* Labelled points */}
+        {VECTOR_POINTS.map((pt, i) => {
+          const cx = sx(pt.x)
+          const cy = sy(pt.y)
+          const color = palette[i % palette.length]
+          return (
+            <g key={pt.name}>
+              <circle cx={cx} cy={cy} r={4.5} fill={color} stroke="white" strokeWidth={1.5} />
+              <text
+                x={cx + 7}
+                y={cy - 7}
+                fontSize={12}
+                fontWeight={700}
+                fill={color}
+              >
+                {pt.name}
+              </text>
+              <text
+                x={cx + 7}
+                y={cy + 6}
+                fontSize={9.5}
+                fill="#475569"
+              >
+                ({pt.x},{pt.y})
+              </text>
+            </g>
+          )
+        })}
+      </svg>
     </div>
+  )
+}
+
+interface ResultsProps {
+  trials: VectorsTrialResult[]
+  onExit: () => void
+}
+
+function Results({ trials, onExit }: ResultsProps) {
+  const scorable = trials.filter((t) => {
+    const q = VECTORS_QUESTIONS[t.index]
+    return q.correctAnswer !== null
+  })
+  const correct = scorable.filter((t) => t.correct).length
+  const pct = scorable.length > 0 ? Math.round((correct / scorable.length) * 100) : 0
+
+  return (
+    <main className="container mx-auto max-w-2xl py-10">
+      <Card className="p-8 text-center">
+        <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-emerald-500" />
+        <h1 className="mb-6 text-2xl font-bold">Test terminé</h1>
+        <div className="mb-6 grid grid-cols-2 gap-3">
+          <div className="rounded-md border bg-muted/20 p-3">
+            <p className="text-xs text-muted-foreground">Score</p>
+            <p className="text-2xl font-bold">
+              {correct} / {scorable.length}
+            </p>
+          </div>
+          <div className="rounded-md border bg-muted/20 p-3">
+            <p className="text-xs text-muted-foreground">Pourcentage</p>
+            <p className="text-2xl font-bold">{pct}%</p>
+          </div>
+        </div>
+        <div className="mb-6 max-h-64 overflow-auto rounded-md border bg-slate-50 p-3 dark:bg-slate-900">
+          <p className="mb-2 text-xs font-semibold text-muted-foreground">Détails :</p>
+          {trials.map((t) => {
+            const q = VECTORS_QUESTIONS[t.index]
+            const isAutoEval = q.correctAnswer === null
+            let correctText = ''
+            if (!isAutoEval && q.correctAnswer !== null) {
+              if (Array.isArray(q.correctAnswer)) {
+                correctText = q.correctAnswer
+                  .map((i) => String.fromCharCode(65 + i))
+                  .join(', ')
+              } else {
+                correctText = String.fromCharCode(65 + q.correctAnswer)
+              }
+            }
+            return (
+              <div
+                key={t.index}
+                className="text-left text-xs border-b border-slate-200 dark:border-slate-700 py-2 last:border-b-0"
+              >
+                {isAutoEval ? (
+                  <span className="text-slate-600 dark:text-slate-400">
+                    {t.questionId}: Auto-évaluation
+                  </span>
+                ) : (
+                  <span className={t.correct ? 'text-green-600' : 'text-red-600'}>
+                    {t.questionId}: {t.correct ? '✓ Correct' : '✗ Incorrect'}
+                    {correctText && ` (Correcte(s): ${correctText})`}
+                  </span>
+                )}
+              </div>
+            )
+          })}
+        </div>
+        <Button onClick={onExit}>Retour au tableau de bord</Button>
+      </Card>
+    </main>
   )
 }

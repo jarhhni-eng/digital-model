@@ -106,7 +106,8 @@ export interface LessonIndicator {
 
 export function buildGeometryIndicators(): LessonIndicator[] {
   const rand = rng(7)
-  const geo = platformDomains.find((d) => d.id === 'geometry-learning')!
+  const geo = platformDomains.find((d) => d.id === 'geometry-learning')
+  if (!geo) return []
   return geo.subdomains.map((sd) => ({
     lessonId: sd.id,
     lessonName: sd.nameFr ?? sd.name,

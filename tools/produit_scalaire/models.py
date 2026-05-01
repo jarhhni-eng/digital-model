@@ -22,6 +22,21 @@ QUESTION_TYPES = {
     3: "Questions de raisonnement",
 }
 
+LESSONS = {
+    1: "Produit scalaire",
+    2: "Géométrie analytique",
+}
+
+# Internal taxonomy — never shown to the student.
+SKILLS = {
+    "C1": "Connaître la définition et les propriétés du produit scalaire",
+    "C2": "Lire et calculer dans un repère / visualisation",
+    "C3": "Théorèmes (Al-Kashi, médiane) et raisonnement métrique",
+    "C4": "Cercles : équations, centre et rayon",
+    "C5": "Géométrie analytique : droites, distances, projections",
+    "C6": "Angles, cosinus et applications",
+}
+
 
 @dataclass
 class Choice:
@@ -52,16 +67,25 @@ class Question:
 @dataclass
 class StudentAnswer:
     question_id: str
-    selected_letter: Optional[str] = None   # for MCQ
-    free_text: Optional[str] = None         # for open items
+    # Multi-select friendly. Single-MCQ → list of length 1 (or empty).
+    selected_letters: list[str] = field(default_factory=list)
+    free_text: Optional[str] = None
+    dont_know: bool = False
+
+    # ─ Backwards-compat shim for the older single-letter API ─
+    @property
+    def selected_letter(self) -> Optional[str]:
+        return self.selected_letters[0] if self.selected_letters else None
 
 
 @dataclass
 class GradedAnswer:
     question_id: str
     type_code: int
+    lesson_code: int
     skill: Optional[str]
-    score: int            # 0 or 1
-    max_score: int        # usually 1 (0 for diagnostic)
-    correct_letter: Optional[str]
-    selected_letter: Optional[str]
+    score: float          # 0, 0.5 (partial), or 1
+    max_score: float
+    correct_letters: list[str]
+    selected_letters: list[str]
+    dont_know: bool = False

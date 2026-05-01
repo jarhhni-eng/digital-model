@@ -32,7 +32,6 @@ export const platformDomains: MainDomain[] = [
         id: 'reasoning-core',
         name: 'Reasoning',
         capacities: [
-          { id: 'abstract-reasoning', name: 'Abstract reasoning', nameFr: 'Raisonnement abstrait', testId: 'test-abstract-reasoning' },
           { id: 'deductive-reasoning', name: 'Deductive reasoning', nameFr: 'Raisonnement déductif', testId: 'test-deductive-reasoning' },
           { id: 'inductive-reasoning', name: 'Inductive reasoning', nameFr: 'Raisonnement inductif', testId: 'test-inductive-reasoning' },
         ],
@@ -65,7 +64,6 @@ export const platformDomains: MainDomain[] = [
         name: 'Visual integration & construction',
         capacities: [
           { id: 'visuo-motor', name: 'Visual-motor integration', nameFr: 'Intégration visuo-motrice', testId: 'test-visuo-motor' },
-          { id: 'visuo-perceptive', name: 'Visual perception (TVPS-3)', nameFr: 'Perception visuelle', testId: 'test-visuo-perceptive' },
           { id: 'visuo-constructive', name: 'Visual construction', nameFr: 'Construction visuelle', testId: 'test-visuo-constructive' },
         ],
       },
@@ -97,7 +95,7 @@ export const platformDomains: MainDomain[] = [
   {
     id: 'executive-functions',
     name: 'Executive functions',
-    description: 'Cognitive flexibility, inhibition, processing speed, planning.',
+    description: 'Cognitive flexibility, inhibition, processing speed.',
     subdomains: [
       {
         id: 'executive-core',
@@ -106,7 +104,6 @@ export const platformDomains: MainDomain[] = [
           { id: 'cognitive-flexibility', name: 'Cognitive flexibility', nameFr: 'Flexibilité cognitive', testId: 'test-cognitive-flexibility' },
           { id: 'inhibition', name: 'Inhibition', testId: 'test-inhibition' },
           { id: 'processing-speed', name: 'Processing speed', nameFr: 'Vitesse de traitement', testId: 'test-processing-speed' },
-          { id: 'planning', name: 'Planning', nameFr: 'Planification', testId: 'test-planning' },
         ],
       },
     ],
@@ -116,14 +113,6 @@ export const platformDomains: MainDomain[] = [
     name: 'Cognition et apprentissage de la géométrie',
     description: "Évaluer les capacités cognitives mobilisées dans l'apprentissage de la géométrie du secondaire qualifiant.",
     subdomains: [
-      {
-        id: 'geo-vectors',
-        name: 'Vecteurs et translation',
-        nameFr: 'Vecteurs et translation',
-        capacities: [
-          { id: 'geo-vectors-cap', name: 'Vectors and translation', nameFr: 'Vecteurs et translation', testId: 'test-geo-vectors' },
-        ],
-      },
       {
         id: 'geo-central-sym',
         name: 'Symétrie centrale',
@@ -137,23 +126,7 @@ export const platformDomains: MainDomain[] = [
         name: 'Symétrie axiale',
         nameFr: 'Symétrie axiale',
         capacities: [
-          { id: 'geo-axial-sym-cap', name: 'Axial symmetry', nameFr: 'Symétrie axiale', testId: 'test-geo-axial-sym' },
-        ],
-      },
-      {
-        id: 'geo-dot-product',
-        name: 'Produit scalaire',
-        nameFr: 'Produit scalaire',
-        capacities: [
-          { id: 'geo-dot-product-cap', name: 'Dot product', nameFr: 'Produit scalaire', testId: 'test-geo-dot-product' },
-        ],
-      },
-      {
-        id: 'geo-trigonometry',
-        name: 'Trigonométrie',
-        nameFr: 'Trigonométrie',
-        capacities: [
-          { id: 'geo-trig-cap', name: 'Trigonometry', nameFr: 'Trigonométrie', testId: 'test-geo-trigonometry' },
+          { id: 'geo-axial-sym-cap', name: 'Axial symmetry', nameFr: 'Symétrie axiale', testId: 'test-geo-symetrie-axiale' },
         ],
       },
       {
@@ -162,6 +135,38 @@ export const platformDomains: MainDomain[] = [
         nameFr: 'Droite dans le plan',
         capacities: [
           { id: 'geo-line-plane-cap', name: 'Line in the plane', nameFr: 'Droite dans le plan', testId: 'test-geo-line-plane' },
+        ],
+      },
+      {
+        id: 'geo-vectors',
+        name: 'Vecteurs et translation',
+        nameFr: 'Vecteurs et translation',
+        capacities: [
+          { id: 'geo-vectors-cap', name: 'Vectors and translation', nameFr: 'Vecteurs et translation', testId: 'test-geo-vectors-complete' },
+        ],
+      },
+      {
+        id: 'geo-trig-circle',
+        name: 'Cercle trigonométrique',
+        nameFr: 'Cercle trigonométrique',
+        capacities: [
+          { id: 'geo-trig-circle-cap', name: 'Interactive unit circle', nameFr: 'Cercle trigonométrique interactif', testId: 'test-geo-trig-circle' },
+        ],
+      },
+      {
+        id: 'geo-space',
+        name: 'Géométrie dans l\'espace',
+        nameFr: 'Géométrie dans l\'espace',
+        capacities: [
+          { id: 'geo-space-cap', name: 'Space geometry', nameFr: 'Géométrie dans l\'espace', testId: 'test-geo-space' },
+        ],
+      },
+      {
+        id: 'geo-produit-scalaire',
+        name: 'Produit scalaire',
+        nameFr: 'Produit scalaire',
+        capacities: [
+          { id: 'geo-produit-scalaire-cap', name: 'Dot product & analytic geometry', nameFr: 'Produit scalaire & géométrie analytique', testId: 'test-geo-produit-scalaire' },
         ],
       },
     ],
