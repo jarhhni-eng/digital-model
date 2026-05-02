@@ -115,6 +115,10 @@ export interface TeacherStudent {
   /** Username (or email) of the teacher who owns this student. Used to scope the dashboard. */
   teacherUsername?: string
   scholarLevel?: ScholarLevel | string
+  /** Average for academic year 2024 / 2025 (out of 20). */
+  mathAverage2024_2025?: number
+  /** Average for academic year 2025 / 2026 (out of 20). */
+  mathAverage2025_2026?: number
 }
 
 // Mock data
@@ -423,6 +427,8 @@ export const mockTeacherStudents: TeacherStudent[] = [
     weakAreas: ['Algebra', 'Advanced Geometry'],
     teacherUsername: 'teacher',
     scholarLevel: '1ère année Baccalauréat – Sciences expérimentales',
+    mathAverage2024_2025: 14.5,
+    mathAverage2025_2026: 15.8,
   },
   {
     id: 's-002',
@@ -434,6 +440,8 @@ export const mockTeacherStudents: TeacherStudent[] = [
     weakAreas: ['Spatial Visualization'],
     teacherUsername: 'teacher',
     scholarLevel: 'Tronc commun scientifique',
+    mathAverage2024_2025: 16.2,
+    mathAverage2025_2026: 17.0,
   },
   {
     id: 's-003',
@@ -445,6 +453,8 @@ export const mockTeacherStudents: TeacherStudent[] = [
     weakAreas: ['Problem Solving', 'Logical Reasoning'],
     teacherUsername: 'teacher',
     scholarLevel: '3ème année collège',
+    mathAverage2024_2025: 12.8,
+    mathAverage2025_2026: 13.4,
   },
   {
     id: 's-004',
@@ -456,6 +466,8 @@ export const mockTeacherStudents: TeacherStudent[] = [
     weakAreas: ['Numerical Reasoning'],
     teacherUsername: 'teacher2',
     scholarLevel: '1ère année Baccalauréat – Sciences mathématiques',
+    mathAverage2024_2025: 15.5,
+    mathAverage2025_2026: 16.3,
   },
 ]
 

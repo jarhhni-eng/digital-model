@@ -1,10 +1,13 @@
 /** Moroccan secondary education — profile stored per student user. */
 
-export type MoroccanGradeLevel =
-  | 'Tronc Commun'
-  | '1st Year Baccalaureate'
-  | '2nd Year Baccalaureate'
-  | 'Other'
+import type { ScholarLevel } from '@/lib/mock-data'
+
+/**
+ * Scholar levels supported in the platform — kept aligned with the canonical
+ * SCHOLAR_LEVELS list in lib/mock-data.ts so the registration form, profile
+ * page and teacher dashboards all share the same vocabulary.
+ */
+export type MoroccanGradeLevel = ScholarLevel
 
 export type AcademicTrack =
   | 'Scientific'
@@ -20,21 +23,40 @@ export interface StudentAcademicProfile {
   teacherName: string
   schoolName: string
   gradeLevel: MoroccanGradeLevel
-  /** Required when grade is Tronc Commun or 1st Year Bac per rules */
+  /** Derived from the grade level — kept for downstream analytics. */
   academicTrack: AcademicTrack
   academicYear: string
-  mathScoreCurrent: number | null
-  mathScorePrevious: number | null
-  institutionId: string
-  groupId: string
+  /** Average for academic year 2025 / 2026 (current). */
+  mathAverage2025_2026: number | null
+  /** Average for academic year 2024 / 2025 (previous). */
+  mathAverage2024_2025: number | null
   updatedAt: string
 }
 
+/**
+ * Map a niveau scolaire to its implicit academic track. The new four-level
+ * enum already embeds the track in the level name, so we no longer need a
+ * separate UI selector for it — this helper centralises the mapping.
+ */
 export function resolveDefaultTrack(grade: MoroccanGradeLevel): AcademicTrack {
-  if (grade === 'Tronc Commun') return 'Scientific'
-  return ''
+  switch (grade) {
+    case 'Tronc commun scientifique':
+      return 'Scientific'
+    case '1ère année Baccalauréat – Sciences expérimentales':
+      return 'Experimental Sciences'
+    case '1ère année Baccalauréat – Sciences mathématiques':
+      return 'Mathematical Sciences'
+    case '3ème année collège':
+    default:
+      return ''
+  }
 }
 
-export function trackRequired(grade: MoroccanGradeLevel): boolean {
-  return grade === '1st Year Baccalaureate'
+/**
+ * No grade level requires manual track selection any more — the four
+ * supported levels map deterministically to a track via resolveDefaultTrack().
+ * Kept for backwards compatibility with callers.
+ */
+export function trackRequired(_grade: MoroccanGradeLevel): boolean {
+  return false
 }

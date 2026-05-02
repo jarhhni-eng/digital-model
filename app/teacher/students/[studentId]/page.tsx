@@ -91,7 +91,10 @@ export default function StudentDetailsPage({ params }: StudentDetailsPageProps) 
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className="text-2xl">{student.name}</CardTitle>
-              <CardDescription>Enrolled: {student.joinDate}</CardDescription>
+              <CardDescription>
+                Inscrit le {student.joinDate}
+                {student.scholarLevel ? ` · ${student.scholarLevel}` : ''}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -99,7 +102,7 @@ export default function StudentDetailsPage({ params }: StudentDetailsPageProps) 
                   <div className="flex items-center gap-3">
                     <Mail className="w-5 h-5 text-muted-foreground" />
                     <div>
-                      <p className="text-xs text-muted-foreground">Email</p>
+                      <p className="text-xs text-muted-foreground">Gmail</p>
                       <p className="text-sm font-medium text-foreground">
                         {student.email}
                       </p>
@@ -108,7 +111,7 @@ export default function StudentDetailsPage({ params }: StudentDetailsPageProps) 
                   <div className="flex items-center gap-3">
                     <Calendar className="w-5 h-5 text-muted-foreground" />
                     <div>
-                      <p className="text-xs text-muted-foreground">Joined</p>
+                      <p className="text-xs text-muted-foreground">Inscription</p>
                       <p className="text-sm font-medium text-foreground">
                         {student.joinDate}
                       </p>
@@ -118,19 +121,43 @@ export default function StudentDetailsPage({ params }: StudentDetailsPageProps) 
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-primary/5 rounded-lg p-3 border border-primary/20">
-                    <p className="text-xs text-muted-foreground mb-1">Average Score</p>
+                    <p className="text-xs text-muted-foreground mb-1">Score moyen</p>
                     <p className="text-2xl font-bold text-primary">
                       {student.averageScore.toFixed(1)}%
                     </p>
                   </div>
                   <div className="bg-secondary/5 rounded-lg p-3 border border-secondary/20">
                     <p className="text-xs text-muted-foreground mb-1">
-                      Tests Completed
+                      Tests réalisés
                     </p>
                     <p className="text-2xl font-bold text-secondary">
                       {student.completedTests}
                     </p>
                   </div>
+                </div>
+              </div>
+
+              {/* Math averages — moyenne générale en mathématiques */}
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-6">
+                <div className="rounded-lg border p-3">
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Moyenne mathématiques 2024 / 2025
+                  </p>
+                  <p className="text-xl font-semibold text-foreground tabular-nums">
+                    {student.mathAverage2024_2025 != null
+                      ? `${student.mathAverage2024_2025.toFixed(1)} / 20`
+                      : '—'}
+                  </p>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Moyenne mathématiques 2025 / 2026
+                  </p>
+                  <p className="text-xl font-semibold text-foreground tabular-nums">
+                    {student.mathAverage2025_2026 != null
+                      ? `${student.mathAverage2025_2026.toFixed(1)} / 20`
+                      : '—'}
+                  </p>
                 </div>
               </div>
             </CardContent>

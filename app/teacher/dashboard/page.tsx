@@ -18,20 +18,12 @@ import {
 import { Users, TrendingUp, AlertCircle, BookOpen } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
-import { mockTeacherGroups } from '@/lib/mock-groups'
 
 const classPerformanceData = [
   { domain: 'Numerical', avgScore: 76.5 },
   { domain: 'Spatial', avgScore: 68.2 },
   { domain: 'Problem', avgScore: 65.8 },
   { domain: 'Algebra', avgScore: 0 },
-]
-
-const studentPerformanceScatter = [
-  { name: 'Emma', testsCompleted: 8, avgScore: 75 },
-  { name: 'James', testsCompleted: 9, avgScore: 82 },
-  { name: 'Sofia', testsCompleted: 5, avgScore: 68 },
-  { name: 'Marcus', testsCompleted: 8, avgScore: 80 },
 ]
 
 const attendanceTrend = [
@@ -67,6 +59,14 @@ export default function TeacherDashboard() {
       ? (myStudents.reduce((sum, s) => sum + s.averageScore, 0) / totalStudents).toFixed(1)
       : '0.0'
   const studentsNeedingSupport = myStudents.filter((s) => s.averageScore < 70).length
+
+  // Scatter chart derived from the filtered roster — keeps the visualisation
+  // consistent with the table the teacher actually sees.
+  const studentPerformanceScatter = myStudents.map((s) => ({
+    name: s.name.split(' ')[0],
+    testsCompleted: s.completedTests,
+    avgScore: s.averageScore,
+  }))
 
   if (loading || !user) {
     return (
@@ -110,39 +110,27 @@ export default function TeacherDashboard() {
             <StatCard
               icon={<BookOpen className="w-5 h-5" />}
               title="Avg Tests/Student"
-              value={(
-                myStudents.reduce((sum, s) => sum + s.completedTests, 0) /
-                totalStudents
-              ).toFixed(1)}
+              value={
+                totalStudents > 0
+                  ? (
+                      myStudents.reduce((sum, s) => sum + s.completedTests, 0) /
+                      totalStudents
+                    ).toFixed(1)
+                  : '0.0'
+              }
               description="Completed assessments"
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="text-base">Groups (20–30 students)</CardTitle>
-                <CardDescription>Deployment by teacher, level, and institution</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="text-sm space-y-2">
-                  {mockTeacherGroups.map((g) => (
-                    <li key={g.id} className="flex justify-between border-b border-border/60 pb-2">
-                      <span>{g.name}</span>
-                      <span className="text-muted-foreground">{g.studentCount} students</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+          <div className="mb-8">
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Analytics</CardTitle>
-                <CardDescription>Filters & cohort reports</CardDescription>
+                <CardDescription>Filtres et rapports de cohorte</CardDescription>
               </CardHeader>
               <CardContent>
-                <Button asChild className="w-full">
-                  <Link href="/analytics">Open analytics</Link>
+                <Button asChild>
+                  <Link href="/analytics">Ouvrir l&apos;analytique</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -298,7 +286,9 @@ export default function TeacherDashboard() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Class Roster</CardTitle>
-                <CardDescription>Monitor individual student progress</CardDescription>
+                <CardDescription>
+                  Vous ne voyez que les élèves rattachés à votre compte enseignant.
+                </CardDescription>
               </div>
               <Button variant="outline" size="sm">
                 View All
@@ -310,22 +300,25 @@ export default function TeacherDashboard() {
                   <thead>
                     <tr className="border-b border-border">
                       <th className="text-left py-3 px-4 font-semibold text-foreground">
-                        Name
+                        Nom
                       </th>
                       <th className="text-left py-3 px-4 font-semibold text-foreground">
-                        Email
+                        Gmail
                       </th>
                       <th className="text-left py-3 px-4 font-semibold text-foreground">
-                        Join Date
+                        Niveau scolaire
                       </th>
                       <th className="text-center py-3 px-4 font-semibold text-foreground">
-                        Avg Score
+                        Score moyen
                       </th>
                       <th className="text-center py-3 px-4 font-semibold text-foreground">
-                        Tests Done
+                        Tests réalisés
                       </th>
-                      <th className="text-left py-3 px-4 font-semibold text-foreground">
-                        Focus Areas
+                      <th className="text-center py-3 px-4 font-semibold text-foreground">
+                        Moy. 2024/25
+                      </th>
+                      <th className="text-center py-3 px-4 font-semibold text-foreground">
+                        Moy. 2025/26
                       </th>
                       <th className="text-center py-3 px-4 font-semibold text-foreground">
                         Action
@@ -344,8 +337,8 @@ export default function TeacherDashboard() {
                         <td className="py-3 px-4 text-muted-foreground text-xs">
                           {student.email}
                         </td>
-                        <td className="py-3 px-4 text-muted-foreground text-xs">
-                          {student.joinDate}
+                        <td className="py-3 px-4 text-foreground text-xs">
+                          {student.scholarLevel ?? '—'}
                         </td>
                         <td className="py-3 px-4 text-center">
                           <span
@@ -363,21 +356,15 @@ export default function TeacherDashboard() {
                         <td className="py-3 px-4 text-center text-foreground">
                           {student.completedTests}
                         </td>
-                        <td className="py-3 px-4 text-xs">
-                          {student.weakAreas.length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
-                              {student.weakAreas.slice(0, 2).map((area) => (
-                                <span
-                                  key={area}
-                                  className="bg-destructive/10 text-destructive px-2 py-1 rounded text-xs"
-                                >
-                                  {area}
-                                </span>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">No issues</span>
-                          )}
+                        <td className="py-3 px-4 text-center text-foreground tabular-nums">
+                          {student.mathAverage2024_2025 != null
+                            ? `${student.mathAverage2024_2025.toFixed(1)} / 20`
+                            : '—'}
+                        </td>
+                        <td className="py-3 px-4 text-center text-foreground tabular-nums">
+                          {student.mathAverage2025_2026 != null
+                            ? `${student.mathAverage2025_2026.toFixed(1)} / 20`
+                            : '—'}
                         </td>
                         <td className="py-3 px-4 text-center">
                           <Link href={`/teacher/students/${student.id}`}>

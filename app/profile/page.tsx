@@ -251,23 +251,23 @@ export default function ProfilePage() {
                 ) : (
                   <>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Last year score</span>
+                      <span className="text-muted-foreground">Moyenne 2024 / 2025</span>
                       <span className="font-medium text-foreground">
-                        {student.lastYearMathScore}%
+                        {student.mathAverage2024_2025} / 20
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Current score (self-estimated)</span>
+                      <span className="text-muted-foreground">Moyenne 2025 / 2026</span>
                       <span className="font-medium text-foreground">
-                        {student.currentMathScore}%
+                        {student.mathAverage2025_2026} / 20
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Delta</span>
+                      <span className="text-muted-foreground">Évolution</span>
                       <span className="flex items-center gap-1 font-medium text-foreground">
                         <Award className="h-3 w-3 text-emerald-500" />
-                        {(student.currentMathScore - student.lastYearMathScore) >= 0 ? '+' : ''}
-                        {student.currentMathScore - student.lastYearMathScore}%
+                        {(student.mathAverage2025_2026 - student.mathAverage2024_2025) >= 0 ? '+' : ''}
+                        {(student.mathAverage2025_2026 - student.mathAverage2024_2025).toFixed(1)} pts
                       </span>
                     </div>
                   </>

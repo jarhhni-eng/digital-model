@@ -9,19 +9,10 @@ import { Label } from '@/components/ui/label'
 import { useAuth } from '@/lib/auth-context'
 import {
   type MoroccanGradeLevel,
-  type AcademicTrack,
   resolveDefaultTrack,
-  trackRequired,
 } from '@/lib/student-profile-types'
-import { mockInstitutions, mockTeacherGroups } from '@/lib/mock-groups'
+import { SCHOLAR_LEVELS } from '@/lib/mock-data'
 import { Brain, Loader2 } from 'lucide-react'
-
-const gradeOptions: MoroccanGradeLevel[] = [
-  'Tronc Commun',
-  '1st Year Baccalaureate',
-  '2nd Year Baccalaureate',
-  'Other',
-]
 
 export default function ProfileSetupPage() {
   const router = useRouter()
@@ -32,33 +23,19 @@ export default function ProfileSetupPage() {
   const [gender, setGender] = useState<'Male' | 'Female' | ''>('')
   const [teacherName, setTeacherName] = useState('')
   const [schoolName, setSchoolName] = useState('')
-  const [gradeLevel, setGradeLevel] = useState<MoroccanGradeLevel>('Tronc Commun')
-  const [academicTrack, setAcademicTrack] = useState<AcademicTrack>('')
-  const [institutionId, setInstitutionId] = useState(mockInstitutions[0]?.id ?? '')
-  const [groupId, setGroupId] = useState(mockTeacherGroups[0]?.id ?? '')
-  const [mathCurrent, setMathCurrent] = useState('')
-  const [mathPrevious, setMathPrevious] = useState('')
+  const [gradeLevel, setGradeLevel] = useState<MoroccanGradeLevel>(SCHOLAR_LEVELS[0])
+  const [mathAverage2025_2026, setMathAverage2025_2026] = useState('')
+  const [mathAverage2024_2025, setMathAverage2024_2025] = useState('')
 
-  const academicYear = String(new Date().getFullYear())
+  const academicYear = '2025/2026'
 
   useEffect(() => {
     if (!authLoading && !user) router.replace('/')
   }, [authLoading, user, router])
 
-  useEffect(() => {
-    if (gradeLevel === 'Tronc Commun') {
-      setAcademicTrack(resolveDefaultTrack('Tronc Commun'))
-    } else if (!trackRequired(gradeLevel)) {
-      setAcademicTrack('')
-    }
-  }, [gradeLevel])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) return
-    if (trackRequired(gradeLevel) && !academicTrack) {
-      return
-    }
     setIsLoading(true)
     try {
       const res = await fetch('/api/student-profile', {
@@ -72,12 +49,12 @@ export default function ProfileSetupPage() {
           teacherName,
           schoolName,
           gradeLevel,
-          academicTrack: gradeLevel === 'Tronc Commun' ? 'Scientific' : academicTrack,
+          academicTrack: resolveDefaultTrack(gradeLevel),
           academicYear,
-          mathScoreCurrent: mathCurrent === '' ? null : Number(mathCurrent),
-          mathScorePrevious: mathPrevious === '' ? null : Number(mathPrevious),
-          institutionId,
-          groupId,
+          mathAverage2025_2026:
+            mathAverage2025_2026 === '' ? null : Number(mathAverage2025_2026),
+          mathAverage2024_2025:
+            mathAverage2024_2025 === '' ? null : Number(mathAverage2024_2025),
           updatedAt: new Date().toISOString(),
         }),
       })
@@ -106,10 +83,11 @@ export default function ProfileSetupPage() {
             </div>
           </div>
           <CardTitle className="text-2xl font-bold text-foreground">
-            Student profile (Morocco)
+            Profil élève (Maroc)
           </CardTitle>
           <CardDescription className="text-base mt-2">
-            Required for cognitive and academic tracking. Academic year: <strong>{academicYear}</strong>
+            Requis pour le suivi cognitif et académique. Année scolaire :{' '}
+            <strong>{academicYear}</strong>
           </CardDescription>
         </CardHeader>
 
@@ -117,11 +95,11 @@ export default function ProfileSetupPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Full name</Label>
+                <Label>Nom complet</Label>
                 <Input value={fullName} onChange={(e) => setFullName(e.target.value)} required />
               </div>
               <div className="space-y-2">
-                <Label>Age</Label>
+                <Label>Âge</Label>
                 <Input
                   type="number"
                   min={5}
@@ -134,7 +112,7 @@ export default function ProfileSetupPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>Gender</Label>
+              <Label>Genre</Label>
               <select
                 className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
                 value={gender}
@@ -142,61 +120,30 @@ export default function ProfileSetupPage() {
                 required
               >
                 <option value="">—</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
+                <option value="Male">Homme</option>
+                <option value="Female">Femme</option>
               </select>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Teacher&apos;s name</Label>
+                <Label>Nom de l&apos;enseignant</Label>
                 <Input value={teacherName} onChange={(e) => setTeacherName(e.target.value)} required />
               </div>
               <div className="space-y-2">
-                <Label>School / institution</Label>
+                <Label>École / établissement</Label>
                 <Input value={schoolName} onChange={(e) => setSchoolName(e.target.value)} required />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Institution (platform)</Label>
-                <select
-                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-                  value={institutionId}
-                  onChange={(e) => setInstitutionId(e.target.value)}
-                >
-                  {mockInstitutions.map((i) => (
-                    <option key={i.id} value={i.id}>
-                      {i.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label>Group (20–30 students)</Label>
-                <select
-                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-                  value={groupId}
-                  onChange={(e) => setGroupId(e.target.value)}
-                >
-                  {mockTeacherGroups.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.name} ({g.studentCount} students)
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
             <div className="space-y-2">
-              <Label>Grade level</Label>
+              <Label>Niveau scolaire</Label>
               <select
                 className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
                 value={gradeLevel}
                 onChange={(e) => setGradeLevel(e.target.value as MoroccanGradeLevel)}
               >
-                {gradeOptions.map((g) => (
+                {SCHOLAR_LEVELS.map((g) => (
                   <option key={g} value={g}>
                     {g}
                   </option>
@@ -204,49 +151,27 @@ export default function ProfileSetupPage() {
               </select>
             </div>
 
-            {gradeLevel === 'Tronc Commun' && (
-              <p className="text-sm text-muted-foreground">
-                Track: <strong>Scientific</strong> (automatic for Tronc Commun).
-              </p>
-            )}
-
-            {trackRequired(gradeLevel) && (
-              <div className="space-y-2">
-                <Label>Academic track (Filière)</Label>
-                <select
-                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-                  value={academicTrack}
-                  onChange={(e) => setAcademicTrack(e.target.value as AcademicTrack)}
-                  required
-                >
-                  <option value="">— Select —</option>
-                  <option value="Mathematical Sciences">Mathematical Sciences</option>
-                  <option value="Experimental Sciences">Experimental Sciences</option>
-                </select>
-              </div>
-            )}
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Mathematics score (current year)</Label>
+                <Label>Moyenne générale en mathématiques 2025 / 2026</Label>
                 <Input
                   type="number"
                   min={0}
                   max={20}
                   step={0.01}
-                  value={mathCurrent}
-                  onChange={(e) => setMathCurrent(e.target.value)}
+                  value={mathAverage2025_2026}
+                  onChange={(e) => setMathAverage2025_2026(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Mathematics score (previous year, optional)</Label>
+                <Label>Moyenne générale en mathématiques 2024 / 2025</Label>
                 <Input
                   type="number"
                   min={0}
                   max={20}
                   step={0.01}
-                  value={mathPrevious}
-                  onChange={(e) => setMathPrevious(e.target.value)}
+                  value={mathAverage2024_2025}
+                  onChange={(e) => setMathAverage2024_2025(e.target.value)}
                 />
               </div>
             </div>
@@ -255,10 +180,10 @@ export default function ProfileSetupPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Saving…
+                  Enregistrement…
                 </>
               ) : (
-                'Save and continue'
+                'Enregistrer et continuer'
               )}
             </Button>
           </form>

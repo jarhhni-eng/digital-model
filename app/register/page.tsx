@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useAuth } from '@/lib/auth-context'
 import type { UserRole } from '@/lib/auth-types'
-import { Brain, Loader2, Lock, User, ShieldCheck } from 'lucide-react'
+import { Brain, Loader2, Lock, Mail, ShieldCheck } from 'lucide-react'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -20,9 +20,8 @@ export default function RegisterPage() {
   const [role, setRole] = useState<UserRole>('student')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [testAttempts, setTestAttempts] = useState(3)
   const [consentAccepted, setConsentAccepted] = useState(false)
   const [attemptedSubmit, setAttemptedSubmit] = useState(false)
   const [error, setError] = useState('')
@@ -39,12 +38,13 @@ export default function RegisterPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        username: username.trim(),
+        // The backend still keys users by `username`; we send the Gmail
+        // address there so existing login flows keep working.
+        username: email.trim(),
         password,
         role,
         firstName: firstName.trim() || undefined,
         lastName: lastName.trim() || undefined,
-        testAttempts: role === 'student' ? testAttempts : undefined,
       }),
     })
     const data = await res.json()
@@ -118,34 +118,21 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Test attempts — students only */}
-            {role === 'student' && (
-              <div className="space-y-2">
-                <Label htmlFor="testAttempts">Nombre de tentatives autorisées</Label>
-                <Input
-                  id="testAttempts"
-                  type="number"
-                  min={1}
-                  max={10}
-                  value={testAttempts}
-                  onChange={(e) => setTestAttempts(Number(e.target.value))}
-                />
-              </div>
-            )}
-
-            {/* Username */}
+            {/* Gmail */}
             <div className="space-y-2">
-              <Label htmlFor="username">Nom d&apos;utilisateur</Label>
+              <Label htmlFor="email">Gmail</Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  id="username"
+                  id="email"
+                  type="email"
+                  inputMode="email"
                   className="pl-10"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="prenom.nom@gmail.com"
                   required
-                  minLength={2}
-                  autoComplete="username"
+                  autoComplete="email"
                 />
               </div>
             </div>
