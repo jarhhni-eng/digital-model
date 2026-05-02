@@ -208,10 +208,8 @@ function Intro({ onStart, onQuit }: { onStart: () => void; onQuit: () => void })
         </div>
         <h1 className="mb-3 text-3xl font-bold">Produit scalaire</h1>
         <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
-          Évaluation de la maîtrise du produit scalaire et de la géométrie analytique :
-          définition, propriétés, théorèmes (Al-Kashi, médiane), équations de droites et
-          de cercles, distances, projections orthogonales et angles. Compétences évaluées :
-          C1 → C6.
+          Référentiel : programme national marocain (Tronc commun),
+          décision ministérielle 2.853.06.
         </p>
         <div className="mb-4 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
           <strong>Structure :</strong> 26 questions —

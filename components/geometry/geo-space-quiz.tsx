@@ -170,10 +170,8 @@ function Intro({ onStart, onQuit }: { onStart: () => void; onQuit: () => void })
         </div>
         <h1 className="mb-3 text-3xl font-bold">Géométrie dans l&apos;espace</h1>
         <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
-          Ce test évalue votre maîtrise des notions fondamentales de la géométrie dans l&apos;espace :
-          axiomes d&apos;incidence, positions relatives des droites et des plans, parallélisme,
-          orthogonalité et configurations de référence (cube, tétraèdre).
-          Compétences évaluées : C1, C2, C3.
+          Référentiel : programme national marocain (Tronc commun),
+          décision ministérielle 2.853.06.
         </p>
         <div className="mb-4 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
           <strong>Structure :</strong> 28 questions au total —

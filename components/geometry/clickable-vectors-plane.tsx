@@ -19,11 +19,14 @@ export function ClickableVectorsPlane({
 }: ClickableVectorsPlaneProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const [placed, setPlaced] = useState<{ name: string; x: number; y: number }[]>([])
+  const [hover, setHover] = useState<{ x: number; y: number } | null>(null)
 
+  // Wider window than the reference figure so students can place points
+  // like I(6,8), M(11,7), P(10,6) without running off the canvas.
   const xMin = -4
-  const xMax = 10
+  const xMax = 12
   const yMin = -6
-  const yMax = 3
+  const yMax = 10
   const padX = 28
   const padY = 24
   const w = 520
@@ -40,27 +43,44 @@ export function ClickableVectorsPlane({
   const ys: number[] = []
   for (let y = yMin; y <= yMax; y++) ys.push(y)
 
-  const handleClick = (e: React.MouseEvent<SVGSVGElement>) => {
-    if (!svgRef.current) return
+  const cursorFromEvent = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (!svgRef.current) return null
     const rect = svgRef.current.getBoundingClientRect()
     const px = ((e.clientX - rect.left) / rect.width) * w
     const py = ((e.clientY - rect.top) / rect.height) * h
     const x = Math.round(ix(px))
     const y = Math.round(iy(py))
-    if (x < xMin || x > xMax || y < yMin || y > yMax) return
+    if (x < xMin || x > xMax || y < yMin || y > yMax) return null
+    return { x, y }
+  }
+
+  const handleClick = (e: React.MouseEvent<SVGSVGElement>) => {
+    const pt = cursorFromEvent(e)
+    if (!pt) return
 
     setPlaced((prev) => {
       const i = prev.length
       let next: { name: string; x: number; y: number }[]
       if (i >= labels.length) {
-        next = [{ name: labels[0], x, y }]
+        next = [{ name: labels[0], x: pt.x, y: pt.y }]
       } else {
-        next = [...prev, { name: labels[i], x, y }]
+        next = [...prev, { name: labels[i], x: pt.x, y: pt.y }]
       }
       onChange?.(next)
       return next
     })
   }
+
+  const handleMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    setHover(cursorFromEvent(e))
+  }
+
+  const handleLeave = () => setHover(null)
+
+  // Label of the point that *would* be placed on the next click — shown as a
+  // ghost cursor so the student sees which point they are about to drop.
+  const nextLabel: string | null =
+    placed.length >= labels.length ? labels[0] ?? null : labels[placed.length] ?? null
 
   const reset = () => {
     setPlaced([])
@@ -85,6 +105,8 @@ export function ClickableVectorsPlane({
         className="block w-full cursor-crosshair bg-white"
         role="img"
         onClick={handleClick}
+        onMouseMove={handleMove}
+        onMouseLeave={handleLeave}
       >
         <rect width={w} height={h} fill="#fafafa" />
 
@@ -157,6 +179,40 @@ export function ClickableVectorsPlane({
             </g>
           )
         })}
+
+        {/* Hover ghost — preview of the point that would be placed next */}
+        {hover && nextLabel && (
+          <g pointerEvents="none">
+            <circle
+              cx={sx(hover.x)}
+              cy={sy(hover.y)}
+              r={5}
+              fill="#dc2626"
+              fillOpacity={0.35}
+              stroke="#dc2626"
+              strokeWidth={1.2}
+            />
+            <text
+              x={sx(hover.x) + 7}
+              y={sy(hover.y) - 7}
+              fontSize={12}
+              fontWeight={700}
+              fill="#dc2626"
+              fillOpacity={0.7}
+            >
+              {nextLabel}
+            </text>
+            <text
+              x={sx(hover.x) + 7}
+              y={sy(hover.y) + 12}
+              fontSize={10}
+              fill="#475569"
+              fillOpacity={0.7}
+            >
+              ({hover.x};{hover.y})
+            </text>
+          </g>
+        )}
 
         {/* Placed points (red) */}
         {placed.map((p, i) => (

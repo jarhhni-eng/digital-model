@@ -170,9 +170,8 @@ function Intro({ onStart, onQuit }: { onStart: () => void; onQuit: () => void })
         </div>
         <h1 className="mb-3 text-3xl font-bold">Droite dans le plan</h1>
         <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
-          Ce test évalue votre maîtrise de la géométrie analytique de la droite : équations
-          cartésiennes et réduites, vecteurs directeur et normal, parallélisme, perpendicularité,
-          appartenance d&apos;un point et distance point-droite. Compétences évaluées : C1, C2.
+          Référentiel : programme national marocain (Tronc commun),
+          décision ministérielle 2.853.06.
         </p>
         <div className="mb-4 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
           <strong>Structure :</strong> 12 questions —

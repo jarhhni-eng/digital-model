@@ -160,10 +160,8 @@ function Intro({ onStart, onQuit }: { onStart: () => void; onQuit: () => void })
         </div>
         <h1 className="mb-3 text-3xl font-bold">Symétrie axiale</h1>
         <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
-          Ce test évalue votre compréhension des concepts de la symétrie axiale.
-          La Q1 sert de mesure de perception (auto-évaluation, non notée), puis vous
-          répondrez à des questions portant sur la reconnaissance de la symétrie,
-          la visualisation géométrique et le raisonnement déductif.
+          Référentiel : programme national marocain (Tronc commun),
+          décision ministérielle 2.853.06.
         </p>
         <div className="mb-4">
           <CapacityLegend testId="test-symetrie-axiale" />
@@ -406,28 +404,15 @@ function Results({ trials, onExit }: ResultsProps) {
           {trials.map((t) => {
             const question = SYMETRIE_AXIALE_QUESTIONS[t.index]
             const isAutoEval = question.correctAnswer === null
-            const selectedLabel = String.fromCharCode(65 + t.selected)
-
-            // Format correct answers for display
-            let correctAnswersText = ''
-            if (!isAutoEval && question.correctAnswer !== null) {
-              if (Array.isArray(question.correctAnswer)) {
-                correctAnswersText = question.correctAnswer.map((idx) => String.fromCharCode(65 + idx)).join(', ')
-              } else {
-                correctAnswersText = String.fromCharCode(65 + question.correctAnswer)
-              }
-            }
-
             return (
               <div key={t.index} className="text-left text-xs border-b border-slate-200 dark:border-slate-700 py-2 last:border-b-0">
                 {isAutoEval ? (
                   <span className="text-slate-600 dark:text-slate-400">
-                    {t.questionId}: Auto-évaluation (Réponse: {selectedLabel})
+                    {t.questionId}: Auto-évaluation
                   </span>
                 ) : (
                   <span className={t.correct ? 'text-green-600' : 'text-red-600'}>
-                    {t.questionId}: {t.correct ? '✓ Correct' : '✗ Incorrect'} (Sélection: {selectedLabel}
-                    {correctAnswersText && ` | Correcte(s): ${correctAnswersText}`})
+                    {t.questionId}: {t.correct ? '✓ Correct' : '✗ Incorrect'}
                   </span>
                 )}
               </div>

@@ -166,10 +166,8 @@ function Intro({ onStart, onQuit }: { onStart: () => void; onQuit: () => void })
         </div>
         <h1 className="mb-3 text-3xl font-bold">Vecteurs &amp; Translation — Partie I</h1>
         <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
-          Ce test évalue votre compréhension des concepts de vecteurs et de translation à travers
-          une auto-évaluation suivie de 8 questions de cours portant sur la colinéarité,
-          la relation de Chasles, l&apos;égalité vectorielle et les propriétés de la translation.
-          Compétences évaluées : C1, C2, C4.
+          Référentiel : programme national marocain (Tronc commun),
+          décision ministérielle 2.853.06.
         </p>
         <div className="mb-4">
           <CapacityLegend testId="test-geo-vectors-complete" />
@@ -482,16 +480,6 @@ function Results({ trials, onExit }: ResultsProps) {
           {trials.map((t) => {
             const q = VECTORS_QUESTIONS[t.index]
             const isAutoEval = q.correctAnswer === null
-            let correctText = ''
-            if (!isAutoEval && q.correctAnswer !== null) {
-              if (Array.isArray(q.correctAnswer)) {
-                correctText = q.correctAnswer
-                  .map((i) => String.fromCharCode(65 + i))
-                  .join(', ')
-              } else {
-                correctText = String.fromCharCode(65 + q.correctAnswer)
-              }
-            }
             return (
               <div
                 key={t.index}
@@ -504,7 +492,6 @@ function Results({ trials, onExit }: ResultsProps) {
                 ) : (
                   <span className={t.correct ? 'text-green-600' : 'text-red-600'}>
                     {t.questionId}: {t.correct ? '✓ Correct' : '✗ Incorrect'}
-                    {correctText && ` (Correcte(s): ${correctText})`}
                   </span>
                 )}
               </div>

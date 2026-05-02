@@ -38,6 +38,7 @@ import {
   FigureKey,
 } from '@/lib/geometry/symetrie-centrale'
 import { CapacityLegend } from '@/components/geometry/capacity-legend'
+import { toggleSelectionWithExclusive } from '@/lib/quiz-helpers'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
 
@@ -89,13 +90,9 @@ export function SymetrieCentraleQuiz() {
   }, [phase])
 
   const toggleSelect = (idx: number) => {
-    if (isMulti) {
-      setSelectedList((prev) =>
-        prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx],
-      )
-    } else {
-      setSelectedList([idx])
-    }
+    setSelectedList((prev) =>
+      toggleSelectionWithExclusive(question?.options ?? [], prev, idx, isMulti),
+    )
   }
 
   const submit = useCallback(() => {
@@ -218,10 +215,7 @@ function Intro({ onStart, onQuit }: { onStart: () => void; onQuit: () => void })
           Symétrie centrale — Évaluation cognitive
         </h1>
         <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
-          17 questions évaluant deux compétences clés :
-          <strong> C1</strong> — reconnaissance des propriétés et figures
-          (Q1 à Q13) ; <strong> C2</strong> — résolution de problèmes
-          (Q14 à Q17). Référentiel : programme national marocain (Tronc commun),
+          Référentiel : programme national marocain (Tronc commun),
           décision ministérielle 2.853.06.
         </p>
         <div className="mb-4">
@@ -699,15 +693,6 @@ function Results({
               Résolution (Q14–Q17)
             </div>
           </div>
-        </div>
-
-        <div className="mb-6 rounded-md border border-indigo-200 bg-indigo-50 p-4 text-left dark:border-indigo-900/40 dark:bg-indigo-950/30">
-          <div className="text-sm font-semibold text-indigo-900 dark:text-indigo-100">
-            🎯 {LEVEL_LABEL[level]}
-          </div>
-          <p className="mt-1 text-xs text-indigo-900/80 dark:text-indigo-100/80">
-            {LEVEL_INSIGHT[level]}
-          </p>
         </div>
 
         <div className="flex justify-center gap-3">
