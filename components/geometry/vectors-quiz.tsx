@@ -10,11 +10,12 @@ import { ArrowLeft, ArrowRight, CheckCircle2, BarChart3 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import {
   VECTORS_QUESTIONS,
-  VECTOR_POINTS,
   VectorsResult,
   VectorsTrialResult,
   saveVectorsResult,
 } from '@/lib/geometry/geo-vectors-complete'
+import { toggleSelectionWithExclusive } from '@/lib/quiz-helpers'
+import { ClickableVectorsPlane } from '@/components/geometry/clickable-vectors-plane'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
 
@@ -32,6 +33,7 @@ export function VectorsQuizTest() {
   const [current, setCurrent] = useState(0)
   const [trials, setTrials] = useState<VectorsTrialResult[]>([])
   const [selectedList, setSelectedList] = useState<number[]>([])
+  const [freeText, setFreeText] = useState('')
   const [startedAt, setStartedAt] = useState<number>(0)
   const trialStart = useRef(0)
 
@@ -41,21 +43,19 @@ export function VectorsQuizTest() {
     (question.correctAnswer as number[]).length > 1
 
   const toggleSelect = (idx: number) => {
-    if (isMulti) {
-      setSelectedList((prev) =>
-        prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx],
-      )
-    } else {
-      setSelectedList([idx])
-    }
+    setSelectedList((prev) =>
+      toggleSelectionWithExclusive(question.options, prev, idx, isMulti),
+    )
   }
 
   const submit = useCallback(() => {
-    if (selectedList.length === 0) return
     const q = VECTORS_QUESTIONS[current]
+    const isFree = Boolean(q.pointPlacement || q.fillIn)
+
+    if (!isFree && selectedList.length === 0) return
 
     let correct = false
-    if (q.correctAnswer === null) {
+    if (isFree || q.correctAnswer === null) {
       correct = false
     } else if (Array.isArray(q.correctAnswer)) {
       correct = arrayEquals(selectedList, q.correctAnswer as number[])
@@ -66,12 +66,14 @@ export function VectorsQuizTest() {
     const trial: VectorsTrialResult = {
       index: current,
       questionId: q.id,
-      selected: selectedList[0],
+      selected: selectedList[0] ?? -1,
+      freeText: isFree ? freeText : undefined,
       correct,
       reactionTimeMs: Date.now() - trialStart.current,
     }
     setTrials((t) => [...t, trial])
     setSelectedList([])
+    setFreeText('')
 
     if (current + 1 >= VECTORS_QUESTIONS.length) {
       setPhase('done')
@@ -81,13 +83,13 @@ export function VectorsQuizTest() {
         trialStart.current = Date.now()
       }, 100)
     }
-  }, [current, selectedList])
+  }, [current, selectedList, freeText])
 
   useEffect(() => {
     if (phase === 'done' && trials.length > 0) {
       const scorable = trials.filter((t) => {
         const q = VECTORS_QUESTIONS[t.index]
-        return q.correctAnswer !== null
+        return q.correctAnswer !== null && !q.pointPlacement && !q.fillIn
       })
       const correct = scorable.filter((t) => t.correct).length
       const r: VectorsResult = {
@@ -141,6 +143,8 @@ export function VectorsQuizTest() {
       question={question}
       selectedList={selectedList}
       isMulti={isMulti}
+      freeText={freeText}
+      onChangeFreeText={setFreeText}
       onToggle={toggleSelect}
       onSubmit={submit}
     />
@@ -221,6 +225,8 @@ interface TrialViewProps {
   question: (typeof VECTORS_QUESTIONS)[number]
   selectedList: number[]
   isMulti: boolean
+  freeText: string
+  onChangeFreeText: (v: string) => void
   onToggle: (idx: number) => void
   onSubmit: () => void
 }
@@ -243,10 +249,40 @@ function TrialView({
   question,
   selectedList,
   isMulti,
+  freeText,
+  onChangeFreeText,
   onToggle,
   onSubmit,
 }: TrialViewProps) {
   const showPlane = question.showCoordPlane === true
+  const hasImage = Boolean(question.imagePath)
+  const isFillIn = Boolean(question.fillIn)
+  const isPointPlacement = Boolean(question.pointPlacement)
+  const isFreeForm = isFillIn || isPointPlacement
+  const splitLayout = hasImage || showPlane || isPointPlacement
+
+  const figurePanel = (
+    <div className="space-y-3">
+      {isPointPlacement && question.pointPlacement && (
+        <ClickableVectorsPlane
+          labels={question.pointPlacement.labels}
+          onChange={(pts) =>
+            onChangeFreeText(
+              pts.map((p) => `${p.name}(${p.x};${p.y})`).join(' · '),
+            )
+          }
+        />
+      )}
+      {hasImage && !isPointPlacement && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={question.imagePath}
+          alt={`Figure ${question.id}`}
+          className="mx-auto block max-h-[420px] w-full rounded border bg-white object-contain"
+        />
+      )}
+    </div>
+  )
 
   const questionPanel = (
     <div className="space-y-6">
@@ -255,55 +291,67 @@ function TrialView({
         dangerouslySetInnerHTML={{ __html: renderInlineLatex(question.question) }}
       />
 
-      {isMulti && (
+      {isMulti && !isFreeForm && (
         <div className="rounded border border-blue-200 bg-blue-50 p-2 text-xs text-blue-900 dark:border-blue-900/40 dark:bg-blue-950/30">
           ℹ️ Plusieurs réponses correctes possibles — cochez toutes les bonnes réponses.
         </div>
       )}
 
-      <div className="space-y-2">
-        {question.options.map((option, idx) => {
-          const answerLabel = String.fromCharCode(65 + idx)
-          const isSelected = selectedList.includes(idx)
-          return (
-            <button
-              key={idx}
-              onClick={() => onToggle(idx)}
-              className={`w-full rounded-lg border-2 p-4 text-left transition-all ${
-                isSelected
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
-                  : 'border-gray-200 bg-white hover:border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-gray-600'
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className={`mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center ${
-                    isMulti ? 'rounded' : 'rounded-full'
-                  } border-2 ${
-                    isSelected
-                      ? 'border-blue-500 bg-blue-500 text-white'
-                      : 'border-gray-300'
-                  }`}
-                >
-                  {isSelected && <span className="text-xs font-bold">✓</span>}
-                </div>
-                <div className="flex-1">
+      {isFillIn && question.fillIn && (
+        <FillInFields fields={question.fillIn.fields} value={freeText} onChange={onChangeFreeText} />
+      )}
+
+      {isPointPlacement && (
+        <div className="rounded border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30">
+          ✍️ Placez le(s) point(s) en cliquant sur le repère à gauche.
+        </div>
+      )}
+
+      {!isFreeForm && (
+        <div className="space-y-2">
+          {question.options.map((option, idx) => {
+            const answerLabel = String.fromCharCode(65 + idx)
+            const isSelected = selectedList.includes(idx)
+            return (
+              <button
+                key={idx}
+                onClick={() => onToggle(idx)}
+                className={`w-full rounded-lg border-2 p-4 text-left transition-all ${
+                  isSelected
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
+                    : 'border-gray-200 bg-white hover:border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-gray-600'
+                }`}
+              >
+                <div className="flex items-start gap-3">
                   <div
-                    className="font-semibold text-gray-900 dark:text-white"
-                    dangerouslySetInnerHTML={{
-                      __html: renderInlineLatex(`${answerLabel}. ${option}`),
-                    }}
-                  />
+                    className={`mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center ${
+                      isMulti ? 'rounded' : 'rounded-full'
+                    } border-2 ${
+                      isSelected
+                        ? 'border-blue-500 bg-blue-500 text-white'
+                        : 'border-gray-300'
+                    }`}
+                  >
+                    {isSelected && <span className="text-xs font-bold">✓</span>}
+                  </div>
+                  <div className="flex-1">
+                    <div
+                      className="font-semibold text-gray-900 dark:text-white"
+                      dangerouslySetInnerHTML={{
+                        __html: renderInlineLatex(`${answerLabel}. ${option}`),
+                      }}
+                    />
+                  </div>
                 </div>
-              </div>
-            </button>
-          )
-        })}
-      </div>
+              </button>
+            )
+          })}
+        </div>
+      )}
 
       <Button
         onClick={onSubmit}
-        disabled={selectedList.length === 0}
+        disabled={!isFreeForm && selectedList.length === 0}
         className="w-full"
         size="lg"
       >
@@ -314,7 +362,7 @@ function TrialView({
 
   return (
     <main
-      className={`container mx-auto py-8 ${showPlane ? 'max-w-7xl' : 'max-w-4xl'}`}
+      className={`container mx-auto py-8 ${splitLayout ? 'max-w-7xl' : 'max-w-4xl'}`}
     >
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-bold">
@@ -331,11 +379,9 @@ function TrialView({
       </div>
       <Progress value={((index + 1) / total) * 100} className="mb-6" />
 
-      {showPlane ? (
+      {splitLayout ? (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <Card className="p-4">
-            <CoordPlane />
-          </Card>
+          <Card className="p-4">{figurePanel}</Card>
           <Card className="p-6">{questionPanel}</Card>
         </div>
       ) : (
@@ -345,130 +391,49 @@ function TrialView({
   )
 }
 
-// ─── Coordinate plane (LEFT panel for Q8 → Q18) ─────────────────────────────
-//
-// Plotly is heavy and only needed for one screen — we render a lightweight
-// SVG grid with the labelled points instead. The viewBox spans
-// x ∈ [-4, 10], y ∈ [-6, 3].
+// Inline numeric coefficient inputs (Q18). Stores all values back to a single
+// `freeText` string for persistence — format: "v1 ; v2 ; v3".
+function FillInFields({
+  fields,
+  value,
+  onChange,
+}: {
+  fields: { label: string; expected?: string }[]
+  value: string
+  onChange: (v: string) => void
+}) {
+  const parts = value ? value.split(' ; ') : fields.map(() => '')
+  while (parts.length < fields.length) parts.push('')
 
-function CoordPlane() {
-  const xMin = -4, xMax = 10
-  const yMin = -6, yMax = 3
-  const padX = 28
-  const padY = 24
-  const w = 520
-  const h = 360
-  const innerW = w - 2 * padX
-  const innerH = h - 2 * padY
-  const sx = (x: number) => padX + ((x - xMin) / (xMax - xMin)) * innerW
-  const sy = (y: number) => padY + ((yMax - y) / (yMax - yMin)) * innerH
-
-  // Grid lines
-  const xs: number[] = []
-  for (let x = xMin; x <= xMax; x++) xs.push(x)
-  const ys: number[] = []
-  for (let y = yMin; y <= yMax; y++) ys.push(y)
-
-  // Distinct colours per point so labels stay readable.
-  const palette = [
-    '#2563eb', '#16a34a', '#dc2626', '#ea580c',
-    '#7c3aed', '#0891b2', '#db2777', '#a16207',
-    '#0d9488', '#9333ea',
-  ]
+  const set = (i: number, v: string) => {
+    const next = [...parts]
+    next[i] = v
+    onChange(next.join(' ; '))
+  }
 
   return (
-    <div>
-      <p className="mb-2 text-xs text-muted-foreground">
-        Repère orthonormé — points labellés (cliquez pour zoomer si nécessaire).
-      </p>
-      <svg
-        viewBox={`0 0 ${w} ${h}`}
-        className="mx-auto block w-full bg-white"
-        role="img"
-      >
-        {/* Background */}
-        <rect width={w} height={h} fill="#fafafa" />
-
-        {/* Grid */}
-        {xs.map((x) => (
-          <line
-            key={`vx-${x}`}
-            x1={sx(x)} y1={padY}
-            x2={sx(x)} y2={h - padY}
-            stroke={x === 0 ? '#94a3b8' : '#e5e7eb'}
-            strokeWidth={x === 0 ? 1.4 : 0.7}
+    <div className="space-y-3">
+      {fields.map((f, i) => (
+        <div key={i} className="flex items-center gap-3">
+          <input
+            type="text"
+            value={parts[i] ?? ''}
+            onChange={(e) => set(i, e.target.value)}
+            placeholder="?"
+            className="w-28 rounded border border-gray-300 bg-white px-3 py-2 text-center font-mono text-sm dark:border-gray-700 dark:bg-gray-900"
           />
-        ))}
-        {ys.map((y) => (
-          <line
-            key={`hy-${y}`}
-            x1={padX} y1={sy(y)}
-            x2={w - padX} y2={sy(y)}
-            stroke={y === 0 ? '#94a3b8' : '#e5e7eb'}
-            strokeWidth={y === 0 ? 1.4 : 0.7}
+          <span
+            className="text-sm"
+            dangerouslySetInnerHTML={{ __html: renderInlineLatex(f.label) }}
           />
-        ))}
-
-        {/* Axis tick labels (every 2 units to stay readable) */}
-        {xs.filter((x) => x % 2 === 0).map((x) => (
-          <text
-            key={`xl-${x}`}
-            x={sx(x)} y={sy(0) + 12}
-            fontSize={10}
-            textAnchor="middle"
-            fill="#64748b"
-          >
-            {x}
-          </text>
-        ))}
-        {ys.filter((y) => y % 2 === 0 && y !== 0).map((y) => (
-          <text
-            key={`yl-${y}`}
-            x={sx(0) - 6} y={sy(y) + 3}
-            fontSize={10}
-            textAnchor="end"
-            fill="#64748b"
-          >
-            {y}
-          </text>
-        ))}
-
-        {/* Axis labels */}
-        <text x={w - padX + 4} y={sy(0) + 4} fontSize={11} fill="#475569">x</text>
-        <text x={sx(0) + 4} y={padY - 4} fontSize={11} fill="#475569">y</text>
-
-        {/* Labelled points */}
-        {VECTOR_POINTS.map((pt, i) => {
-          const cx = sx(pt.x)
-          const cy = sy(pt.y)
-          const color = palette[i % palette.length]
-          return (
-            <g key={pt.name}>
-              <circle cx={cx} cy={cy} r={4.5} fill={color} stroke="white" strokeWidth={1.5} />
-              <text
-                x={cx + 7}
-                y={cy - 7}
-                fontSize={12}
-                fontWeight={700}
-                fill={color}
-              >
-                {pt.name}
-              </text>
-              <text
-                x={cx + 7}
-                y={cy + 6}
-                fontSize={9.5}
-                fill="#475569"
-              >
-                ({pt.x},{pt.y})
-              </text>
-            </g>
-          )
-        })}
-      </svg>
+        </div>
+      ))}
     </div>
   )
 }
+
+// (Static plane was removed — Q9/Q10/Q11 now use ClickableVectorsPlane and
+//  Q8/Q12-Q18 use the static figure /images/geometry/vectors/vecteurs.jpg.)
 
 interface ResultsProps {
   trials: VectorsTrialResult[]

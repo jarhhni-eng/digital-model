@@ -14,6 +14,7 @@ import {
   GeoSpaceTrialResult,
   saveGeoSpaceResult,
 } from '@/lib/geometry/geo-space'
+import { toggleSelectionWithExclusive } from '@/lib/quiz-helpers'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
 
@@ -52,13 +53,9 @@ export function GeoSpaceQuiz() {
     (question.correctAnswer as number[]).length > 1
 
   const toggleSelect = (idx: number) => {
-    if (isMulti) {
-      setSelectedList((prev) =>
-        prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx],
-      )
-    } else {
-      setSelectedList([idx])
-    }
+    setSelectedList((prev) =>
+      toggleSelectionWithExclusive(question.options, prev, idx, isMulti),
+    )
   }
 
   const submit = useCallback(() => {

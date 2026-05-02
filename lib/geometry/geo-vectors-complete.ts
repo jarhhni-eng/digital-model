@@ -22,6 +22,12 @@ export interface VectorsQuestion {
   imagePath?: string
   /** When true, the interactive coordinate plane is rendered (LEFT panel). */
   showCoordPlane?: boolean
+  /** When true, students can click on the figure to place named points; the
+   *  selection is recorded but not auto-graded (kept for review). */
+  pointPlacement?: { count: number; labels: string[] }
+  /** When set, the question collects numeric collinearity coefficients
+   *  using inline inputs (not auto-graded). */
+  fillIn?: { fields: { label: string; expected?: string }[] }
   part: 'autoeval' | 'course' | 'autoeval2' | 'construction'
   correction?: string
 }
@@ -48,6 +54,7 @@ export interface VectorsTrialResult {
   index: number
   questionId: string
   selected: number
+  freeText?: string
   correct: boolean
   reactionTimeMs: number
 }
@@ -97,17 +104,17 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
   {
     id: 'Q2',
     competencies: ['C2'],
-    question: 'En utilisant la relation de Chasles : \\( \\vec{AB} + \\vec{BG} = \\;? \\)',
+    question: '\\( \\vec{AB} - \\vec{BG} = \\;? \\)',
     options: [
       '\\( \\vec{AG} \\)',
-      '\\( \\vec{AB} + \\vec{AG} \\)',
-      '\\( \\vec{AB} - \\vec{BG} \\)',
-      'J\'ai oublié'
+      '\\( \\vec{GB} \\)',
+      '\\( -\\vec{AG} \\)',
+      'Aucune réponse'
     ],
-    correctAnswer: 0,
+    correctAnswer: 1,
     requiresImage: false,
     part: 'course',
-    correction: 'Réponse correcte: A'
+    correction: 'Réponse correcte: B'
   },
   {
     id: 'Q3',
@@ -172,11 +179,11 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
   {
     id: 'Q7',
     competencies: ['C2'],
-    question: 'Si \\( \\vec{AB} + \\vec{AG} = \\vec{AC} \\), alors :',
+    question: '\\( \\vec{AB} + \\vec{AG} = \\vec{0} \\) signifie que :',
     options: [
-      '\\( ABCG \\) est un parallélogramme',
-      '\\( GABC \\) est un parallélogramme',
-      '\\( ACBG \\) est un parallélogramme',
+      '\\( A \\) est le milieu de \\( [BG] \\)',
+      '\\( \\vec{AB} = \\vec{AG} \\)',
+      '\\( B \\) est le milieu de \\( [AG] \\)',
       'J\'ai oublié'
     ],
     correctAnswer: [0, 1],
@@ -185,7 +192,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     correction: 'Réponses correctes: A, B'
   },
   // ─── Partie II : Application sur la figure (Q8 → Q18) ──────────────────────
-  // Coordinate plane (LEFT) is shown for every question Q8 → Q18.
+  // All Q8 → Q18 questions share the same static figure: vecteurs.jpg.
   {
     id: 'Q8',
     competencies: ['C2'],
@@ -200,7 +207,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     ],
     correctAnswer: [2, 3, 4],
     requiresImage: true,
-    showCoordPlane: true,
+    imagePath: '/images/geometry/vectors/vecteurs.jpg',
     part: 'construction',
     correction: 'Réponses correctes : C, D, E',
   },
@@ -209,51 +216,42 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     competencies: ['C1'],
     question:
       'Placer le point \\( I \\) tel que : \\( \\vec{AI} = \\dfrac{2}{5}\\vec{AB} \\)',
-    options: [
-      '\\( I(2\\,;\\,1) \\)',
-      '\\( I(4\\,;\\,1) \\)',
-      '\\( I(-2\\,;\\,1) \\)',
-      '\\( I(1\\,;\\,1) \\)',
-    ],
-    correctAnswer: 0,
+    options: [],
+    correctAnswer: null,
     requiresImage: true,
+    imagePath: '/images/geometry/vectors/vecteurs.jpg',
     showCoordPlane: true,
+    pointPlacement: { count: 1, labels: ['I'] },
     part: 'construction',
-    correction: 'Réponse correcte : A',
+    correction: 'Réponse attendue : \\( I(2\\,;\\,1) \\)',
   },
   {
     id: 'Q10',
     competencies: ['C1'],
     question:
-      'Déterminer les points \\( M \\) et \\( Q \\) tels que : \\( \\vec{AM} = \\vec{AB} + \\vec{AD} \\) et \\( \\vec{BQ} = \\vec{BG} + \\vec{BC\'} \\)',
-    options: [
-      '\\( M(7\\,;\\,1) \\) et \\( Q(12\\,;\\,-3) \\)',
-      '\\( M(8\\,;\\,0) \\) et \\( Q(7\\,;\\,-3) \\)',
-      '\\( M(5\\,;\\,1) \\) et \\( Q(3\\,;\\,-3) \\)',
-      '\\( M(8\\,;\\,2) \\) et \\( Q(7\\,;\\,-1) \\)',
-    ],
-    correctAnswer: 1,
+      'Placer les points \\( M \\) et \\( Q \\) tels que : \\( \\vec{AM} = \\vec{AB} + \\vec{AD} \\) et \\( \\vec{BQ} = \\vec{BG} + \\vec{BC\'} \\)',
+    options: [],
+    correctAnswer: null,
     requiresImage: true,
+    imagePath: '/images/geometry/vectors/vecteurs.jpg',
     showCoordPlane: true,
+    pointPlacement: { count: 2, labels: ['M', 'Q'] },
     part: 'construction',
-    correction: 'Réponse correcte : B',
+    correction: 'Réponse attendue : \\( M(8\\,;\\,0) \\) et \\( Q(7\\,;\\,-3) \\)',
   },
   {
     id: 'Q11',
     competencies: ['C1'],
     question:
-      'Déterminer les points \\( N \\) et \\( P \\) tels que : \\( \\vec{AN} = \\vec{BH} \\) et \\( \\vec{DE} = -\\vec{C\'P} \\)',
-    options: [
-      '\\( N(-4\\,;\\,1) \\) et \\( P(6\\,;\\,-1) \\)',
-      '\\( N(-4\\,;\\,1) \\) et \\( P(2\\,;\\,-1) \\)',
-      '\\( N(4\\,;\\,1) \\) et \\( P(6\\,;\\,-1) \\)',
-      '\\( N(-4\\,;\\,1) \\) et \\( P(4\\,;\\,-1) \\)',
-    ],
-    correctAnswer: 0,
+      'Placer les points \\( N \\) et \\( P \\) tels que : \\( \\vec{AN} = \\vec{BH} \\) et \\( \\vec{DE} = -\\vec{C\'P} \\)',
+    options: [],
+    correctAnswer: null,
     requiresImage: true,
+    imagePath: '/images/geometry/vectors/vecteurs.jpg',
     showCoordPlane: true,
+    pointPlacement: { count: 2, labels: ['N', 'P'] },
     part: 'construction',
-    correction: 'Réponse correcte : A',
+    correction: 'Réponse attendue : \\( N(-4\\,;\\,1) \\) et \\( P(6\\,;\\,-1) \\)',
   },
   {
     id: 'Q12',
@@ -262,7 +260,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     options: ['ABDC', 'DEFF\'', 'BC\'GH', 'ABHG'],
     correctAnswer: [0, 2, 3],
     requiresImage: true,
-    showCoordPlane: true,
+    imagePath: '/images/geometry/vectors/vecteurs.jpg',
     part: 'construction',
     correction: 'Réponses correctes : A, C, D',
   },
@@ -278,7 +276,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     ],
     correctAnswer: 0,
     requiresImage: true,
-    showCoordPlane: true,
+    imagePath: '/images/geometry/vectors/vecteurs.jpg',
     part: 'construction',
     correction: 'Réponse correcte : A',
   },
@@ -295,7 +293,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     ],
     correctAnswer: 0,
     requiresImage: true,
-    showCoordPlane: true,
+    imagePath: '/images/geometry/vectors/vecteurs.jpg',
     part: 'construction',
     correction: 'Réponse correcte : A',
   },
@@ -311,7 +309,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     ],
     correctAnswer: 0,
     requiresImage: true,
-    showCoordPlane: true,
+    imagePath: '/images/geometry/vectors/vecteurs.jpg',
     part: 'construction',
     correction: 'Réponse correcte : A',
   },
@@ -323,7 +321,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     options: ['\\( D \\)', '\\( F\' \\)', '\\( E \\)', '\\( C \\)'],
     correctAnswer: 0,
     requiresImage: true,
-    showCoordPlane: true,
+    imagePath: '/images/geometry/vectors/vecteurs.jpg',
     part: 'construction',
     correction: 'Réponse correcte : A',
   },
@@ -335,26 +333,28 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     options: ['\\( C\' \\)', '\\( D \\)', '\\( E \\)', '\\( A \\)'],
     correctAnswer: 0,
     requiresImage: true,
-    showCoordPlane: true,
+    imagePath: '/images/geometry/vectors/vecteurs.jpg',
     part: 'construction',
     correction: 'Réponse correcte : A',
   },
   {
     id: 'Q18',
-    competencies: ['C4'],
+    competencies: ['C2'],
     question:
-      'Image du segment \\( [ED] \\) par la translation de vecteur \\( \\vec{CC\'} \\) :',
-    options: [
-      '\\( (6\\,;\\,-2) \\) et \\( (8\\,;\\,0) \\)',
-      '\\( (4\\,;\\,-2) \\) et \\( (6\\,;\\,0) \\)',
-      '\\( (2\\,;\\,-2) \\) et \\( (4\\,;\\,0) \\)',
-      '\\( (6\\,;\\,-3) \\) et \\( (8\\,;\\,1) \\)',
-    ],
-    correctAnswer: 0,
+      'Compléter par les coefficients de colinéarité (voir l\'image « sens des vecteurs ») :',
+    options: [],
+    correctAnswer: null,
     requiresImage: true,
-    showCoordPlane: true,
+    imagePath: '/images/geometry/vectors/sens-des-vecteurs.jpg',
+    fillIn: {
+      fields: [
+        { label: '\\( \\vec{MR} = \\;\\square\\; \\vec{MP} \\)', expected: '-3' },
+        { label: '\\( \\vec{MR} = \\;\\square\\; \\vec{MN} \\)', expected: '4/3' },
+        { label: '\\( \\vec{MR} = \\;\\square\\; \\vec{MS} \\)', expected: '5/3' },
+      ],
+    },
     part: 'construction',
-    correction: 'Réponse correcte : A',
+    correction: 'Réponses attendues : -3, 4/3, 5/3',
   },
 ]
 

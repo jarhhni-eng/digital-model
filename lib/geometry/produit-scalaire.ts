@@ -3,10 +3,10 @@
  * Domain: Cognition et apprentissage de la géométrie
  *
  * Mirrors the canonical Python dataset in tools/produit_scalaire/dataset.py.
- * 27 questions:
+ * 26 questions:
  *   Partie I  (T1, Q1–Q9)   — Cours
  *   Partie II (T2, Q10–Q17) — Visualisation / Construction
- *   Partie III(T3, Q18–Q27) — Raisonnement déductif
+ *   Partie III(T3, Q18–Q23, Q25–Q27) — Raisonnement déductif (Q24 retiré)
  *
  * Code convention: T{type}-D{lesson}-Q{n}
  *   lesson  D1 = Produit scalaire
@@ -39,6 +39,15 @@ export interface ProduitScalaireQuestion {
   isDiagnostic?: boolean
   /** If true: rendered as a textarea, never scored. */
   isOpenEnded?: boolean
+  /** When set, the question renders an interactive coordinate plane where
+   *  the student must place two points; the expected straight line is
+   *  ax + by + c = 0. Never auto-scored — kept for review. */
+  interactiveLine?: {
+    equation: string
+    a: number
+    b: number
+    c: number
+  }
 }
 
 export interface ProduitScalaireTrialResult {
@@ -190,16 +199,13 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     number: 9,
     typeCode: 1,
     lessonCode: 2,
-    competencies: ['C1'],
+    competencies: ['C2'],
     question:
-      "Distance entre \\( \\Omega(3,4) \\) et la droite d'équation \\( ax+by+c=0 \\) :",
-    options: [
-      '\\( \\dfrac{|4a+3b+c|}{\\sqrt{a^2+b^2}} \\)',
-      '\\( \\dfrac{|3a+4b+c|}{\\sqrt{a^2+c^2}} \\)',
-      '\\( \\dfrac{|3a+4b+c|}{\\sqrt{a^2+b^2}} \\)',
-      "J'ai oublié",
-    ],
-    correctAnswer: 2,
+      'Saisir manuellement les coordonnées des points indiqués sur la figure (format \\( (x, y) \\) ou \\( (x, y, z) \\)).',
+    options: [],
+    correctAnswer: null,
+    isOpenEnded: true,
+    imagePath: '/images/geometry/produit scalaire/repere main.jpg',
   },
 
   // ═══ Partie II — Visualisation / Construction ════════════════════════════
@@ -210,13 +216,11 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     lessonCode: 2,
     competencies: ['C2'],
     question:
-      'Lire les coordonnées des points sur la figure : \\( B,\\ C,\\ D,\\ E,\\ F \\).',
+      'Saisir manuellement les coordonnées des vecteurs indiqués sur la figure (format \\( (x, y) \\) ou \\( (x, y, z) \\)).',
     options: [],
     correctAnswer: null,
     isOpenEnded: true,
-    imagePath: '/images/geometry/produit-scalaire/q10_points.png',
-    expectedText:
-      'Réponse attendue : \\( B(4,4) \\), \\( C(3,0) \\), \\( D(9,3) \\), \\( E(10,6) \\), \\( F(12,5) \\).',
+    imagePath: '/images/geometry/produit scalaire/repere main.jpg',
   },
   {
     id: 'T2-D1-Q11',
@@ -225,29 +229,14 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     lessonCode: 1,
     competencies: ['C2'],
     question:
-      'Lire les coordonnées des vecteurs \\( \\vec{U},\\ \\vec{V},\\ \\vec{a},\\ \\vec{w} \\).',
-    options: [],
-    correctAnswer: null,
-    isOpenEnded: true,
-    imagePath: '/images/geometry/produit-scalaire/q11_vectors.png',
-    expectedText:
-      'Réponse attendue : \\( \\vec{U}(4,4) \\), \\( \\vec{V}(2,0) \\), \\( \\vec{a}(3,2) \\), \\( \\vec{w}(1,3) \\).',
+      'Calculer \\( \\vec{U}\\cdot\\vec{V} \\) à partir des coordonnées lues sur la figure :',
+    options: ['\\( 8 \\)', '\\( -8 \\)', '\\( 10 \\)'],
+    correctAnswer: 0,
+    imagePath: '/images/geometry/produit scalaire/repere main.jpg',
   },
   {
     id: 'T2-D1-Q12',
     number: 12,
-    typeCode: 2,
-    lessonCode: 1,
-    competencies: ['C2'],
-    question:
-      'Calculer \\( \\vec{U}\\cdot\\vec{V} \\) à partir des coordonnées lues sur la figure :',
-    options: ['\\( 8 \\)', '\\( -8 \\)', '\\( 10 \\)'],
-    correctAnswer: 0,
-    imagePath: '/images/geometry/produit-scalaire/q11_vectors.png',
-  },
-  {
-    id: 'T2-D1-Q13',
-    number: 13,
     typeCode: 2,
     lessonCode: 1,
     competencies: ['C6'],
@@ -258,7 +247,18 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
       '\\( \\dfrac{3}{\\sqrt{34}} \\)',
     ],
     correctAnswer: 0,
-    imagePath: '/images/geometry/produit-scalaire/q11_vectors.png',
+    imagePath: '/images/geometry/produit scalaire/repere main.jpg',
+  },
+  {
+    id: 'T2-D1-Q13',
+    number: 13,
+    typeCode: 2,
+    lessonCode: 1,
+    competencies: ['C6'],
+    question: 'Calculer \\( \\vec{a}\\cdot\\vec{w} \\) :',
+    options: ['\\( 8 \\)', '\\( -8 \\)', '\\( 9 \\)'],
+    correctAnswer: 2,
+    imagePath: '/images/geometry/produit scalaire/repere main.jpg',
   },
   {
     id: 'T2-D2-Q14',
@@ -266,21 +266,21 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     typeCode: 2,
     lessonCode: 2,
     competencies: ['C5'],
-    question: 'Équation de la droite \\( (BC) \\) :',
+    question: 'L\'équation cartésienne de la droite \\( (OB) \\) est :',
     options: ['\\( x - y = 0 \\)', '\\( x + y = 0 \\)', '\\( x - 2y = 0 \\)'],
     correctAnswer: 0,
-    imagePath: '/images/geometry/produit-scalaire/q10_points.png',
+    imagePath: '/images/geometry/produit scalaire/repere main.jpg',
   },
   {
-    id: 'T2-D1-Q15',
+    id: 'T2-D2-Q15',
     number: 15,
     typeCode: 2,
-    lessonCode: 1,
-    competencies: ['C6'],
-    question: 'Calculer \\( \\vec{a}\\cdot\\vec{w} \\) :',
-    options: ['\\( 8 \\)', '\\( -8 \\)', '\\( 9 \\)'],
-    correctAnswer: 2,
-    imagePath: '/images/geometry/produit-scalaire/q11_vectors.png',
+    lessonCode: 2,
+    competencies: ['C5'],
+    question: 'Distance du point \\( B \\) à la droite \\( (OC) \\) :',
+    options: ['\\( 4 \\)', '\\( 3 \\)', '\\( \\sqrt{5} \\)'],
+    correctAnswer: 0,
+    imagePath: '/images/geometry/produit scalaire/repere main.jpg',
   },
   {
     id: 'T2-D2-Q16',
@@ -288,10 +288,10 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     typeCode: 2,
     lessonCode: 2,
     competencies: ['C5'],
-    question: 'Vecteur directeur de la droite \\( (EF) \\) :',
-    options: ['\\( (1,3) \\)', '\\( (3,2) \\)', '\\( (2,0) \\)', '\\( (2,-1) \\)'],
-    correctAnswer: 3,
-    imagePath: '/images/geometry/produit-scalaire/q10_points.png',
+    question: 'Le vecteur directeur de la droite \\( (DE) \\) a pour coordonnées :',
+    options: ['\\( (1\\,;\\,3) \\)', '\\( (3\\,;\\,2) \\)', '\\( (2\\,;\\,0) \\)', '\\( (2\\,;\\,-1) \\)'],
+    correctAnswer: 0,
+    imagePath: '/images/geometry/produit scalaire/repere main.jpg',
   },
   {
     id: 'T2-D2-Q17',
@@ -299,12 +299,12 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     typeCode: 2,
     lessonCode: 2,
     competencies: ['C5'],
-    question: "Tracer la droite d'équation \\( x + y - 1 = 0 \\).",
+    question:
+      'Placer deux points dans le repère et tracer la droite d\'équation \\( x + y - 1 = 0 \\).',
     options: [],
     correctAnswer: null,
     isOpenEnded: true,
-    expectedText:
-      'Réponse attendue : droite passant par \\( (1,0) \\) et \\( (0,1) \\), pente \\( -1 \\).',
+    interactiveLine: { equation: 'x + y - 1 = 0', a: 1, b: 1, c: -1 },
   },
 
   // ═══ Partie III — Raisonnement déductif ═════════════════════════════════
@@ -316,12 +316,14 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     lessonCode: 2,
     competencies: ['C5'],
     question:
-      'On considère \\( \\Delta:\\ 2x - 3y + 2 = 0 \\) et \\( A(2,-3) \\). Compléter le tableau de valeurs de \\( \\Delta \\) pour \\( x \\in \\{-1,0,1,2\\} \\).',
-    options: [],
-    correctAnswer: null,
-    isOpenEnded: true,
-    expectedText:
-      'Réponse attendue : \\( x = -1 \\Rightarrow y = 0 \\) ; \\( x = 0 \\Rightarrow y = \\tfrac{2}{3} \\) ; \\( x = 1 \\Rightarrow y = \\tfrac{4}{3} \\) ; \\( x = 2 \\Rightarrow y = 2 \\).',
+      'On considère \\( \\Delta:\\ 2x - 3y + 2 = 0 \\). Quels points appartiennent à la droite \\( (\\Delta) \\) ? (cocher toutes les bonnes réponses)',
+    options: [
+      '\\( (-1\\,;\\,0) \\)',
+      '\\( (0\\,;\\,\\tfrac{2}{3}) \\)',
+      '\\( (1\\,;\\,2) \\)',
+      '\\( (0\\,;\\,2) \\)',
+    ],
+    correctAnswer: [0, 1],
   },
   {
     id: 'T3-D2-Q19',
@@ -330,12 +332,11 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     lessonCode: 2,
     competencies: ['C5'],
     question:
-      'Tracer la droite \\( \\Delta:\\ 2x - 3y + 2 = 0 \\) dans un repère orthonormé.',
+      'Placer deux points dans le repère et tracer la droite \\( \\Delta:\\ 2x - 3y + 2 = 0 \\).',
     options: [],
     correctAnswer: null,
     isOpenEnded: true,
-    expectedText:
-      'Réponse attendue : droite de pente \\( \\tfrac{2}{3} \\), passant par \\( (-1,0) \\) et \\( (2,2) \\).',
+    interactiveLine: { equation: '2x - 3y + 2 = 0', a: 2, b: -3, c: 2 },
   },
   {
     id: 'T3-D2-Q20',
@@ -402,20 +403,6 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     correctAnswer: 2,
   },
   {
-    id: 'T3-D2-Q24',
-    number: 24,
-    typeCode: 3,
-    lessonCode: 2,
-    competencies: ['C5'],
-    question:
-      "Déterminer le symétrique \\( A' \\) de \\( A \\) par rapport à \\( \\Delta \\).",
-    options: [],
-    correctAnswer: null,
-    isOpenEnded: true,
-    expectedText:
-      "Réponse attendue : \\( A' = 2H - A \\) avec \\( H(-4/13,\\,6/13) \\), soit \\( A'(-34/13,\\,51/13) \\).",
-  },
-  {
     id: 'T3-D2-Q25',
     number: 25,
     typeCode: 3,
@@ -437,12 +424,11 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     lessonCode: 2,
     competencies: ['C4'],
     question:
-      'Soit le cercle \\( x^2 + y^2 + 4x - 4y - 8 = 0 \\). Centre et rayon :',
+      'Soit le cercle d\'équation \\( (x+2)^2 + (y-2)^2 = 16 \\). Centre et rayon :',
     options: [
-      'centre \\( (2,-2) \\), rayon \\( 4 \\)',
-      'centre \\( (-2,2) \\), rayon \\( 4 \\)',
-      'centre \\( (2,-2) \\), rayon \\( 16 \\)',
-      'Je ne sais pas',
+      'Cercle de centre \\( \\Omega(2\\,;\\,-2) \\), rayon \\( 4 \\)',
+      'Cercle de centre \\( \\Omega(-2\\,;\\,2) \\), rayon \\( 4 \\)',
+      'Cercle de centre \\( \\Omega(2\\,;\\,-2) \\), rayon \\( 16 \\)',
     ],
     correctAnswer: 1,
   },
@@ -451,13 +437,12 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     number: 27,
     typeCode: 3,
     lessonCode: 2,
-    competencies: ['C3'],
+    competencies: ['C4'],
     question:
-      'Cercle de diamètre \\( [AB] \\) avec \\( A(-3,2) \\) et \\( B(5,2) \\). Équation :',
+      '\\( (C) \\) : ensemble des points \\( M(x, y) \\) formant le cercle de centre \\( \\Omega(1\\,;\\,2) \\) et de rayon \\( 4 \\). L\'équation cartésienne de \\( (C) \\) est :',
     options: [
       '\\( x^2 + y^2 - 2x + 4y - 16 = 0 \\)',
       '\\( x^2 + y^2 - 2x + 2y - 21 = 0 \\)',
-      '\\( x^2 + y^2 - 2x - 4y - 11 = 0 \\)',
       '\\( x^2 + y^2 - 2x + 4y - 21 = 0 \\)',
     ],
     correctAnswer: 2,

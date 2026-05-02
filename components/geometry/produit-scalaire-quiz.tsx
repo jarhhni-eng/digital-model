@@ -16,6 +16,8 @@ import {
   ProduitScalaireTrialResult,
   saveProduitScalaireResult,
 } from '@/lib/geometry/produit-scalaire'
+import { toggleSelectionWithExclusive } from '@/lib/quiz-helpers'
+import { InteractiveLinePlot, PlottedPoint } from '@/components/geometry/interactive-line-plot'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
 
@@ -56,25 +58,21 @@ export function ProduitScalaireQuiz() {
     (question.correctAnswer as number[]).length > 1
 
   const toggleSelect = (idx: number) => {
-    if (isMulti) {
-      setSelectedList((prev) =>
-        prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx],
-      )
-    } else {
-      setSelectedList([idx])
-    }
+    setSelectedList((prev) =>
+      toggleSelectionWithExclusive(question.options, prev, idx, isMulti),
+    )
   }
 
   const submit = useCallback(() => {
     const q = PRODUIT_SCALAIRE_QUESTIONS[current]
 
-    // open-ended or diagnostic items: just record and move on (not scored)
-    if (q.isOpenEnded || q.isDiagnostic) {
+    // open-ended, interactive, or diagnostic items: record and skip scoring
+    if (q.isOpenEnded || q.isDiagnostic || q.interactiveLine) {
       const trial: ProduitScalaireTrialResult = {
         index: current,
         questionId: q.id,
         selected: selectedList,
-        freeText: q.isOpenEnded ? freeText : undefined,
+        freeText: q.isOpenEnded || q.interactiveLine ? freeText : undefined,
         correct: false,
         reactionTimeMs: Date.now() - trialStart.current,
       }
@@ -130,7 +128,12 @@ export function ProduitScalaireQuiz() {
     if (phase === 'done' && trials.length > 0) {
       const scorable = trials.filter((t) => {
         const q = PRODUIT_SCALAIRE_QUESTIONS[t.index]
-        return q.correctAnswer !== null && !q.isDiagnostic && !q.isOpenEnded
+        return (
+          q.correctAnswer !== null &&
+          !q.isDiagnostic &&
+          !q.isOpenEnded &&
+          !q.interactiveLine
+        )
       })
       const correct = scorable.filter((t) => t.correct).length
       const r: ProduitScalaireResult = {
@@ -212,9 +215,9 @@ function Intro({ onStart, onQuit }: { onStart: () => void; onQuit: () => void })
           C1 → C6.
         </p>
         <div className="mb-4 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
-          <strong>Structure :</strong> 27 questions —
+          <strong>Structure :</strong> 26 questions —
           Partie I (Q1–Q9) cours, Partie II (Q10–Q17) visualisation,
-          Partie III (Q18–Q27) raisonnement.
+          Partie III (Q18–Q26) raisonnement.
           La Q1 est une auto-évaluation et n&apos;est pas notée.
         </div>
         <div className="mb-6 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
@@ -357,9 +360,6 @@ function TrialView({
                 alt={`Figure ${question.id}`}
                 className="mx-auto max-h-96 w-full object-contain"
               />
-              <p className="mt-2 text-xs text-muted-foreground">
-                Figure attendue : <code>{question.imagePath}</code>
-              </p>
             </div>
           )}
 
@@ -399,34 +399,33 @@ function TrialView({
               </div>
             )}
 
-            {question.isOpenEnded ? (
+            {question.interactiveLine ? (
+              <div className="space-y-3">
+                <InteractiveLinePlot
+                  equation={question.interactiveLine.equation}
+                  onChange={(pts) =>
+                    onChangeFreeText(
+                      pts.map((p) => `(${p.x},${p.y})`).join(' ; '),
+                    )
+                  }
+                />
+                <textarea
+                  value={freeText}
+                  onChange={(e) => onChangeFreeText(e.target.value)}
+                  rows={2}
+                  placeholder="Coordonnées des deux points placés…"
+                  className="w-full rounded-lg border border-gray-200 bg-white p-3 text-sm dark:border-gray-700 dark:bg-gray-900"
+                />
+              </div>
+            ) : question.isOpenEnded ? (
               <div className="space-y-3">
                 <textarea
                   value={freeText}
                   onChange={(e) => onChangeFreeText(e.target.value)}
                   rows={5}
-                  placeholder="Votre réponse…"
+                  placeholder="Votre réponse… (format \\( (x, y) \\) ou \\( (x, y, z) \\))"
                   className="w-full rounded-lg border border-gray-200 bg-white p-3 text-sm dark:border-gray-700 dark:bg-gray-900"
                 />
-                {question.expectedText && (
-                  <div>
-                    <button
-                      type="button"
-                      onClick={onToggleHint}
-                      className="text-xs text-indigo-600 underline"
-                    >
-                      {showHint ? 'Masquer la correction' : 'Voir la correction attendue'}
-                    </button>
-                    {showHint && (
-                      <div
-                        className="mt-2 rounded-md border bg-muted/40 p-3 text-sm"
-                        dangerouslySetInnerHTML={{
-                          __html: renderInlineLatex(question.expectedText),
-                        }}
-                      />
-                    )}
-                  </div>
-                )}
               </div>
             ) : (
               <div className="space-y-2">
@@ -475,6 +474,7 @@ function TrialView({
               disabled={
                 !question.isOpenEnded &&
                 !question.isDiagnostic &&
+                !question.interactiveLine &&
                 selectedList.length === 0
               }
               className="w-full"
@@ -497,7 +497,12 @@ interface ResultsProps {
 function Results({ trials, onExit }: ResultsProps) {
   const scorable = trials.filter((t) => {
     const q = PRODUIT_SCALAIRE_QUESTIONS[t.index]
-    return q.correctAnswer !== null && !q.isDiagnostic && !q.isOpenEnded
+    return (
+      q.correctAnswer !== null &&
+      !q.isDiagnostic &&
+      !q.isOpenEnded &&
+      !q.interactiveLine
+    )
   })
   const correct = scorable.filter((t) => t.correct).length
   const pct = scorable.length > 0 ? Math.round((correct / scorable.length) * 100) : 0

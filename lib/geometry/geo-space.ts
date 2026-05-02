@@ -133,7 +133,7 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
     competencies: ['C1'],
     question:
       'Si deux plans \\( (P) \\) et \\( (P\') \\) sont parallèles, tout plan \\( (Q) \\) parallèle à l\'un des deux plans est parallèle à l\'autre plan. Quelle figure représente cette propriété ?',
-    options: ['Figure 1', 'Figure 2', 'Figure 3'],
+    options: ['Figure 1', 'Figure 2'],
     correctAnswer: 0,
     requiresImage: true,
     imagePath: ['/images/geometry/geo-space/q6.jpg', '/images/geometry/geo-space/q6-1.jpg'],
@@ -172,10 +172,10 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
     competencies: ['C2'],
     question:
       'Deux plans \\( (P) \\) et \\( (P\') \\) sont parallèles. Tout plan \\( (Q) \\) coupe \\( (P) \\) suivant une droite \\( (\\Delta) \\) et coupe \\( (P\') \\) suivant une droite \\( (\\Delta\') \\), et \\( (\\Delta) \\parallel (\\Delta\') \\). Quelles figures représentent cette propriété ?',
-    options: ['Figure 1', 'Figure 2', 'Figure 3'],
+    options: ['Figure 1', 'Figure 2'],
     correctAnswer: [0, 1],
     requiresImage: true,
-    imagePath: ['/images/geometry/geo-space/Q9.png', '/images/geometry/geo-space/q9-1.png'],
+    imagePath: ['/images/geometry/geo-space/q9-1.png', '/images/geometry/geo-space/q9-2.png'],
     part: 'course',
   },
   {
@@ -312,24 +312,22 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
   // ─── Partie II — Questions de raisonnement ───────────────────────────────
   {
     id: 'Q19',
-    competencies: ['C1', 'C2', 'C3'],
+    competencies: ['C1', 'C2'],
     question:
-      'Voir la figure ci-dessous. Sélectionnez la bonne réponse pour chacune des trois sous-questions :<br/><br/>'
+      'Voir la figure ci-dessous et cocher la bonne réponse pour chaque question (C1 et C2).<br/><br/>'
       + '<strong>(1)</strong> Le point d\'intersection du plan \\( (ILB) \\) et du plan \\( (DCG) \\) est :<br/>'
       + '<strong>(2)</strong> Le point d\'intersection du plan \\( (ABC) \\) et du plan \\( (BCG) \\) est :<br/>'
       + '<strong>(3)</strong> Le point d\'intersection de la droite \\( (CG) \\) et du plan \\( (ABD) \\) est :',
     options: [
       '(1) Le point \\( C \\)',
       '(1) La droite \\( (CG) \\)',
-      '(1) La droite \\( (CD) \\)',
       '(2) La droite \\( (BC) \\)',
       '(2) La droite \\( (AB) \\)',
-      '(2) La droite \\( (BF) \\)',
       '(3) \\( C \\)',
       '(3) \\( A \\)',
       '(3) \\( B \\)',
     ],
-    correctAnswer: [1, 3, 6],
+    correctAnswer: [1, 2, 4],
     requiresImage: true,
     imagePath: '/images/geometry/geo-space/q19.png',
     part: 'reasoning',
