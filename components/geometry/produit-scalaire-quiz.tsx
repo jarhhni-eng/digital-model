@@ -18,6 +18,7 @@ import {
 } from '@/lib/geometry/produit-scalaire'
 import { toggleSelectionWithExclusive } from '@/lib/quiz-helpers'
 import { InteractiveLinePlot, PlottedPoint } from '@/components/geometry/interactive-line-plot'
+import { scoreGeometryQuestion, computeFinalPercent } from '@/lib/geometry/scoring'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
 
@@ -93,20 +94,18 @@ export function ProduitScalaireQuiz() {
 
     if (selectedList.length === 0) return
 
-    let correct = false
-    if (q.correctAnswer === null) {
-      correct = false
-    } else if (Array.isArray(q.correctAnswer)) {
-      correct = arrayEquals(selectedList, q.correctAnswer as number[])
-    } else {
-      correct = selectedList.length === 1 && selectedList[0] === q.correctAnswer
-    }
+    const score = scoreGeometryQuestion({
+      options: q.options,
+      selected: selectedList,
+      correctAnswer: q.correctAnswer,
+    })
 
     const trial: ProduitScalaireTrialResult = {
       index: current,
       questionId: q.id,
       selected: selectedList,
-      correct,
+      correct: score === 1,
+      score,
       reactionTimeMs: Date.now() - trialStart.current,
     }
     setTrials((t) => [...t, trial])
@@ -144,7 +143,7 @@ export function ProduitScalaireQuiz() {
         trials,
         totalMs: Date.now() - startedAt,
         correctCount: correct,
-        score: scorable.length > 0 ? Math.round((correct / scorable.length) * 100) : 0,
+        score: computeFinalPercent(scorable.map((t) => t.score ?? 0)),
       }
       saveProduitScalaireResult(r)
     }

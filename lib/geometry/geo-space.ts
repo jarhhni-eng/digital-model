@@ -31,7 +31,10 @@ export interface GeoSpaceTrialResult {
   index: number
   questionId: string
   selected: number
+  selectedList?: number[]
   correct: boolean
+  /** Per-question score in [0, 1] — supports partial credit. */
+  score?: number
   reactionTimeMs: number
 }
 
@@ -311,23 +314,46 @@ export const GEO_SPACE_QUESTIONS: GeoSpaceQuestion[] = [
 
   // ─── Partie II — Questions de raisonnement ───────────────────────────────
   {
-    id: 'Q19',
+    id: 'Q19a',
     competencies: ['C1', 'C2'],
     question:
-      'Voir la figure ci-dessous et cocher la bonne réponse pour chaque question (C1 et C2).<br/><br/>'
-      + '<strong>(1)</strong> Le point d\'intersection du plan \\( (ILB) \\) et du plan \\( (DCG) \\) est :<br/>'
-      + '<strong>(2)</strong> Le point d\'intersection du plan \\( (ABC) \\) et du plan \\( (BCG) \\) est :<br/>'
-      + '<strong>(3)</strong> Le point d\'intersection de la droite \\( (CG) \\) et du plan \\( (ABD) \\) est :',
+      'Voir la figure ci-dessous. Le point d\'intersection du plan \\( (ILB) \\) et du plan \\( (DCG) \\) est :',
     options: [
-      '(1) Le point \\( C \\)',
-      '(1) La droite \\( (CG) \\)',
-      '(2) La droite \\( (BC) \\)',
-      '(2) La droite \\( (AB) \\)',
-      '(3) \\( C \\)',
-      '(3) \\( A \\)',
-      '(3) \\( B \\)',
+      'Le point \\( C \\)',
+      'La droite \\( (CG) \\)',
+      'La droite \\( (CD) \\)',
     ],
-    correctAnswer: [1, 2, 4],
+    correctAnswer: 1,
+    requiresImage: true,
+    imagePath: '/images/geometry/geo-space/q19.png',
+    part: 'reasoning',
+  },
+  {
+    id: 'Q19b',
+    competencies: ['C1', 'C2'],
+    question:
+      'Voir la figure ci-dessous. Le point d\'intersection du plan \\( (ABC) \\) et du plan \\( (BCG) \\) est :',
+    options: [
+      'La droite \\( (BC) \\)',
+      'La droite \\( (AB) \\)',
+      'La droite \\( (BF) \\)',
+    ],
+    correctAnswer: 0,
+    requiresImage: true,
+    imagePath: '/images/geometry/geo-space/q19.png',
+    part: 'reasoning',
+  },
+  {
+    id: 'Q19c',
+    competencies: ['C1', 'C2'],
+    question:
+      'Voir la figure ci-dessous. Le point d\'intersection de la droite \\( (CG) \\) et du plan \\( (ABD) \\) est :',
+    options: [
+      '\\( C \\)',
+      '\\( A \\)',
+      '\\( B \\)',
+    ],
+    correctAnswer: 0,
     requiresImage: true,
     imagePath: '/images/geometry/geo-space/q19.png',
     part: 'reasoning',

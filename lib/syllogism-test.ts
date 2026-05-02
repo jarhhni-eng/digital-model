@@ -26,45 +26,45 @@ export const syllogismQuestions: SyllogismQuestion[] = [
     premise1: 'Certains triangles sont isocèles.',
     premise2: 'Tous les triangles isocèles ont deux côtés égaux.',
     conclusion: 'Certains triangles ont au moins deux côtés égaux.',
-    correct: 'F',
+    correct: 'V',
     explanation:
-      'Les prémisses permettent uniquement de conclure que certains triangles isocèles ont deux côtés égaux, pas tous les triangles. La conclusion est trop générale.',
+      'Conclusion valide : « certains triangles sont isocèles » et « tout isocèle a deux côtés égaux » donnent par syllogisme « certains triangles ont au moins deux côtés égaux ».',
   },
   {
     id: 3,
     premise1: 'Tous les cercles sont des figures planes.',
     premise2: 'Certaines figures planes sont des polygones.',
     conclusion: 'Certains cercles sont des polygones.',
-    correct: 'V',
+    correct: 'F',
     explanation:
-      'La conclusion est correcte par inférence partielle : il existe un sous-ensemble commun entre les cercles (figures planes) et les polygones (figures planes).',
+      'Conclusion non valide : que certaines figures planes soient des polygones ne garantit pas que ces polygones soient parmi les cercles. Le moyen terme n\'est pas distribué.',
   },
   {
     id: 4,
     premise1: 'Tous les carrés sont des losanges.',
     premise2: 'Tout losange a quatre côtés égaux.',
     conclusion: 'Tous les carrés ont quatre côtés égaux.',
-    correct: 'F',
+    correct: 'V',
     explanation:
-      'La conclusion généralise incorrectement : la propriété s\'applique aux carrés via les losanges, mais la déduction directe n\'est pas formellement valide ici dans ce contexte d\'évaluation.',
+      'Conclusion valide par syllogisme Barbara (AAA) : carré ⊂ losange et tout losange a quatre côtés égaux ⇒ tout carré a quatre côtés égaux.',
   },
   {
     id: 5,
     premise1: 'Tous les vecteurs colinéaires ont la même direction.',
     premise2: 'Tous les vecteurs égaux sont colinéaires.',
     conclusion: 'Tous les vecteurs colinéaires sont égaux.',
-    correct: 'V',
+    correct: 'F',
     explanation:
-      'La conclusion est correcte dans ce cadre : l\'ensemble des vecteurs colinéaires contient les vecteurs égaux, et la propriété de direction commune est partagée.',
+      'Conclusion non valide : les vecteurs égaux sont colinéaires, mais la réciproque est fausse — deux vecteurs colinéaires de normes différentes ne sont pas égaux.',
   },
   {
     id: 6,
     premise1: 'Aucun triangle n\'a quatre côtés.',
     premise2: 'Toutes les figures ayant quatre côtés sont des quadrilatères.',
     conclusion: 'Aucun triangle n\'est un quadrilatère.',
-    correct: 'F',
+    correct: 'V',
     explanation:
-      'Les prémisses ne permettent pas de conclure directement. L\'absence de quatre côtés pour les triangles ne suffit pas à exclure qu\'un triangle soit un quadrilatère selon ces seules prémisses.',
+      'Conclusion valide : un quadrilatère a quatre côtés ; or aucun triangle n\'a quatre côtés ; donc aucun triangle n\'est un quadrilatère.',
   },
   {
     id: 7,
@@ -80,9 +80,9 @@ export const syllogismQuestions: SyllogismQuestion[] = [
     premise1: 'Tout triangle équilatéral est isocèle.',
     premise2: 'Tout triangle isocèle a deux côtés égaux.',
     conclusion: 'Tout triangle équilatéral a deux côtés égaux.',
-    correct: 'F',
+    correct: 'V',
     explanation:
-      'Bien que logiquement valide par transitivité, la conclusion est insuffisante : un triangle équilatéral a en réalité trois côtés égaux. La conclusion sous-estime la propriété réelle.',
+      'Conclusion valide par syllogisme Barbara (AAA) : équilatéral ⊂ isocèle ⇒ tout équilatéral hérite de la propriété « avoir deux côtés égaux ».',
   },
 ]
 

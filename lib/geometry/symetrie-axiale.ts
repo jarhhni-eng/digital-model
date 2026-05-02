@@ -24,6 +24,8 @@ export interface SymetrieAxialeTrialResult {
   questionId: string
   selected: number
   correct: boolean
+  /** Per-question score in [0, 1] — supports partial credit. */
+  score?: number
   reactionTimeMs: number
 }
 
@@ -39,22 +41,12 @@ export interface SymetrieAxialeResult {
 }
 
 export const SYMETRIE_AXIALE_QUESTIONS: SymetrieAxialeQuestion[] = [
-  // ==================== PRE-QUESTION ====================
-  {
-    id: 'Pre-question',
-    competencies: [],
-    question: 'Rencontres-tu des difficultés dans la construction des symétries ?',
-    options: ['Oui', 'Non'],
-    correctAnswer: null,
-    requiresImage: false,
-    part: 'preQuestion',
-    correction: 'Pas de réponse correcte (auto-évaluation)'
-  },
-
-  // ==================== PARTIE I: QUESTIONS DU COURS (Q1-Q8) — C1 ====================
+  // ==================== PRE-QUESTION (= Q1) — perception measurement ====================
+  // The standalone "Pre-question" was removed; Q1 now plays that role:
+  // it is a self-evaluation, not auto-graded (correctAnswer: null).
   {
     id: 'Q1',
-    competencies: ['C1'],
+    competencies: [],
     question: 'À quel degré te rappelles-tu la leçon de la symétrie axiale ?',
     options: [
       'J\'ai tout oublié',
@@ -64,7 +56,7 @@ export const SYMETRIE_AXIALE_QUESTIONS: SymetrieAxialeQuestion[] = [
     ],
     correctAnswer: null,
     requiresImage: false,
-    part: 'course',
+    part: 'preQuestion',
     correction: 'Auto-évaluation'
   },
 

@@ -18,7 +18,7 @@ export const platformDomains: MainDomain[] = [
           { id: 'divided-attention', name: 'Divided attention', nameFr: 'Attention divisée', testId: 'test-divided-attention' },
           { id: 'selective-attention', name: 'Selective attention', nameFr: 'Attention sélective', testId: 'test-selective-attention' },
           { id: 'sustained-attention', name: 'Sustained attention', nameFr: 'Attention soutenue', testId: 'test-sustained-attention' },
-          { id: 'attentional-flexibility', name: 'Attentional flexibility', nameFr: 'Flexibilité attentionnelle', testId: 'test-visuo-spatial-attention' },
+          { id: 'visuo-spatial-attention', name: 'Visuo-spatial attention', nameFr: 'Attention visuo-spatiale', testId: 'test-visuo-spatial-attention' },
         ],
       },
     ],

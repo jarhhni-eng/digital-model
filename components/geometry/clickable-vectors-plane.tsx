@@ -3,7 +3,7 @@ import { useRef, useState } from 'react'
 import { VECTOR_POINTS } from '@/lib/geometry/geo-vectors-complete'
 
 /**
- * Coordinate plane that mirrors the canonical vecteurs.jpg figure but lets
+ * Coordinate plane that mirrors the canonical vecteurs.png figure but lets
  * the student click to place named points (Q9 / Q10 / Q11). Coordinates of
  * the labelled points are NOT displayed (per spec) — only the letters.
  */

@@ -15,6 +15,7 @@ import {
   DroitePlanTrialResult,
   saveDroitePlanResult,
 } from '@/lib/geometry/droite-plan'
+import { scoreGeometryQuestion, computeFinalPercent } from '@/lib/geometry/scoring'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
 
@@ -66,20 +67,18 @@ export function DroitePlanQuiz() {
     if (selectedList.length === 0) return
     const q = DROITE_PLAN_QUESTIONS[current]
 
-    let correct = false
-    if (q.correctAnswer === null) {
-      correct = false // diagnostic — always not scored
-    } else if (Array.isArray(q.correctAnswer)) {
-      correct = arrayEquals(selectedList, q.correctAnswer as number[])
-    } else {
-      correct = selectedList.length === 1 && selectedList[0] === q.correctAnswer
-    }
+    const score = scoreGeometryQuestion({
+      options: q.options,
+      selected: selectedList,
+      correctAnswer: q.correctAnswer,
+    })
 
     const trial: DroitePlanTrialResult = {
       index: current,
       questionId: q.id,
       selected: selectedList[0],
-      correct,
+      correct: score === 1,
+      score,
       reactionTimeMs: Date.now() - trialStart.current,
     }
     setTrials((t) => [...t, trial])
@@ -110,7 +109,7 @@ export function DroitePlanQuiz() {
         trials,
         totalMs: Date.now() - startedAt,
         correctCount: correct,
-        score: scorable.length > 0 ? Math.round((correct / scorable.length) * 100) : 0,
+        score: computeFinalPercent(scorable.map((t) => (t as { score?: number }).score ?? 0)),
       }
       saveDroitePlanResult(r)
     }

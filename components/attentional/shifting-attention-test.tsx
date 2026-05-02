@@ -163,7 +163,7 @@ function Intro({ onNext, onQuit }: { onNext: () => void; onQuit: () => void }) {
       </Button>
       <Card className="p-8">
         <div className="mb-4 flex items-center gap-2 text-sm font-medium text-cyan-600">
-          <Shuffle className="h-4 w-4" /> Flexibilité attentionnelle
+          <Shuffle className="h-4 w-4" /> Attention visuo-spatiale
         </div>
         <h1 className="mb-3 text-3xl font-bold">Shifting Attention Task</h1>
         <p className="mb-4 text-sm leading-relaxed text-muted-foreground">

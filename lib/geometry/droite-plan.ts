@@ -34,6 +34,8 @@ export interface DroitePlanTrialResult {
   questionId: string
   selected: number
   correct: boolean
+  /** Per-question score in [0, 1] — supports partial credit. */
+  score?: number
   reactionTimeMs: number
 }
 

@@ -37,6 +37,7 @@ import {
   LEVEL_INSIGHT,
   FigureKey,
 } from '@/lib/geometry/symetrie-centrale'
+import { CapacityLegend } from '@/components/geometry/capacity-legend'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
 
@@ -223,6 +224,9 @@ function Intro({ onStart, onQuit }: { onStart: () => void; onQuit: () => void })
           (Q14 à Q17). Référentiel : programme national marocain (Tronc commun),
           décision ministérielle 2.853.06.
         </p>
+        <div className="mb-4">
+          <CapacityLegend testId="test-symetrie-centrale" />
+        </div>
         <div className="mb-4 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
           <strong>Barème :</strong> Q1 diagnostique (0 pt) · C1 = 12 pts ·
           C2 = 8 pts · <strong>Total / 20</strong>.

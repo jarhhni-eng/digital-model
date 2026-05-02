@@ -16,6 +16,8 @@ import {
 } from '@/lib/geometry/geo-vectors-complete'
 import { toggleSelectionWithExclusive } from '@/lib/quiz-helpers'
 import { ClickableVectorsPlane } from '@/components/geometry/clickable-vectors-plane'
+import { scoreGeometryQuestion, computeFinalPercent } from '@/lib/geometry/scoring'
+import { CapacityLegend } from '@/components/geometry/capacity-legend'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
 
@@ -54,21 +56,22 @@ export function VectorsQuizTest() {
 
     if (!isFree && selectedList.length === 0) return
 
-    let correct = false
-    if (isFree || q.correctAnswer === null) {
-      correct = false
-    } else if (Array.isArray(q.correctAnswer)) {
-      correct = arrayEquals(selectedList, q.correctAnswer as number[])
-    } else {
-      correct = selectedList.length === 1 && selectedList[0] === q.correctAnswer
-    }
+    const score = isFree
+      ? 0
+      : scoreGeometryQuestion({
+          options: q.options,
+          selected: selectedList,
+          correctAnswer: q.correctAnswer,
+        })
 
     const trial: VectorsTrialResult = {
       index: current,
       questionId: q.id,
       selected: selectedList[0] ?? -1,
+      selectedList: [...selectedList],
       freeText: isFree ? freeText : undefined,
-      correct,
+      correct: score === 1,
+      score,
       reactionTimeMs: Date.now() - trialStart.current,
     }
     setTrials((t) => [...t, trial])
@@ -100,7 +103,7 @@ export function VectorsQuizTest() {
         trials,
         totalMs: Date.now() - startedAt,
         correctCount: correct,
-        score: scorable.length > 0 ? Math.round((correct / scorable.length) * 100) : 0,
+        score: computeFinalPercent(scorable.map((t) => t.score ?? 0)),
       }
       saveVectorsResult(r)
     }
@@ -168,6 +171,9 @@ function Intro({ onStart, onQuit }: { onStart: () => void; onQuit: () => void })
           la relation de Chasles, l&apos;égalité vectorielle et les propriétés de la translation.
           Compétences évaluées : C1, C2, C4.
         </p>
+        <div className="mb-4">
+          <CapacityLegend testId="test-geo-vectors-complete" />
+        </div>
         <div className="mb-6 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
           <strong>Durée estimée :</strong> ~10 minutes. Certaines questions admettent plusieurs
           réponses correctes.
@@ -273,7 +279,13 @@ function TrialView({
           }
         />
       )}
-      {hasImage && !isPointPlacement && (
+      {!isPointPlacement && showPlane && (
+        // Visual reference plane (read-only) — used by questions like Q12
+        // that don't ask the student to place points, just to read the
+        // configuration in the same coordinate system as Q9-Q11.
+        <ClickableVectorsPlane labels={[]} />
+      )}
+      {hasImage && !isPointPlacement && !showPlane && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={question.imagePath}
@@ -433,7 +445,7 @@ function FillInFields({
 }
 
 // (Static plane was removed — Q9/Q10/Q11 now use ClickableVectorsPlane and
-//  Q8/Q12-Q18 use the static figure /images/geometry/vectors/vecteurs.jpg.)
+//  Q8/Q12-Q18 use the static figure /images/geometry/vectors/vecteurs.png.)
 
 interface ResultsProps {
   trials: VectorsTrialResult[]

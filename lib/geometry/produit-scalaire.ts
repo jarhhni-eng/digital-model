@@ -56,6 +56,8 @@ export interface ProduitScalaireTrialResult {
   selected: number[]
   freeText?: string
   correct: boolean
+  /** Per-question score in [0, 1] — supports partial credit. */
+  score?: number
   reactionTimeMs: number
 }
 
@@ -205,7 +207,7 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     options: [],
     correctAnswer: null,
     isOpenEnded: true,
-    imagePath: '/images/geometry/produit scalaire/repere main.jpg',
+    imagePath: '/images/geometry/produit scalaire/repere main.png',
   },
 
   // ═══ Partie II — Visualisation / Construction ════════════════════════════
@@ -220,7 +222,7 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     options: [],
     correctAnswer: null,
     isOpenEnded: true,
-    imagePath: '/images/geometry/produit scalaire/repere main.jpg',
+    imagePath: '/images/geometry/produit scalaire/repere main.png',
   },
   {
     id: 'T2-D1-Q11',
@@ -232,7 +234,7 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
       'Calculer \\( \\vec{U}\\cdot\\vec{V} \\) à partir des coordonnées lues sur la figure :',
     options: ['\\( 8 \\)', '\\( -8 \\)', '\\( 10 \\)'],
     correctAnswer: 0,
-    imagePath: '/images/geometry/produit scalaire/repere main.jpg',
+    imagePath: '/images/geometry/produit scalaire/repere main.png',
   },
   {
     id: 'T2-D1-Q12',
@@ -247,7 +249,7 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
       '\\( \\dfrac{3}{\\sqrt{34}} \\)',
     ],
     correctAnswer: 0,
-    imagePath: '/images/geometry/produit scalaire/repere main.jpg',
+    imagePath: '/images/geometry/produit scalaire/repere main.png',
   },
   {
     id: 'T2-D1-Q13',
@@ -258,7 +260,7 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     question: 'Calculer \\( \\vec{a}\\cdot\\vec{w} \\) :',
     options: ['\\( 8 \\)', '\\( -8 \\)', '\\( 9 \\)'],
     correctAnswer: 2,
-    imagePath: '/images/geometry/produit scalaire/repere main.jpg',
+    imagePath: '/images/geometry/produit scalaire/repere main.png',
   },
   {
     id: 'T2-D2-Q14',
@@ -269,7 +271,7 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     question: 'L\'équation cartésienne de la droite \\( (OB) \\) est :',
     options: ['\\( x - y = 0 \\)', '\\( x + y = 0 \\)', '\\( x - 2y = 0 \\)'],
     correctAnswer: 0,
-    imagePath: '/images/geometry/produit scalaire/repere main.jpg',
+    imagePath: '/images/geometry/produit scalaire/repere main.png',
   },
   {
     id: 'T2-D2-Q15',
@@ -280,7 +282,7 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     question: 'Distance du point \\( B \\) à la droite \\( (OC) \\) :',
     options: ['\\( 4 \\)', '\\( 3 \\)', '\\( \\sqrt{5} \\)'],
     correctAnswer: 0,
-    imagePath: '/images/geometry/produit scalaire/repere main.jpg',
+    imagePath: '/images/geometry/produit scalaire/repere main.png',
   },
   {
     id: 'T2-D2-Q16',
@@ -291,7 +293,7 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     question: 'Le vecteur directeur de la droite \\( (DE) \\) a pour coordonnées :',
     options: ['\\( (1\\,;\\,3) \\)', '\\( (3\\,;\\,2) \\)', '\\( (2\\,;\\,0) \\)', '\\( (2\\,;\\,-1) \\)'],
     correctAnswer: 0,
-    imagePath: '/images/geometry/produit scalaire/repere main.jpg',
+    imagePath: '/images/geometry/produit scalaire/repere main.png',
   },
   {
     id: 'T2-D2-Q17',

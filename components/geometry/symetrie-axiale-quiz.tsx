@@ -15,6 +15,8 @@ import {
   SymetrieAxialeTrialResult,
   saveSymetrieAxialeResult,
 } from '@/lib/geometry/symetrie-axiale'
+import { scoreGeometryQuestion, computeFinalPercent } from '@/lib/geometry/scoring'
+import { CapacityLegend } from '@/components/geometry/capacity-legend'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
 
@@ -55,20 +57,18 @@ export function SymetrieAxialeQuiz() {
 
     const question = SYMETRIE_AXIALE_QUESTIONS[current]
 
-    let correct = false
-    if (question.correctAnswer === null) {
-      correct = false
-    } else if (Array.isArray(question.correctAnswer)) {
-      correct = arrayEquals(selectedList, question.correctAnswer as number[])
-    } else {
-      correct = selectedList.length === 1 && selectedList[0] === question.correctAnswer
-    }
+    const score = scoreGeometryQuestion({
+      options: question.options,
+      selected: selectedList,
+      correctAnswer: question.correctAnswer,
+    })
 
     const trial: SymetrieAxialeTrialResult = {
       index: current,
       questionId: question.id,
       selected: selectedList[0],
-      correct,
+      correct: score === 1,
+      score,
       reactionTimeMs: Date.now() - trialStart.current,
     }
     setTrials((t) => [...t, trial])
@@ -100,7 +100,7 @@ export function SymetrieAxialeQuiz() {
         trials,
         totalMs: Date.now() - startedAt,
         correctCount: correct,
-        score: scorableTrials.length > 0 ? Math.round((correct / scorableTrials.length) * 100) : 0,
+        score: computeFinalPercent(scorableTrials.map((t) => (t as { score?: number }).score ?? 0)),
       }
       saveSymetrieAxialeResult(r)
     }
@@ -161,9 +161,13 @@ function Intro({ onStart, onQuit }: { onStart: () => void; onQuit: () => void })
         <h1 className="mb-3 text-3xl font-bold">Symétrie axiale</h1>
         <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
           Ce test évalue votre compréhension des concepts de la symétrie axiale.
-          Vous commencerez par une pré-question, puis vous répondrez à 17 questions portant sur la reconnaissance de la symétrie,
+          La Q1 sert de mesure de perception (auto-évaluation, non notée), puis vous
+          répondrez à des questions portant sur la reconnaissance de la symétrie,
           la visualisation géométrique et le raisonnement déductif.
         </p>
+        <div className="mb-4">
+          <CapacityLegend testId="test-symetrie-axiale" />
+        </div>
         <div className="mb-6 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
           <strong>Durée estimée :</strong> ~15 minutes. Répondez avec soin à chaque question.
         </div>

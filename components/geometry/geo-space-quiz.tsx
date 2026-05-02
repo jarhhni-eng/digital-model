@@ -15,6 +15,7 @@ import {
   saveGeoSpaceResult,
 } from '@/lib/geometry/geo-space'
 import { toggleSelectionWithExclusive } from '@/lib/quiz-helpers'
+import { scoreGeometryQuestion, computeFinalPercent } from '@/lib/geometry/scoring'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
 
@@ -62,20 +63,19 @@ export function GeoSpaceQuiz() {
     if (selectedList.length === 0) return
     const q = GEO_SPACE_QUESTIONS[current]
 
-    let correct = false
-    if (q.correctAnswer === null) {
-      correct = false
-    } else if (Array.isArray(q.correctAnswer)) {
-      correct = arrayEquals(selectedList, q.correctAnswer as number[])
-    } else {
-      correct = selectedList.length === 1 && selectedList[0] === q.correctAnswer
-    }
+    const score = scoreGeometryQuestion({
+      options: q.options,
+      selected: selectedList,
+      correctAnswer: q.correctAnswer,
+    })
 
     const trial: GeoSpaceTrialResult = {
       index: current,
       questionId: q.id,
       selected: selectedList[0],
-      correct,
+      selectedList: [...selectedList],
+      correct: score === 1,
+      score,
       reactionTimeMs: Date.now() - trialStart.current,
     }
     setTrials((t) => [...t, trial])
@@ -106,7 +106,10 @@ export function GeoSpaceQuiz() {
         trials,
         totalMs: Date.now() - startedAt,
         correctCount: correct,
-        score: scorable.length > 0 ? Math.round((correct / scorable.length) * 100) : 0,
+        // Final percent uses the geometry-domain scoring rule: each question
+        // contributes its [0, 1] score (with partial credit), summed and
+        // normalised over the number of scorable items.
+        score: computeFinalPercent(scorable.map((t) => t.score ?? 0)),
       }
       saveGeoSpaceResult(r)
     }

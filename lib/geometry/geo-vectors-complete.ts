@@ -34,18 +34,19 @@ export interface VectorsQuestion {
 
 /**
  * Canonical points used by Q8 → Q18 — labelled on the coordinate plane.
- * (matches the spec: A(0,1), B(5,1), C(-1,-4), D(2,1), E(-2,0), F(6,0),
- *  G(8,1), H(1,1), C'(4,-3), F'(4,-2))
+ * Updated per spec:
+ *   A(0,1), B(5,1), C(-1,-3), D(2,0), E(0,-2), F(6,0), G(8,1), H(8,-3),
+ *   C'(4,-3), F'(4,-2)
  */
 export const VECTOR_POINTS: { name: string; x: number; y: number }[] = [
   { name: 'A',  x: 0,  y: 1  },
   { name: 'B',  x: 5,  y: 1  },
-  { name: 'C',  x: -1, y: -4 },
-  { name: 'D',  x: 2,  y: 1  },
-  { name: 'E',  x: -2, y: 0  },
+  { name: 'C',  x: -1, y: -3 },
+  { name: 'D',  x: 2,  y: 0  },
+  { name: 'E',  x: 0,  y: -2 },
   { name: 'F',  x: 6,  y: 0  },
   { name: 'G',  x: 8,  y: 1  },
-  { name: 'H',  x: 1,  y: 1  },
+  { name: 'H',  x: 8,  y: -3 },
   { name: "C'", x: 4,  y: -3 },
   { name: "F'", x: 4,  y: -2 },
 ]
@@ -54,8 +55,11 @@ export interface VectorsTrialResult {
   index: number
   questionId: string
   selected: number
+  selectedList?: number[]
   freeText?: string
   correct: boolean
+  /** Per-question score in [0, 1] — supports partial credit. */
+  score?: number
   reactionTimeMs: number
 }
 
@@ -192,7 +196,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     correction: 'Réponses correctes: A, B'
   },
   // ─── Partie II : Application sur la figure (Q8 → Q18) ──────────────────────
-  // All Q8 → Q18 questions share the same static figure: vecteurs.jpg.
+  // All Q8 → Q18 questions share the same static figure: vecteurs.png.
   {
     id: 'Q8',
     competencies: ['C2'],
@@ -207,7 +211,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     ],
     correctAnswer: [2, 3, 4],
     requiresImage: true,
-    imagePath: '/images/geometry/vectors/vecteurs.jpg',
+    imagePath: '/images/geometry/vectors/vecteurs.png',
     part: 'construction',
     correction: 'Réponses correctes : C, D, E',
   },
@@ -219,7 +223,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     options: [],
     correctAnswer: null,
     requiresImage: true,
-    imagePath: '/images/geometry/vectors/vecteurs.jpg',
+    imagePath: '/images/geometry/vectors/vecteurs.png',
     showCoordPlane: true,
     pointPlacement: { count: 1, labels: ['I'] },
     part: 'construction',
@@ -233,7 +237,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     options: [],
     correctAnswer: null,
     requiresImage: true,
-    imagePath: '/images/geometry/vectors/vecteurs.jpg',
+    imagePath: '/images/geometry/vectors/vecteurs.png',
     showCoordPlane: true,
     pointPlacement: { count: 2, labels: ['M', 'Q'] },
     part: 'construction',
@@ -247,7 +251,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     options: [],
     correctAnswer: null,
     requiresImage: true,
-    imagePath: '/images/geometry/vectors/vecteurs.jpg',
+    imagePath: '/images/geometry/vectors/vecteurs.png',
     showCoordPlane: true,
     pointPlacement: { count: 2, labels: ['N', 'P'] },
     part: 'construction',
@@ -260,7 +264,8 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     options: ['ABDC', 'DEFF\'', 'BC\'GH', 'ABHG'],
     correctAnswer: [0, 2, 3],
     requiresImage: true,
-    imagePath: '/images/geometry/vectors/vecteurs.jpg',
+    // Q12 reads the same coordinate system (O, I, J) as Q9-Q11.
+    showCoordPlane: true,
     part: 'construction',
     correction: 'Réponses correctes : A, C, D',
   },
@@ -276,7 +281,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     ],
     correctAnswer: 0,
     requiresImage: true,
-    imagePath: '/images/geometry/vectors/vecteurs.jpg',
+    imagePath: '/images/geometry/vectors/vecteurs.png',
     part: 'construction',
     correction: 'Réponse correcte : A',
   },
@@ -293,7 +298,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     ],
     correctAnswer: 0,
     requiresImage: true,
-    imagePath: '/images/geometry/vectors/vecteurs.jpg',
+    imagePath: '/images/geometry/vectors/vecteurs.png',
     part: 'construction',
     correction: 'Réponse correcte : A',
   },
@@ -309,7 +314,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     ],
     correctAnswer: 0,
     requiresImage: true,
-    imagePath: '/images/geometry/vectors/vecteurs.jpg',
+    imagePath: '/images/geometry/vectors/vecteurs.png',
     part: 'construction',
     correction: 'Réponse correcte : A',
   },
@@ -321,7 +326,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     options: ['\\( D \\)', '\\( F\' \\)', '\\( E \\)', '\\( C \\)'],
     correctAnswer: 0,
     requiresImage: true,
-    imagePath: '/images/geometry/vectors/vecteurs.jpg',
+    imagePath: '/images/geometry/vectors/vecteurs.png',
     part: 'construction',
     correction: 'Réponse correcte : A',
   },
@@ -333,7 +338,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     options: ['\\( C\' \\)', '\\( D \\)', '\\( E \\)', '\\( A \\)'],
     correctAnswer: 0,
     requiresImage: true,
-    imagePath: '/images/geometry/vectors/vecteurs.jpg',
+    imagePath: '/images/geometry/vectors/vecteurs.png',
     part: 'construction',
     correction: 'Réponse correcte : A',
   },
@@ -345,7 +350,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     options: [],
     correctAnswer: null,
     requiresImage: true,
-    imagePath: '/images/geometry/vectors/sens-des-vecteurs.jpg',
+    imagePath: '/images/geometry/vectors/sens-des-vecteurs.png',
     fillIn: {
       fields: [
         { label: '\\( \\vec{MR} = \\;\\square\\; \\vec{MP} \\)', expected: '-3' },
