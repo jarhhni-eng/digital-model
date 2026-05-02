@@ -1,5 +1,18 @@
 'use client'
 
+/**
+ * Auth context — backed by Supabase Auth.
+ *
+ * The public surface (user, login, register, logout) is unchanged so the
+ * rest of the app keeps compiling. Internally, it now talks to Supabase
+ * via `@supabase/ssr`. Sessions live in cookies (refreshed by middleware),
+ * not in localStorage.
+ *
+ * The `username` field of AuthSession holds the user's email — that's how
+ * we previously persisted login identifiers, so existing callsites don't
+ * have to change.
+ */
+
 import {
   createContext,
   useCallback,
@@ -9,51 +22,44 @@ import {
   useState,
 } from 'react'
 import type { AuthSession, UserRole } from '@/lib/auth-types'
-
-const STORAGE_KEY = 'cogniTestSession'
+import { getSupabaseBrowser } from '@/lib/supabase/client'
 
 type AuthContextValue = {
   user: AuthSession | null
   loading: boolean
   login: (
-    username: string,
-    password: string
+    email: string,
+    password: string,
   ) => Promise<{ ok: boolean; error?: string; session?: AuthSession }>
   register: (
-    username: string,
+    email: string,
     password: string,
-    role: UserRole
+    role: UserRole,
+    fullName?: string,
   ) => Promise<{ ok: boolean; error?: string; session?: AuthSession }>
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-function loadSession(): AuthSession | null {
-  if (typeof window === 'undefined') return null
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return null
-    return JSON.parse(raw) as AuthSession
-  } catch {
-    return null
-  }
-}
+async function loadSession(): Promise<AuthSession | null> {
+  const sb = getSupabaseBrowser()
+  const {
+    data: { user },
+  } = await sb.auth.getUser()
+  if (!user) return null
 
-function saveSession(session: AuthSession | null) {
-  if (typeof window === 'undefined') return
-  try {
-    if (session) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
-      localStorage.setItem('cogniTestRole', session.role === 'admin' ? 'teacher' : session.role)
-      localStorage.setItem('cogniTestEmail', session.username)
-    } else {
-      localStorage.removeItem(STORAGE_KEY)
-      localStorage.removeItem('cogniTestRole')
-      localStorage.removeItem('cogniTestEmail')
-    }
-  } catch {
-    // ignore
+  // Pull role from public.profiles (RLS allows the user to read their own row).
+  const { data: profile } = await sb
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  return {
+    userId: user.id,
+    username: user.email ?? '',
+    role: (profile?.role ?? 'student') as UserRole,
   }
 }
 
@@ -62,61 +68,73 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    setUser(loadSession())
-    setLoading(false)
-  }, [])
-
-  const login = useCallback(async (username: string, password: string) => {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+    let cancelled = false
+    loadSession().then((s) => {
+      if (!cancelled) {
+        setUser(s)
+        setLoading(false)
+      }
     })
-    const data = await res.json().catch(() => ({}))
-    if (!res.ok) {
-      return { ok: false, error: data.error ?? 'Login failed' }
+
+    // React to login/logout in other tabs and to background refresh.
+    const sb = getSupabaseBrowser()
+    const { data: sub } = sb.auth.onAuthStateChange(async () => {
+      const s = await loadSession()
+      if (!cancelled) setUser(s)
+    })
+
+    return () => {
+      cancelled = true
+      sub.subscription.unsubscribe()
     }
-    const session: AuthSession = {
-      userId: data.user.id,
-      username: data.user.username,
-      role: data.user.role,
-    }
-    setUser(session)
-    saveSession(session)
-    return { ok: true, session }
   }, [])
 
-  const register = useCallback(
-    async (username: string, password: string, role: UserRole) => {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, role }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        return { ok: false, error: data.error ?? 'Registration failed' }
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const sb = getSupabaseBrowser()
+      const { data, error } = await sb.auth.signInWithPassword({ email, password })
+      if (error || !data.user) {
+        return { ok: false, error: error?.message ?? 'Login failed' }
       }
-      const session: AuthSession = {
-        userId: data.user.id,
-        username: data.user.username,
-        role: data.user.role,
-      }
+      const session = await loadSession()
+      if (!session) return { ok: false, error: 'Profile lookup failed' }
       setUser(session)
-      saveSession(session)
       return { ok: true, session }
     },
-    []
+    [],
   )
 
-  const logout = useCallback(() => {
+  const register = useCallback(
+    async (email: string, password: string, role: UserRole, fullName?: string) => {
+      const sb = getSupabaseBrowser()
+      const { data, error } = await sb.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { role, full_name: fullName ?? '' },
+        },
+      })
+      if (error || !data.user) {
+        return { ok: false, error: error?.message ?? 'Registration failed' }
+      }
+      // The handle_new_user() trigger creates the profile row server-side.
+      const session = await loadSession()
+      if (!session) return { ok: false, error: 'Profile creation failed' }
+      setUser(session)
+      return { ok: true, session }
+    },
+    [],
+  )
+
+  const logout = useCallback(async () => {
+    const sb = getSupabaseBrowser()
+    await sb.auth.signOut()
     setUser(null)
-    saveSession(null)
   }, [])
 
   const value = useMemo(
     () => ({ user, loading, login, register, logout }),
-    [user, loading, login, register, logout]
+    [user, loading, login, register, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
