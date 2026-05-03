@@ -1,67 +1,83 @@
 /**
  * /api/lesson-results
  *
- * POST — score a lesson attempt and persist it
- * GET  — retrieve results (filtered by userId and/or testId)
+ * POST — persist a lesson attempt as a row in public.test_sessions
+ *        (+ optional rows in public.trial_results)
+ * GET  — list completed sessions for the caller (or for a given testId)
  *
- * Stored in data/lesson-results.json  (LessonResultRecord[])
+ * NO local lesson-results.json. Backed by Supabase.
+ *
+ * POST body:
+ *   {
+ *     testId:           string,
+ *     score?:           number,                  // 0..100
+ *     correctCount?:    number,
+ *     totalQuestions?:  number,
+ *     totalMs?:         number,
+ *     selectedChoices?: Record<string, string>,  // questionId → choiceId
+ *     metadata?:        Record<string, unknown>,
+ *   }
  */
-
 import { NextResponse } from 'next/server'
-import { randomUUID } from 'crypto'
-import { readJsonFile, writeJsonFile } from '@/lib/server/json-store'
-import type { LessonResultRecord } from '@/lib/submissions-types'
-
-const FILE = 'lesson-results.json'
-
-// Registry: map testId → scorer function (extend here for new lessons)
-const SCORERS: Record<string, Function> = {}
-
-const LESSON_TITLES: Record<string, string> = {}
+import { getSupabaseServer } from '@/lib/supabase/server'
 
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const userId         = String(body.userId ?? '').trim()
-    const testId         = String(body.testId ?? '').trim()
-    const selectedChoices: Record<string, string> = body.selectedChoices ?? {}
-
-    if (!userId || !testId) {
-      return NextResponse.json(
-        { error: 'userId and testId are required' },
-        { status: 400 },
-      )
+    const testId = String(body.testId ?? '').trim()
+    if (!testId) {
+      return NextResponse.json({ error: 'testId is required' }, { status: 400 })
     }
 
-    const scorer = SCORERS[testId]
-    if (!scorer) {
-      return NextResponse.json(
-        { error: `No scorer registered for testId: ${testId}` },
-        { status: 400 },
-      )
+    const sb = await getSupabaseServer()
+    const {
+      data: { user },
+    } = await sb.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+
+    const { data: session, error } = await sb
+      .from('test_sessions')
+      .insert({
+        user_id: user.id,
+        test_id: testId,
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+        score: typeof body.score === 'number' ? body.score : null,
+        correct_count: typeof body.correctCount === 'number' ? body.correctCount : null,
+        total_questions: typeof body.totalQuestions === 'number' ? body.totalQuestions : null,
+        total_ms: typeof body.totalMs === 'number' ? body.totalMs : null,
+        metadata: {
+          selectedChoices: body.selectedChoices ?? {},
+          competencyScores: body.competencyScores ?? [],
+          diagnosticAnswer: body.diagnosticAnswer ?? null,
+          ...(body.metadata ?? {}),
+        },
+      })
+      .select('id, score, correct_count, total_questions')
+      .single()
+
+    if (error || !session) {
+      console.error('[lesson-results POST]', error?.message)
+      return NextResponse.json({ error: error?.message ?? 'Insert failed' }, { status: 500 })
     }
 
-    const scoreResult = scorer(selectedChoices)
-
-    const record: LessonResultRecord = {
-      id: randomUUID(),
-      userId,
-      testId,
-      lessonTitle: LESSON_TITLES[testId] ?? testId,
-      submittedAt: new Date().toISOString(),
-      selectedChoices,
-      globalCorrect: scoreResult.globalCorrect,
-      globalTotal:   scoreResult.globalTotal,
-      globalPercent: scoreResult.globalPercent,
-      competencyScores: scoreResult.competencyScores,
-      diagnosticAnswer: scoreResult.diagnosticAnswer,
+    // Optional per-question rows. We store them as one trial per choice so
+    // teachers/admin reviewers can see the breakdown.
+    const choices = body.selectedChoices as Record<string, string> | undefined
+    if (choices && Object.keys(choices).length > 0) {
+      const rows = Object.entries(choices).map(([questionId, choice], i) => ({
+        session_id: session.id,
+        question_index: i,
+        question_id: questionId,
+        selected: [choice] as unknown as Record<string, never>,
+        free_text: null,
+        correct: false,
+        score: 0,
+      }))
+      await sb.from('trial_results').insert(rows)
     }
 
-    const list = await readJsonFile<LessonResultRecord[]>(FILE, [])
-    list.push(record)
-    await writeJsonFile(FILE, list)
-
-    return NextResponse.json({ ok: true, result: scoreResult })
+    return NextResponse.json({ ok: true, sessionId: session.id, result: session })
   } catch (err) {
     console.error('[lesson-results POST]', err)
     return NextResponse.json({ error: 'Submission failed' }, { status: 500 })
@@ -71,17 +87,29 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
-    const testId = searchParams.get('testId')
+    const testIdFilter = searchParams.get('testId')
 
-    let list = await readJsonFile<LessonResultRecord[]>(FILE, [])
-    if (userId) list = list.filter((r) => r.userId === userId)
-    if (testId) list = list.filter((r) => r.testId === testId)
+    const sb = await getSupabaseServer()
+    const {
+      data: { user },
+    } = await sb.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
 
-    // Sort newest first
-    list.sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))
+    let q = sb
+      .from('test_sessions')
+      .select(
+        'id, test_id, score, correct_count, total_questions, completed_at, started_at, total_ms, metadata',
+      )
+      .order('completed_at', { ascending: false, nullsFirst: false })
+      .order('started_at', { ascending: false })
+    if (testIdFilter) q = q.eq('test_id', testIdFilter)
 
-    return NextResponse.json({ results: list })
+    const { data, error } = await q
+    if (error) {
+      console.error('[lesson-results GET]', error.message)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+    return NextResponse.json({ results: data ?? [] })
   } catch (err) {
     console.error('[lesson-results GET]', err)
     return NextResponse.json({ error: 'Failed to load results' }, { status: 500 })
