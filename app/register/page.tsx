@@ -34,32 +34,26 @@ export default function RegisterPage() {
     setError('')
     setLoading(true)
 
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        // The backend still keys users by `username`; we send the Gmail
-        // address there so existing login flows keep working.
-        username: email.trim(),
-        password,
-        role,
-        firstName: firstName.trim() || undefined,
-        lastName: lastName.trim() || undefined,
-      }),
-    })
-    const data = await res.json()
+    // useAuth().register() goes straight to Supabase Auth — the cookie
+    // is set by the SDK and the public.profiles row is created by the
+    // handle_new_user() trigger. No JSON file is touched.
+    const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ')
+    const result = await register(email.trim(), password, role, fullName)
     setLoading(false)
 
-    if (!res.ok) {
-      setError(data.error ?? 'Échec de l\'inscription')
+    if (!result.ok) {
+      setError(result.error ?? 'Échec de l\'inscription')
       return
     }
 
-    // Mirror what auth-context.register does — store session then redirect
-    const session = { userId: data.user.id, username: data.user.username, role: data.user.role }
-    localStorage.setItem('cogniTestSession', JSON.stringify(session))
-    localStorage.setItem('cogniTestRole', data.user.role)
-    localStorage.setItem('cogniTestEmail', data.user.username)
+    // If Supabase requires email confirmation, show a message instead of
+    // redirecting (the user has no active session yet).
+    if (result.emailConfirmationRequired) {
+      setError('') // clear any previous error
+      // Redirect to login with a confirmation hint so the user knows to check their email.
+      router.push('/?info=check_email')
+      return
+    }
 
     if (role === 'admin') router.push('/admin')
     else if (role === 'teacher') router.push('/teacher/dashboard')

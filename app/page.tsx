@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -22,8 +22,20 @@ export default function LandingPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [info, setInfo] = useState('')
   const router = useRouter()
   const { login } = useAuth()
+
+  // Show a message if redirected here after registration with email confirmation.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('info') === 'check_email') {
+      setInfo('Account created! Please check your email to confirm your address, then sign in.')
+    }
+    if (params.get('error') === 'auth_callback_failed') {
+      setError('Email confirmation failed. Please try registering again.')
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -201,6 +213,9 @@ export default function LandingPage() {
                       </div>
                     </div>
 
+                    {info && (
+                      <p className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2">{info}</p>
+                    )}
                     {error && (
                       <p className="text-xs text-destructive">{error}</p>
                     )}

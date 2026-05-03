@@ -1,0 +1,236 @@
+-- =============================================================================
+-- CogniTest — Supabase schema
+-- =============================================================================
+-- Apply this once on a fresh Supabase project (Project → SQL Editor → New query):
+--   1. paste this file, run it
+--   2. paste supabase/policies.sql, run it
+--   3. (optional) paste supabase/seed.sql, run it
+--
+-- All identifiers use snake_case. Timestamps use TIMESTAMPTZ.
+-- The `auth.users` table is provided by Supabase Auth; we never write to it
+-- directly — we extend it via the public.profiles 1-to-1 mapping.
+-- =============================================================================
+
+create extension if not exists "pgcrypto";   -- gen_random_uuid()
+create extension if not exists "uuid-ossp";  -- uuid_generate_v4 (legacy)
+
+-- -----------------------------------------------------------------------------
+-- Enums
+-- -----------------------------------------------------------------------------
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'user_role') then
+    create type public.user_role as enum ('admin', 'teacher', 'student');
+  end if;
+
+  if not exists (select 1 from pg_type where typname = 'session_status') then
+    create type public.session_status as enum ('in-progress', 'completed', 'abandoned');
+  end if;
+
+  if not exists (select 1 from pg_type where typname = 'grade_level') then
+    create type public.grade_level as enum (
+      '3ème année collège',
+      'Tronc commun scientifique',
+      '1ère année Baccalauréat – Sciences expérimentales',
+      '1ère année Baccalauréat – Sciences mathématiques'
+    );
+  end if;
+end$$;
+
+-- -----------------------------------------------------------------------------
+-- profiles  (1-to-1 with auth.users)
+-- -----------------------------------------------------------------------------
+create table if not exists public.profiles (
+  id          uuid primary key references auth.users(id) on delete cascade,
+  email       text not null unique,
+  full_name   text,
+  role        public.user_role not null default 'student',
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+create index if not exists profiles_role_idx on public.profiles (role);
+
+-- Trigger: auto-create a profile row when a new auth.users row appears.
+-- Role defaults to 'student' but can be overridden by raw_user_meta_data.role
+-- at sign-up time.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.profiles (id, email, full_name, role)
+  values (
+    new.id,
+    coalesce(new.email, ''),
+    coalesce(new.raw_user_meta_data->>'full_name', ''),
+    coalesce((new.raw_user_meta_data->>'role')::public.user_role, 'student')
+  )
+  on conflict (id) do nothing;
+  return new;
+end$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- Generic touch-updated_at trigger.
+create or replace function public.touch_updated_at()
+returns trigger language plpgsql as $$
+begin
+  new.updated_at := now();
+  return new;
+end$$;
+
+drop trigger if exists trg_profiles_touch on public.profiles;
+create trigger trg_profiles_touch
+  before update on public.profiles
+  for each row execute function public.touch_updated_at();
+
+-- -----------------------------------------------------------------------------
+-- student_profiles  (student-specific extras + teacher link)
+-- -----------------------------------------------------------------------------
+create table if not exists public.student_profiles (
+  user_id                  uuid primary key references public.profiles(id) on delete cascade,
+  full_name                text,
+  age                      int check (age between 5 and 100),
+  gender                   text check (gender in ('Male', 'Female', '')),
+  teacher_id               uuid references public.profiles(id) on delete set null,
+  teacher_name             text,
+  school_name              text,
+  grade_level              public.grade_level,
+  academic_track           text,
+  academic_year            text,
+  math_average_2024_2025   numeric(4,2) check (math_average_2024_2025 between 0 and 20),
+  math_average_2025_2026   numeric(4,2) check (math_average_2025_2026 between 0 and 20),
+  updated_at               timestamptz not null default now()
+);
+
+create index if not exists student_profiles_teacher_idx on public.student_profiles (teacher_id);
+
+drop trigger if exists trg_student_profiles_touch on public.student_profiles;
+create trigger trg_student_profiles_touch
+  before update on public.student_profiles
+  for each row execute function public.touch_updated_at();
+
+-- -----------------------------------------------------------------------------
+-- tests  (catalogue — referenced by test_sessions.test_id)
+-- -----------------------------------------------------------------------------
+create table if not exists public.tests (
+  id           text primary key,                -- e.g. 'test-symetrie-axiale'
+  name         text not null,
+  domain       text not null,                   -- 'cognition-geometrie' | 'attentional' | …
+  description  text,
+  metadata     jsonb not null default '{}'::jsonb,
+  is_active    boolean not null default true,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+
+create index if not exists tests_domain_idx on public.tests (domain) where is_active;
+
+drop trigger if exists trg_tests_touch on public.tests;
+create trigger trg_tests_touch
+  before update on public.tests
+  for each row execute function public.touch_updated_at();
+
+-- -----------------------------------------------------------------------------
+-- questions  (canonical question bank — optional; you may keep questions
+-- in code and skip this table for now, but the FK is here for the future).
+-- -----------------------------------------------------------------------------
+create table if not exists public.questions (
+  id              uuid primary key default gen_random_uuid(),
+  test_id         text not null references public.tests(id) on delete cascade,
+  external_id     text not null,                 -- e.g. 'Q19a'
+  prompt          text,
+  options         jsonb not null default '[]'::jsonb,
+  correct_answer  jsonb,                          -- number | number[] | null
+  competencies    text[] not null default '{}',   -- {C1, C2}
+  position        int,
+  metadata        jsonb not null default '{}'::jsonb,
+  unique (test_id, external_id)
+);
+
+create index if not exists questions_test_idx on public.questions (test_id, position);
+
+-- -----------------------------------------------------------------------------
+-- test_sessions  (one row per attempt of a test by a user)
+-- -----------------------------------------------------------------------------
+create table if not exists public.test_sessions (
+  id                uuid primary key default gen_random_uuid(),
+  user_id           uuid not null references public.profiles(id) on delete cascade,
+  test_id           text not null references public.tests(id) on delete restrict,
+  status            public.session_status not null default 'in-progress',
+  started_at        timestamptz not null default now(),
+  completed_at      timestamptz,
+  total_ms          int,
+  score             numeric(5,2),                -- final % (0–100), supports partial credit
+  correct_count     int,
+  total_questions   int,
+  metadata          jsonb not null default '{}'::jsonb,
+  created_at        timestamptz not null default now(),
+  updated_at        timestamptz not null default now()
+);
+
+create index if not exists test_sessions_user_idx     on public.test_sessions (user_id, started_at desc);
+create index if not exists test_sessions_test_idx    on public.test_sessions (test_id, completed_at desc);
+create index if not exists test_sessions_status_idx  on public.test_sessions (status);
+
+drop trigger if exists trg_test_sessions_touch on public.test_sessions;
+create trigger trg_test_sessions_touch
+  before update on public.test_sessions
+  for each row execute function public.touch_updated_at();
+
+-- -----------------------------------------------------------------------------
+-- trial_results  (per-question response inside a session)
+-- -----------------------------------------------------------------------------
+create table if not exists public.trial_results (
+  id                bigserial primary key,
+  session_id        uuid not null references public.test_sessions(id) on delete cascade,
+  question_index    int not null,
+  question_id       text not null,
+  selected          jsonb not null default '[]'::jsonb,  -- number[]
+  free_text         text,
+  correct           boolean not null default false,
+  score             numeric(4,3) not null default 0,     -- per-question score in [0, 1]
+  reaction_time_ms  int,
+  created_at        timestamptz not null default now()
+);
+
+create index if not exists trial_results_session_idx on public.trial_results (session_id, question_index);
+
+-- -----------------------------------------------------------------------------
+-- metrics  (longitudinal aggregates — refreshed nightly or on insert).
+-- One row per (user, test_id, period). Period is a yyyy-mm string.
+-- -----------------------------------------------------------------------------
+create table if not exists public.metrics (
+  user_id        uuid not null references public.profiles(id) on delete cascade,
+  test_id        text not null references public.tests(id) on delete cascade,
+  period         text not null,                          -- e.g. '2026-05'
+  attempts       int not null default 0,
+  best_score     numeric(5,2),
+  avg_score      numeric(5,2),
+  last_attempt   timestamptz,
+  updated_at     timestamptz not null default now(),
+  primary key (user_id, test_id, period)
+);
+
+create index if not exists metrics_test_period_idx on public.metrics (test_id, period);
+
+-- -----------------------------------------------------------------------------
+-- Helper view: my_students  (a teacher's roster derived from student_profiles)
+-- -----------------------------------------------------------------------------
+create or replace view public.my_students as
+  select
+    sp.user_id,
+    p.full_name,
+    p.email,
+    sp.grade_level,
+    sp.math_average_2024_2025,
+    sp.math_average_2025_2026,
+    sp.teacher_id
+  from public.student_profiles sp
+  join public.profiles p on p.id = sp.user_id;
