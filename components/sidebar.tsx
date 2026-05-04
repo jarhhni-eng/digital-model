@@ -39,15 +39,24 @@ const navItems: NavItem[] = [
 ]
 
 interface SidebarProps {
-  userRole: 'student' | 'teacher' | 'admin'
+  /** When omitted, uses the signed-in user from `useAuth()`. */
+  userRole?: 'student' | 'teacher' | 'admin'
+  /** When omitted, uses `displayName` or email from `useAuth()`. */
   userName?: string
 }
 
-export function Sidebar({ userRole, userName = 'Utilisateur' }: SidebarProps) {
+export function Sidebar({ userRole: userRoleProp, userName: userNameProp }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const isMobile = useIsMobile()
-  const { logout } = useAuth()
+  const { user, logout } = useAuth()
+
+  const userRole = userRoleProp ?? user?.role ?? 'student'
+  const userName =
+    userNameProp ??
+    (user?.displayName?.trim() ? user.displayName.trim() : null) ??
+    user?.username ??
+    'Utilisateur'
   const [isOpen, setIsOpen] = useState(false)
 
   const filteredItems = navItems.filter((item) => {

@@ -10,7 +10,7 @@ import { StatCard, ProgressCard } from '@/components/dashboard-cards'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/auth-context'
-import { getStudentsForTeacher, mockStudentProfile, mockStudentResults, mockDomains } from '@/lib/mock-data'
+import { getStudentsForTeacher, mockDomains } from '@/lib/mock-data'
 import { 
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, 
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, 
@@ -56,8 +56,6 @@ export default function StudentDetailsPage({ params }: StudentDetailsPageProps) 
       </div>
     )
   }
-  const profile = mockStudentProfile
-
   const attemptHistory = [
     { attempt: '1', date: '2025-02-15', score: 68, domain: 'Numerical' },
     { attempt: '2', date: '2025-02-18', score: 72, domain: 'Spatial' },
@@ -67,7 +65,7 @@ export default function StudentDetailsPage({ params }: StudentDetailsPageProps) 
 
   return (
     <div className="bg-background min-h-screen">
-      <Sidebar userRole="teacher" userName="Dr. Richard Smith" />
+      <Sidebar userRole="teacher" />
       
       <div className={cn("transition-all duration-200", isMobile ? "ml-0" : "ml-64")}>
         <Header

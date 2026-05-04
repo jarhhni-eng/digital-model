@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
 import { useIsMobile } from '@/components/ui/use-mobile'
@@ -9,44 +10,42 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { mockStudentProfile, mockStudentResults, mockTeacherStudents } from '@/lib/mock-data'
+import { mockStudentResults, mockTeacherStudents } from '@/lib/mock-data'
+import { useAuth } from '@/lib/auth-context'
+import type { StudentAcademicProfile } from '@/lib/student-profile-types'
 import { Mail, User, Calendar, Award, Activity, School } from 'lucide-react'
 
-type Role = 'student' | 'teacher'
-
 export default function ProfilePage() {
+  const router = useRouter()
   const isMobile = useIsMobile()
-  const [role, setRole] = useState<Role>('student')
-  const [email, setEmail] = useState<string | undefined>(undefined)
+  const { user, loading } = useAuth()
+  const [academic, setAcademic] = useState<StudentAcademicProfile | null>(null)
 
   useEffect(() => {
-    try {
-      const storedRole = localStorage.getItem('cogniTestRole') as Role | null
-      const storedEmail = localStorage.getItem('cogniTestEmail') || undefined
-      if (storedRole === 'teacher' || storedRole === 'student') {
-        setRole(storedRole)
-      }
-      if (storedEmail) {
-        setEmail(storedEmail)
-      }
-    } catch (error) {
-      // ignore storage errors in demo
-    }
-  }, [])
+    if (!loading && !user) router.replace('/')
+  }, [loading, user, router])
 
-  const isTeacher = role === 'teacher'
+  useEffect(() => {
+    if (!user || user.role !== 'student') return
+    fetch('/api/student-profile')
+      .then((r) => r.json())
+      .then((d: { profile?: StudentAcademicProfile | null }) => {
+        setAcademic(d.profile ?? null)
+      })
+      .catch(() => setAcademic(null))
+  }, [user])
 
-  const student = mockStudentProfile
-  const teacher = {
-    name: 'Dr. Richard Smith',
-    email: 'richard.smith@ens-fes.ac.ma',
-    institution: 'ENS FES',
-    department: 'Mathematics Education',
-    role: 'Research Supervisor',
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground">Chargement…</p>
+      </div>
+    )
   }
 
-  const displayName = isTeacher ? teacher.name : student.name
-  const displayEmail = isTeacher ? teacher.email : email || student.email
+  const isTeacher = user.role === 'teacher'
+  const displayName = user.displayName?.trim() || user.username
+  const displayEmail = user.username
 
   const latestResult = mockStudentResults[0]
   const averageScore =
@@ -57,14 +56,16 @@ export default function ProfilePage() {
     mockTeacherStudents.reduce((sum, s) => sum + s.averageScore, 0) / totalStudents
 
   const initials = displayName
-    .split(' ')
+    .split(/\s+/)
+    .filter(Boolean)
     .map((part) => part[0])
     .join('')
     .toUpperCase()
+    .slice(0, 3)
 
   return (
     <div className="bg-background min-h-screen">
-      <Sidebar userRole={role} userName={displayName} />
+      <Sidebar userRole={user.role} />
 
       <div className={cn("transition-all duration-200", isMobile ? "ml-0" : "ml-64")}>
         <Header
@@ -87,17 +88,17 @@ export default function ProfilePage() {
                     {displayName}
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    {isTeacher ? teacher.role : 'Student participant'}
+                    {isTeacher ? 'Enseignant — plateforme CogniTest' : 'Participant — recherche ENS Fès'}
                   </CardDescription>
                   <div className="flex flex-wrap items-center gap-2 pt-1">
                     <Badge variant="outline" className="text-[11px] capitalize">
                       <User className="mr-1 h-3 w-3" />
-                      {role}
+                      {user.role}
                     </Badge>
                     {!isTeacher && (
                       <Badge variant="secondary" className="text-[11px]">
                         <School className="mr-1 h-3 w-3" />
-                        {student.scholarLevel}
+                        {academic?.gradeLevel ?? '—'}
                       </Badge>
                     )}
                   </div>
@@ -112,16 +113,20 @@ export default function ProfilePage() {
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span className="text-muted-foreground">
-                      Joined{' '}
-                      {isTeacher ? '2024-09-01' : student.joinDate}
+                      Mis à jour{' '}
+                      {isTeacher
+                        ? '—'
+                        : academic?.updatedAt
+                          ? new Date(academic.updatedAt).toLocaleDateString('fr-FR')
+                          : '—'}
                     </span>
                   </div>
                 </div>
                 {!isTeacher && (
                   <p className="text-xs text-muted-foreground">
-                    This profile is linked to your cognitive assessment history within the ENS FES
-                    research project. Profile edits are local to this demo and are not stored on a
-                    server.
+                    Les données académiques détaillées proviennent de votre dossier CogniTest lorsque
+                    le profil élève a été complété. Les indicateurs ci-dessous restent des exemples
+                    de visualisation.
                   </p>
                 )}
                 {isTeacher && (
@@ -199,30 +204,36 @@ export default function ProfilePage() {
                   <>
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Institution</span>
-                      <span className="font-medium text-foreground">{teacher.institution}</span>
+                      <span className="font-medium text-foreground">ENS Fès</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Department</span>
-                      <span className="font-medium text-foreground">{teacher.department}</span>
+                      <span className="text-muted-foreground">Contact</span>
+                      <span className="font-medium text-foreground truncate max-w-[60%]">
+                        {displayEmail}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Role</span>
-                      <span className="font-medium text-foreground">{teacher.role}</span>
+                      <span className="text-muted-foreground">Rôle</span>
+                      <span className="font-medium text-foreground">Enseignant superviseur</span>
                     </div>
                   </>
                 ) : (
                   <>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Age</span>
-                      <span className="font-medium text-foreground">{student.age}</span>
+                      <span className="text-muted-foreground">Âge</span>
+                      <span className="font-medium text-foreground">{academic?.age ?? '—'}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Scholar level</span>
-                      <span className="font-medium text-foreground">{student.scholarLevel}</span>
+                      <span className="text-muted-foreground">Niveau scolaire</span>
+                      <span className="font-medium text-foreground">
+                        {academic?.gradeLevel ?? '—'}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Supervisor</span>
-                      <span className="font-medium text-foreground">{student.teacher}</span>
+                      <span className="text-muted-foreground">Enseignant référent</span>
+                      <span className="font-medium text-foreground">
+                        {academic?.teacherName || '—'}
+                      </span>
                     </div>
                   </>
                 )}
@@ -253,21 +264,27 @@ export default function ProfilePage() {
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Moyenne 2024 / 2025</span>
                       <span className="font-medium text-foreground">
-                        {student.mathAverage2024_2025} / 20
+                        {academic?.mathAverage2024_2025 != null
+                          ? `${academic.mathAverage2024_2025} / 20`
+                          : '—'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Moyenne 2025 / 2026</span>
                       <span className="font-medium text-foreground">
-                        {student.mathAverage2025_2026} / 20
+                        {academic?.mathAverage2025_2026 != null
+                          ? `${academic.mathAverage2025_2026} / 20`
+                          : '—'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Évolution</span>
                       <span className="flex items-center gap-1 font-medium text-foreground">
                         <Award className="h-3 w-3 text-emerald-500" />
-                        {(student.mathAverage2025_2026 - student.mathAverage2024_2025) >= 0 ? '+' : ''}
-                        {(student.mathAverage2025_2026 - student.mathAverage2024_2025).toFixed(1)} pts
+                        {academic?.mathAverage2024_2025 != null &&
+                        academic?.mathAverage2025_2026 != null
+                          ? `${(academic.mathAverage2025_2026 - academic.mathAverage2024_2025) >= 0 ? '+' : ''}${(academic.mathAverage2025_2026 - academic.mathAverage2024_2025).toFixed(1)} pts`
+                          : '—'}
                       </span>
                     </div>
                   </>

@@ -552,7 +552,7 @@ export function TrigCircleQuiz() {
       <Card className="border-l-4 border-l-indigo-500">
         <CardHeader className="pb-3">
           <CardTitle className="text-base font-semibold">
-            <Tex>{question.stemTex.replace(/^.*$/s, (s) => s)}</Tex>
+            <Tex>{question.stemTex}</Tex>
           </CardTitle>
           <p className="text-sm text-slate-600 mt-1">{question.stemTex}</p>
         </CardHeader>

@@ -6,7 +6,8 @@ import { useIsMobile } from '@/components/ui/use-mobile'
 import { cn } from '@/lib/utils'
 
 interface PageLayoutProps {
-  userRole: 'student' | 'teacher' | 'admin'
+  /** Defaults from signed-in user when omitted. */
+  userRole?: 'student' | 'teacher' | 'admin'
   userName?: string
   title?: string
   subtitle?: string

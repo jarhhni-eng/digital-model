@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { mockStudentProfile } from '@/lib/mock-data'
 import {
   Brain, Eye, Zap, Target, Activity, Layers,
   CheckCircle2, Clock, Circle, Triangle, FileSignature,
@@ -212,7 +211,7 @@ export default function ResultsPage() {
 
   return (
     <div className="bg-background min-h-screen">
-      <Sidebar userRole="student" userName={mockStudentProfile.name} />
+      <Sidebar userRole="student" />
 
       <div className={cn('transition-all duration-200', isMobile ? 'ml-0' : 'ml-64')}>
         <Header

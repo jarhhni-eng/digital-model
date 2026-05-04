@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -23,7 +23,14 @@ export default function LandingPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const router = useRouter()
-  const { login } = useAuth()
+  const { login, user, loading: authLoading } = useAuth()
+
+  useEffect(() => {
+    if (authLoading || !user) return
+    if (user.role === 'admin') router.replace('/admin')
+    else if (user.role === 'teacher') router.replace('/teacher/dashboard')
+    else router.replace('/dashboard')
+  }, [authLoading, user, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,6 +45,15 @@ export default function LandingPage() {
     if (res.session.role === 'admin') router.push('/admin')
     else if (res.session.role === 'teacher') router.push('/teacher/dashboard')
     else router.push('/dashboard')
+  }
+
+  if (!authLoading && user) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3 p-6">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden />
+        <p className="text-sm text-muted-foreground">Already signed in. Redirecting…</p>
+      </div>
+    )
   }
 
   return (
@@ -179,7 +195,7 @@ export default function LandingPage() {
                           className="h-10 border-border bg-background pl-10 text-sm"
                           required
                           autoComplete="username"
-                          disabled={isLoading}
+                          disabled={isLoading || authLoading}
                         />
                       </div>
                     </div>
@@ -196,7 +212,7 @@ export default function LandingPage() {
                           className="h-10 border-border bg-background pl-10 text-sm"
                           required
                           autoComplete="current-password"
-                          disabled={isLoading}
+                          disabled={isLoading || authLoading}
                         />
                       </div>
                     </div>
@@ -207,12 +223,17 @@ export default function LandingPage() {
                     <Button
                       type="submit"
                       className="h-10 w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                      disabled={isLoading}
+                      disabled={isLoading || authLoading}
                     >
                       {isLoading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Logging in…
+                        </>
+                      ) : authLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Checking session…
                         </>
                       ) : (
                         'Continue'

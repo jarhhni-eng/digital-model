@@ -7,7 +7,6 @@ import { Header } from '@/components/header'
 import { useIsMobile } from '@/components/ui/use-mobile'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { mockStudentProfile } from '@/lib/mock-data'
 import { platformDomains } from '@/lib/platform-domains'
 import type { DomainCapacity } from '@/lib/mock-data'
 import { ArrowLeft, ClipboardList, ChevronRight, Brain, Calculator } from 'lucide-react'
@@ -25,7 +24,7 @@ export default function DomainDetailPage({ params }: DomainDetailPageProps) {
   if (!domain) {
     return (
       <div className="bg-background min-h-screen">
-        <Sidebar userRole="student" userName={mockStudentProfile.name} />
+        <Sidebar userRole="student" />
         <div className={cn("p-4 md:p-6 pt-24 transition-all", isMobile ? "ml-0" : "ml-64")}>
           <div className="max-w-2xl mx-auto text-center py-12">
             <h1 className="text-2xl font-bold text-foreground mb-2">Domain not found</h1>
@@ -48,7 +47,7 @@ export default function DomainDetailPage({ params }: DomainDetailPageProps) {
 
   return (
     <div className="bg-background min-h-screen">
-      <Sidebar userRole="student" userName={mockStudentProfile.name} />
+      <Sidebar userRole="student" />
 
       <div className={cn("transition-all duration-200", isMobile ? "ml-0" : "ml-64")}>
         <Header

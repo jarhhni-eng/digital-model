@@ -11,6 +11,7 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseServer } from '@/lib/supabase/server'
 import { mockTestQuestions } from '@/lib/mock-data'
+import type { Json } from '@/lib/types/database'
 
 interface AnswerInput {
   questionId: string
@@ -75,7 +76,7 @@ export async function POST(request: Request) {
         score: scorePercent,
         correct_count: correctCount,
         total_questions: total,
-        metadata: { rawAnswers: answers },
+        metadata: { rawAnswers: answers } as unknown as Json,
       })
       .select('id, score, correct_count, total_questions, started_at, completed_at')
       .single()

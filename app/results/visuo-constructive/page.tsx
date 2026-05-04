@@ -6,7 +6,6 @@ import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { mockStudentProfile } from '@/lib/mock-data'
 import {
   loadVisuoConstructiveResult,
   type VisuoConstructiveResult,
@@ -23,7 +22,7 @@ export default function VisuoConstructiveResultsPage() {
   if (!result) {
     return (
       <div className="bg-background min-h-screen">
-        <Sidebar userRole="student" userName={mockStudentProfile.name} />
+        <Sidebar userRole="student" />
         <div className="md:ml-64 print:ml-0">
           <Header
             title="WAIS Visual Puzzles – Results"
@@ -53,7 +52,7 @@ export default function VisuoConstructiveResultsPage() {
   return (
     <div className="bg-background min-h-screen">
       <div className="print:hidden">
-        <Sidebar userRole="student" userName={mockStudentProfile.name} />
+        <Sidebar userRole="student" />
       </div>
       <div className="ml-64 print:ml-0">
         <Header

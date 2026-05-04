@@ -1,3 +1,8 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
@@ -5,6 +10,13 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
+  },
+  /** Pin workspace root when multiple lockfiles exist (faster / more stable dev compile). */
+  turbopack: {
+    root: __dirname,
+  },
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'recharts'],
   },
 }
 

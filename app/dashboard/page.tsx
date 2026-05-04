@@ -187,10 +187,23 @@ export default function StudentDashboard() {
       .catch(() => setSubs([]))
   }, [user?.userId])
 
-  if (loading || !user) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <p className="text-muted-foreground">Loading…</p>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background p-6">
+        <p className="text-center text-sm text-muted-foreground max-w-sm">
+          Your session could not be loaded. Sign in again to continue.
+        </p>
+        <Button asChild>
+          <Link href="/">Back to sign in</Link>
+        </Button>
       </div>
     )
   }
@@ -219,8 +232,8 @@ export default function StudentDashboard() {
 
   return (
     <div className="bg-background min-h-screen">
-      <Sidebar userRole="student" userName={user.username} />
-      <MobileNav userRole="student" />
+      <Sidebar userRole={user.role} />
+      {user.role === 'student' && <MobileNav userRole="student" />}
 
       <div className={cn("transition-all duration-200", isMobile ? "ml-0" : "ml-64")}>
         <Header title="Tableau de bord" subtitle="Suivi de votre progression cognitive" />

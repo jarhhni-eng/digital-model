@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { mockTests, mockStudentProfile } from '@/lib/mock-data'
+import { mockTests } from '@/lib/mock-data'
 import type { Test } from '@/lib/mock-data'
 import {
   ClipboardList,
@@ -50,7 +50,7 @@ export default function TestsPage() {
 
   return (
     <div className="bg-background min-h-screen">
-      <Sidebar userRole="student" userName={mockStudentProfile.name} />
+      <Sidebar userRole="student" />
 
       <div className={cn("transition-all duration-200", isMobile ? "ml-0" : "ml-64")}>
         <Header

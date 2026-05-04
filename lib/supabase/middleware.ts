@@ -3,7 +3,7 @@
  *
  * Runs on every request, refreshes the Supabase session cookie if it's
  * expiring, and guards the routes listed in PROTECTED_PREFIXES. Imported
- * by the root middleware.ts.
+ * by the root `proxy.ts` (Next.js proxy convention).
  */
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
@@ -20,7 +20,8 @@ const PROTECTED_PREFIXES = [
   '/analytics',
 ]
 
-const PUBLIC_PATHS = new Set(['/', '/login', '/register'])
+/** Landing `/` hosts sign-in; there is no separate `/login` page. */
+const PUBLIC_PATHS = new Set(['/', '/register'])
 
 export async function updateSupabaseSession(request: NextRequest) {
   let response = NextResponse.next({ request })
@@ -57,13 +58,13 @@ export async function updateSupabaseSession(request: NextRequest) {
 
   if (needsAuth && !user) {
     const url = request.nextUrl.clone()
-    url.pathname = '/login'
+    url.pathname = '/'
     url.searchParams.set('redirect', path)
     return NextResponse.redirect(url)
   }
 
-  // Already-authed users hitting the auth pages → bounce to their dashboard.
-  if (user && (path === '/login' || path === '/register')) {
+  // Already-authed users hitting register → bounce to dashboard (landing `/` stays usable).
+  if (user && path === '/register') {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)

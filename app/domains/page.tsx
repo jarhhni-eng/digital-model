@@ -7,7 +7,6 @@ import { useIsMobile } from '@/components/ui/use-mobile'
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { mockStudentProfile } from '@/lib/mock-data'
 import { platformDomains } from '@/lib/platform-domains'
 import { Brain, Calculator, Eye, GitBranch, Box, Sparkles, BarChart3, ArrowRight } from 'lucide-react'
 
@@ -35,7 +34,7 @@ export default function DomainsPage() {
 
   return (
     <div className="bg-background min-h-screen">
-      <Sidebar userRole="student" userName={mockStudentProfile.name} />
+      <Sidebar userRole="student" />
 
       <div className={cn("transition-all duration-200", isMobile ? "ml-0" : "ml-64")}>
         <Header

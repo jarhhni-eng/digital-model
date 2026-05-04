@@ -18,7 +18,7 @@ just need to wire them up to a real Supabase project.
 │      ↑                                                                 │
 │      └── lib/supabase/server.ts   (cookie-bound client)                │
 │      └── lib/supabase/client.ts   (browser singleton)                  │
-│      └── middleware.ts            (session refresh + route guard)      │
+│      └── proxy.ts                 (session refresh + route guard)        │
 └────────────────────────────────────────────────────────────────────────┘
                                 │ HTTPS (anon JWT in cookie)
                                 ▼
@@ -37,7 +37,7 @@ Core principles:
   Supabase client with RLS doing the authorisation. The only Route Handlers
   we keep are integration callbacks (e.g. `/api/auth/callback` for OAuth).
 * **Cookies, not localStorage.** Sessions are HTTP-only, signed cookies.
-  `middleware.ts` refreshes them on every request.
+  Root `proxy.ts` refreshes them on every request.
 * **One source of truth per concept.** A test session lives in
   `test_sessions`; per-question rows in `trial_results`. The legacy
   per-test localStorage helpers are deprecated.
@@ -75,8 +75,8 @@ Files already in the repo:
 |-------------------------------------|----------------------------------------------------------|
 | `lib/supabase/client.ts`            | Browser singleton — use from `'use client'` components   |
 | `lib/supabase/server.ts`            | Cookie-bound server client + privileged admin client     |
-| `lib/supabase/middleware.ts`        | Session refresh + route guard helper                     |
-| `middleware.ts`                     | Wires the helper to the Next.js middleware pipeline      |
+| `lib/supabase/middleware.ts`        | Session refresh + route guard helper (`updateSupabaseSession`) |
+| `proxy.ts`                          | Wires the helper to the Next.js **proxy** pipeline       |
 | `lib/types/database.ts`             | DB types — regenerate with the Supabase CLI when ready   |
 | `lib/auth-context.tsx`              | Auth context, now backed by `signInWithPassword`         |
 | `lib/results/results-service.ts`    | `startSession()` / `finishSession()` / `listMySessions()`|
@@ -211,7 +211,7 @@ export default async function DashboardPage() {
 3. Set the Production *Site URL* in Supabase Auth to match the Vercel domain.
 4. Trigger a production deploy.
 
-Why Vercel over Netlify: the Next.js 16 App Router and middleware have
+Why Vercel over Netlify: the Next.js 16 App Router and edge **proxy** have
 first-class support on Vercel; Netlify supports them but the cold-start
 behaviour and the streaming RSC pipeline are less battle-tested, which is
 the source of the 500s reported in the brief.

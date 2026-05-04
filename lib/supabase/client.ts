@@ -1,10 +1,3 @@
-/**
- * Browser-side Supabase client.
- *
- * Use this from any 'use client' component. The client reads the session
- * from cookies that the middleware refreshes on every request, so it stays
- * in sync with the server-rendered tree.
- */
 import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/lib/types/database'
 

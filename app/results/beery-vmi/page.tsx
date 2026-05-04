@@ -7,7 +7,6 @@ import { Header } from '@/components/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { mockStudentProfile } from '@/lib/mock-data'
 import {
   loadBeeryResult,
   BEERY_ERROR_CATEGORIES,
@@ -36,7 +35,7 @@ export default function BeeryVMIResultsPage() {
     return (
       <div className="bg-background min-h-screen">
         <div className="print:hidden">
-          <Sidebar userRole="student" userName={mockStudentProfile.name} />
+          <Sidebar userRole="student" />
         </div>
         <div className="md:ml-64 print:ml-0">
           <Header title="Beery VMI Results" subtitle="Visual-Motor Integration assessment" />
@@ -78,7 +77,7 @@ export default function BeeryVMIResultsPage() {
   return (
     <div className="bg-background min-h-screen">
       <div className="print:hidden">
-        <Sidebar userRole="student" userName={result.session.participantName || mockStudentProfile.name} />
+        <Sidebar userRole="student" />
       </div>
       <div className="ml-64 print:ml-0">
         <Header
@@ -103,7 +102,7 @@ export default function BeeryVMIResultsPage() {
             <CardContent className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-muted-foreground">Name:</span>{' '}
-                {result.session.participantName || mockStudentProfile.name}
+                {result.session.participantName || 'Participant'}
               </div>
               <div>
                 <span className="text-muted-foreground">Date:</span>{' '}

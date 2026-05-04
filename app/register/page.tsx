@@ -26,23 +26,29 @@ export default function RegisterPage() {
   const [attemptedSubmit, setAttemptedSubmit] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setAttemptedSubmit(true)
     if (!consentAccepted) return
     setError('')
+    setPendingEmail(null)
     setLoading(true)
 
-    // useAuth().register() goes straight to Supabase Auth — the cookie
-    // is set by the SDK and the public.profiles row is created by the
-    // handle_new_user() trigger. No JSON file is touched.
+    // useAuth().register() → Supabase signUp. If "Confirm email" is on in
+    // Supabase, there is no session until the user clicks the link.
     const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ')
-    const { ok, error: errMsg } = await register(email.trim(), password, role, fullName)
+    const res = await register(email.trim(), password, role, fullName)
     setLoading(false)
 
-    if (!ok) {
-      setError(errMsg ?? 'Échec de l\'inscription')
+    if (!res.ok) {
+      setError(res.error ?? 'Échec de l\'inscription')
+      return
+    }
+
+    if (res.needsEmailConfirmation) {
+      setPendingEmail(email.trim())
       return
     }
 
@@ -62,6 +68,19 @@ export default function RegisterPage() {
           <CardDescription>Plateforme de recherche — ENS Fès</CardDescription>
         </CardHeader>
         <CardContent>
+          {pendingEmail ? (
+            <div className="space-y-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                Un message a été envoyé à{' '}
+                <span className="font-medium text-foreground">{pendingEmail}</span>. Ouvrez le lien
+                dans l&apos;e-mail pour confirmer votre compte, puis connectez-vous depuis la page
+                d&apos;accueil.
+              </p>
+              <Button asChild className="w-full" variant="secondary">
+                <Link href="/">Retour à la connexion</Link>
+              </Button>
+            </div>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Role selector */}
             <div className="grid grid-cols-3 gap-1 rounded-lg bg-muted p-1">
@@ -212,6 +231,7 @@ export default function RegisterPage() {
               </Link>
             </p>
           </form>
+          )}
         </CardContent>
       </Card>
     </div>

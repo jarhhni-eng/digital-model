@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 import { StatCard } from '@/components/dashboard-cards'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { getStudentsForTeacher, mockStudentProfile } from '@/lib/mock-data'
+import { getStudentsForTeacher } from '@/lib/mock-data'
 import { 
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, 
   Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, Cell,
@@ -68,10 +68,23 @@ export default function TeacherDashboard() {
     avgScore: s.averageScore,
   }))
 
-  if (loading || !user) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <p className="text-muted-foreground">Loading…</p>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background p-6">
+        <p className="text-center text-sm text-muted-foreground max-w-sm">
+          Your session could not be loaded. Sign in again to continue.
+        </p>
+        <Button asChild>
+          <Link href="/">Back to sign in</Link>
+        </Button>
       </div>
     )
   }

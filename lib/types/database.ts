@@ -7,8 +7,9 @@
  *   npx supabase gen types typescript \
  *     --project-id <your-project-ref> > lib/types/database.ts
  *
- * The hand-written shape below is good enough to compile against until the
- * Supabase CLI is set up.
+ * Insert/Update shapes are written explicitly (no `Partial<Database[...]>`)
+ * so TypeScript does not resolve them to `never` while `Database` is still
+ * being defined.
  */
 
 export type UserRole = 'admin' | 'teacher' | 'student'
@@ -21,6 +22,81 @@ export type GradeLevel =
   | '1ère année Baccalauréat – Sciences mathématiques'
 
 export type Json = string | number | boolean | null | { [k: string]: Json } | Json[]
+
+type StudentProfilesInsert = {
+  user_id: string
+  full_name?: string | null
+  age?: number | null
+  gender?: 'Male' | 'Female' | '' | null
+  teacher_id?: string | null
+  teacher_name?: string | null
+  school_name?: string | null
+  grade_level?: GradeLevel | null
+  academic_track?: string | null
+  academic_year?: string | null
+  math_average_2024_2025?: number | null
+  math_average_2025_2026?: number | null
+  updated_at?: string
+}
+
+type TestsInsert = {
+  id: string
+  name: string
+  domain: string
+  description?: string | null
+  metadata?: Json
+  is_active?: boolean
+}
+
+type QuestionsInsert = {
+  test_id: string
+  external_id: string
+  prompt?: string | null
+  options: Json
+  correct_answer?: Json | null
+  competencies?: string[]
+  position?: number | null
+  metadata?: Json
+  id?: string
+}
+
+type TestSessionsInsert = {
+  id?: string
+  user_id: string
+  test_id: string
+  status?: SessionStatus
+  started_at?: string
+  completed_at?: string | null
+  total_ms?: number | null
+  score?: number | null
+  correct_count?: number | null
+  total_questions?: number | null
+  metadata?: Json
+}
+
+type TrialResultsInsert = {
+  session_id: string
+  question_index: number
+  question_id: string
+  selected: Json
+  free_text?: string | null
+  correct: boolean
+  score: number
+  reaction_time_ms?: number | null
+  id?: number
+  created_at?: string
+}
+
+type MetricsRow = {
+  user_id: string
+  test_id: string
+  period: string
+  attempts: number
+  best_score: number | null
+  avg_score: number | null
+  last_attempt: string | null
+  updated_at: string
+}
 
 export interface Database {
   public: {
@@ -42,7 +118,14 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
-        Update: Partial<Database['public']['Tables']['profiles']['Insert']>
+        Update: {
+          email?: string
+          full_name?: string | null
+          role?: UserRole
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
 
       student_profiles: {
@@ -61,11 +144,9 @@ export interface Database {
           math_average_2025_2026: number | null
           updated_at: string
         }
-        Insert: Omit<
-          Database['public']['Tables']['student_profiles']['Row'],
-          'updated_at'
-        > & { updated_at?: string }
-        Update: Partial<Database['public']['Tables']['student_profiles']['Insert']>
+        Insert: StudentProfilesInsert
+        Update: Partial<StudentProfilesInsert>
+        Relationships: []
       }
 
       tests: {
@@ -79,15 +160,9 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: {
-          id: string
-          name: string
-          domain: string
-          description?: string | null
-          metadata?: Json
-          is_active?: boolean
-        }
-        Update: Partial<Database['public']['Tables']['tests']['Insert']>
+        Insert: TestsInsert
+        Update: Partial<TestsInsert>
+        Relationships: []
       }
 
       questions: {
@@ -102,10 +177,9 @@ export interface Database {
           position: number | null
           metadata: Json
         }
-        Insert: Omit<Database['public']['Tables']['questions']['Row'], 'id'> & {
-          id?: string
-        }
-        Update: Partial<Database['public']['Tables']['questions']['Insert']>
+        Insert: QuestionsInsert
+        Update: Partial<QuestionsInsert>
+        Relationships: []
       }
 
       test_sessions: {
@@ -124,20 +198,9 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: {
-          id?: string
-          user_id: string
-          test_id: string
-          status?: SessionStatus
-          started_at?: string
-          completed_at?: string | null
-          total_ms?: number | null
-          score?: number | null
-          correct_count?: number | null
-          total_questions?: number | null
-          metadata?: Json
-        }
-        Update: Partial<Database['public']['Tables']['test_sessions']['Insert']>
+        Insert: TestSessionsInsert
+        Update: Partial<TestSessionsInsert>
+        Relationships: []
       }
 
       trial_results: {
@@ -153,26 +216,16 @@ export interface Database {
           reaction_time_ms: number | null
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['trial_results']['Row'], 'id' | 'created_at'> & {
-          id?: number
-          created_at?: string
-        }
-        Update: Partial<Database['public']['Tables']['trial_results']['Insert']>
+        Insert: TrialResultsInsert
+        Update: Partial<TrialResultsInsert>
+        Relationships: []
       }
 
       metrics: {
-        Row: {
-          user_id: string
-          test_id: string
-          period: string
-          attempts: number
-          best_score: number | null
-          avg_score: number | null
-          last_attempt: string | null
-          updated_at: string
-        }
-        Insert: Database['public']['Tables']['metrics']['Row']
-        Update: Partial<Database['public']['Tables']['metrics']['Row']>
+        Row: MetricsRow
+        Insert: MetricsRow
+        Update: Partial<MetricsRow>
+        Relationships: []
       }
     }
     Views: {
@@ -186,6 +239,7 @@ export interface Database {
           math_average_2025_2026: number | null
           teacher_id: string | null
         }
+        Relationships: []
       }
     }
     Functions: {
