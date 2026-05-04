@@ -10,7 +10,8 @@
  */
 import { NextResponse } from 'next/server'
 import { getSupabaseServer } from '@/lib/supabase/server'
-import { mockTestQuestions } from '@/lib/mock-data'
+import { mockTestQuestions, mockTests } from '@/lib/mock-data'
+import type { Question } from '@/lib/mock-data'
 import type { Json } from '@/lib/types/database'
 
 interface AnswerInput {
@@ -19,15 +20,29 @@ interface AnswerInput {
   timeSpentMs?: number | null
 }
 
-function scoreAnswers(answers: AnswerInput[]): {
+/** MCQs used for scoring: embedded questions on the test, else shared mock bank. */
+function mcqCatalogForTest(testId: string): Question[] {
+  const test = mockTests.find((t) => t.id === testId)
+  const embedded =
+    test?.questions?.filter(
+      (q) => q.type === 'mcq' && q.options && q.options.length > 0 && q.correctOptionIndex !== undefined,
+    ) ?? []
+  if (embedded.length > 0) return embedded
+  return mockTestQuestions.filter(
+    (q) => q.type === 'mcq' && q.options && q.correctOptionIndex !== undefined,
+  )
+}
+
+function scoreAnswers(
+  testId: string,
+  answers: AnswerInput[],
+): {
   scorePercent: number | null
   correctCount: number
   total: number
   perQuestion: { questionId: string; correct: boolean; selected: string | null }[]
 } {
-  const mcqWithKey = mockTestQuestions.filter(
-    (q) => q.type === 'mcq' && q.options && q.correctOptionIndex !== undefined,
-  )
+  const mcqWithKey = mcqCatalogForTest(testId)
   let correct = 0
   const perQuestion: { questionId: string; correct: boolean; selected: string | null }[] = []
   for (const q of mcqWithKey) {
@@ -63,7 +78,7 @@ export async function POST(request: Request) {
     } = await sb.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
 
-    const { scorePercent, correctCount, total, perQuestion } = scoreAnswers(answers)
+    const { scorePercent, correctCount, total, perQuestion } = scoreAnswers(testId, answers)
 
     const { data: session, error } = await sb
       .from('test_sessions')
@@ -91,12 +106,19 @@ export async function POST(request: Request) {
         session_id: session.id,
         question_index: i,
         question_id: p.questionId,
-        selected: (p.selected !== null ? [p.selected] : []) as unknown as Record<string, never>,
+        selected: (p.selected !== null ? [p.selected] : []) as Json,
         free_text: null,
         correct: p.correct,
         score: p.correct ? 1 : 0,
       }))
-      await sb.from('trial_results').insert(rows)
+      const { error: trialErr } = await sb.from('trial_results').insert(rows)
+      if (trialErr) {
+        console.error('[submissions POST] trial_results', trialErr.message)
+        return NextResponse.json(
+          { error: `Session saved but trials failed: ${trialErr.message}` },
+          { status: 500 },
+        )
+      }
     }
 
     return NextResponse.json({

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
@@ -9,41 +9,33 @@ import { cn } from '@/lib/utils'
 import { StatCard } from '@/components/dashboard-cards'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { getStudentsForTeacher } from '@/lib/mock-data'
-import { 
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, 
-  Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, Cell,
-  PieChart, Pie
+import { mockTests } from '@/lib/mock-data'
+import { listMySessions, listMyStudentsView } from '@/lib/results/results-service'
+import {
+  mergeRosterWithSessions,
+  classDomainAveragesFromSessions,
+  weeklyCompletionCounts,
+  weakDomainsFromSessions,
+  type RosterStudentRow,
+} from '@/lib/teacher-cohort-stats'
+import {
+  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
+  Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter,
 } from 'recharts'
 import { Users, TrendingUp, AlertCircle, BookOpen } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 
-const classPerformanceData = [
-  { domain: 'Numerical', avgScore: 76.5 },
-  { domain: 'Spatial', avgScore: 68.2 },
-  { domain: 'Problem', avgScore: 65.8 },
-  { domain: 'Algebra', avgScore: 0 },
-]
-
-const attendanceTrend = [
-  { week: 'Week 1', completion: 72 },
-  { week: 'Week 2', completion: 78 },
-  { week: 'Week 3', completion: 85 },
-  { week: 'Week 4', completion: 88 },
-]
-
-const weakAreaDistribution = [
-  { name: 'Spatial', students: 2 },
-  { name: 'Problem Solving', students: 2 },
-  { name: 'Algebra', students: 3 },
-  { name: 'Advanced Geometry', students: 1 },
-]
-
 export default function TeacherDashboard() {
   const router = useRouter()
   const { user, loading } = useAuth()
   const isMobile = useIsMobile()
+  const [myStudents, setMyStudents] = useState<RosterStudentRow[]>([])
+  const [classDomainData, setClassDomainData] = useState<{ domain: string; avgScore: number }[]>([])
+  const [weeklyTrend, setWeeklyTrend] = useState<{ week: string; completion: number }[]>([])
+  const [weakDomains, setWeakDomains] = useState<{ name: string; students: number }[]>([])
+  const [cohortError, setCohortError] = useState<string | null>(null)
+  const [cohortLoading, setCohortLoading] = useState(false)
 
   useEffect(() => {
     if (!loading && (!user || (user.role !== 'teacher' && user.role !== 'admin'))) {
@@ -51,22 +43,54 @@ export default function TeacherDashboard() {
     }
   }, [loading, user, router])
 
-  // Scope to the logged-in teacher's roster only (admins see all).
-  const myStudents = getStudentsForTeacher(user?.username, user?.role === 'admin')
-  const totalStudents = myStudents.length
-  const avgClassScore =
-    totalStudents > 0
-      ? (myStudents.reduce((sum, s) => sum + s.averageScore, 0) / totalStudents).toFixed(1)
-      : '0.0'
-  const studentsNeedingSupport = myStudents.filter((s) => s.averageScore < 70).length
+  useEffect(() => {
+    if (!user || (user.role !== 'teacher' && user.role !== 'admin')) return
+    let cancelled = false
+    setCohortLoading(true)
+    setCohortError(null)
+    Promise.all([listMyStudentsView(), listMySessions({ limit: 2000 })])
+      .then(([rosterRes, sessRes]) => {
+        if (cancelled) return
+        const err = rosterRes.error ?? sessRes.error
+        if (err) setCohortError(err)
+        const roster = rosterRes.data ?? []
+        const sessions = sessRes.data ?? []
+        setMyStudents(mergeRosterWithSessions(roster, sessions))
+        setClassDomainData(classDomainAveragesFromSessions(mockTests, sessions))
+        setWeeklyTrend(weeklyCompletionCounts(sessions))
+        setWeakDomains(weakDomainsFromSessions(mockTests, sessions))
+      })
+      .catch(() => {
+        if (!cancelled) setCohortError('Could not load roster or sessions.')
+      })
+      .finally(() => {
+        if (!cancelled) setCohortLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [user])
 
-  // Scatter chart derived from the filtered roster — keeps the visualisation
-  // consistent with the table the teacher actually sees.
+  const totalStudents = myStudents.length
+  const activeStudents = myStudents.filter((s) => s.completedTests > 0)
+  const avgClassScore =
+    activeStudents.length > 0
+      ? (activeStudents.reduce((sum, s) => sum + s.averageScore, 0) / activeStudents.length).toFixed(1)
+      : '—'
+  const studentsNeedingSupport = myStudents.filter(
+    (s) => s.completedTests > 0 && s.averageScore < 70,
+  ).length
+
   const studentPerformanceScatter = myStudents.map((s) => ({
-    name: s.name.split(' ')[0],
+    name: s.name.split(/\s+/)[0] ?? s.name,
     testsCompleted: s.completedTests,
     avgScore: s.averageScore,
   }))
+
+  const avgTestsPerStudent =
+    totalStudents > 0
+      ? (myStudents.reduce((sum, s) => sum + s.completedTests, 0) / totalStudents).toFixed(1)
+      : '0.0'
 
   if (loading) {
     return (
@@ -100,38 +124,40 @@ export default function TeacherDashboard() {
         />
 
         <main className="p-4 md:p-6 pt-24 max-w-7xl">
+          {cohortError && (
+            <p className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
+              {cohortError} Certaines cartes peuvent être incomplètes.
+            </p>
+          )}
+          {cohortLoading && (
+            <p className="mb-4 text-xs text-muted-foreground">Chargement des données classe…</p>
+          )}
+
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatCard
               icon={<Users className="w-5 h-5" />}
               title="Total Students"
               value={totalStudents}
-              description="Active in class"
+              description="Roster (my_students)"
             />
             <StatCard
               icon={<TrendingUp className="w-5 h-5" />}
               title="Class Average"
-              value={`${avgClassScore}%`}
-              description="Overall performance"
+              value={avgClassScore === '—' ? '—' : `${avgClassScore}%`}
+              description="Élèves ayant au moins une session terminée"
             />
             <StatCard
               icon={<AlertCircle className="w-5 h-5" />}
               title="Need Support"
               value={studentsNeedingSupport}
-              description="Score below 70%"
+              description="Élèves sous 70 % (avec au moins une session)"
             />
             <StatCard
               icon={<BookOpen className="w-5 h-5" />}
               title="Avg Tests/Student"
-              value={
-                totalStudents > 0
-                  ? (
-                      myStudents.reduce((sum, s) => sum + s.completedTests, 0) /
-                      totalStudents
-                    ).toFixed(1)
-                  : '0.0'
-              }
-              description="Completed assessments"
+              value={avgTestsPerStudent}
+              description="Sessions terminées / élève"
             />
           </div>
 
@@ -158,8 +184,13 @@ export default function TeacherDashboard() {
                 <CardDescription>Average scores across cognitive domains</CardDescription>
               </CardHeader>
               <CardContent>
+                {classDomainData.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-16 text-center">
+                    Pas encore de scores agrégés par domaine (sessions terminées visibles sous RLS).
+                  </p>
+                ) : (
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={classPerformanceData}>
+                  <BarChart data={classDomainData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis dataKey="domain" />
                     <YAxis />
@@ -173,6 +204,7 @@ export default function TeacherDashboard() {
                     <Bar dataKey="avgScore" fill="#1e3a8a" radius={[8, 8, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
 
@@ -183,6 +215,11 @@ export default function TeacherDashboard() {
                 <CardDescription>Tests completed vs average score</CardDescription>
               </CardHeader>
               <CardContent>
+                {studentPerformanceScatter.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-16 text-center">
+                    Aucun élève dans le roster ou données encore vides.
+                  </p>
+                ) : (
                 <ResponsiveContainer width="100%" height={300}>
                   <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -209,6 +246,7 @@ export default function TeacherDashboard() {
                     <Scatter name="Students" data={studentPerformanceScatter} fill="#1e3a8a" />
                   </ScatterChart>
                 </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -217,11 +255,16 @@ export default function TeacherDashboard() {
           <Card className="mb-8">
             <CardHeader>
               <CardTitle>Assessment Completion Trend</CardTitle>
-              <CardDescription>Weekly class assessment completion rate</CardDescription>
+              <CardDescription>Nombre de sessions terminées par semaine (cohorte visible)</CardDescription>
             </CardHeader>
             <CardContent>
+              {weeklyTrend.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-12 text-center">
+                  Aucune complétion enregistrée sur la période.
+                </p>
+              ) : (
               <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={attendanceTrend}>
+                <LineChart data={weeklyTrend}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="week" />
                   <YAxis domain={[0, 100]} />
@@ -239,10 +282,11 @@ export default function TeacherDashboard() {
                     stroke="#0d9488"
                     strokeWidth={2}
                     dot={{ fill: '#0d9488', r: 5 }}
-                    name="Completion Rate (%)"
+                    name="Completions"
                   />
                 </LineChart>
               </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
 
@@ -251,23 +295,27 @@ export default function TeacherDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Identified Weak Areas</CardTitle>
-                <CardDescription>Capacities where students struggle most</CardDescription>
+                <CardDescription>Domaines avec scores moyens plus bas (sessions terminées)</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {weakAreaDistribution.map((area) => (
-                    <div key={area.name} className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-foreground">{area.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {area.students} student{area.students !== 1 ? 's' : ''} need support
-                        </p>
+                  {weakDomains.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Pas assez de données pour classer les domaines.</p>
+                  ) : (
+                    weakDomains.map((area) => (
+                      <div key={area.name} className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-foreground">{area.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {area.students} élève{area.students !== 1 ? 's' : ''} avec épreuve sous 70 %
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-warning">{area.students}</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-warning">{area.students}</p>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>

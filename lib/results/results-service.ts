@@ -33,6 +33,8 @@ import type { Database } from '@/lib/types/database'
 type Trial = Database['public']['Tables']['trial_results']['Insert']
 type SessionRow = Database['public']['Tables']['test_sessions']['Row']
 
+export type MyStudentViewRow = Database['public']['Views']['my_students']['Row']
+
 export interface StartSessionInput {
   testId: string
   metadata?: Record<string, unknown>
@@ -102,7 +104,10 @@ export async function finishSession(
   if (input.trials.length > 0) {
     const rows: Trial[] = input.trials.map((t) => ({ ...t, session_id: sessionId }))
     const { error: insertError } = await sb.from('trial_results').insert(rows)
-    if (insertError) return { ok: false, error: insertError.message }
+    if (insertError) {
+      console.error('[finishSession] trial_results', insertError.message)
+      return { ok: false, error: insertError.message }
+    }
   }
 
   return { ok: true, error: null }
@@ -136,4 +141,14 @@ export async function listSessionsForStudent(
     .eq('user_id', studentId)
     .order('started_at', { ascending: false })
   return { data: data ?? [], error: error?.message ?? null }
+}
+
+/** Teacher/admin roster from `my_students` (RLS-scoped). */
+export async function listMyStudentsView(): Promise<{
+  data: MyStudentViewRow[]
+  error: string | null
+}> {
+  const sb = getSupabaseBrowser()
+  const { data, error } = await sb.from('my_students').select('*').order('email', { ascending: true })
+  return { data: (data ?? []) as MyStudentViewRow[], error: error?.message ?? null }
 }

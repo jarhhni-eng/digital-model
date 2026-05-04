@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
 import { useIsMobile } from '@/components/ui/use-mobile'
@@ -9,10 +9,23 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import {
-  Brain, Eye, Zap, Target, Activity, Layers,
-  CheckCircle2, Clock, Circle, Triangle, FileSignature,
+  Target,
+  Activity,
+  CheckCircle2,
+  Clock,
+  Circle,
+  FileSignature,
 } from 'lucide-react'
+import { getDomainPresentation } from '@/lib/domain-ui'
 import { useAuth } from '@/lib/auth-context'
+import { mockTests } from '@/lib/mock-data'
+import { listMySessions } from '@/lib/results/results-service'
+import {
+  mergeCatalogWithSessions,
+  groupTestsByDomain,
+  averageCompletedScore,
+  type TestWithProgress,
+} from '@/lib/student-test-progress'
 import {
   getLatestResultForUser,
   BEERY_MOTRICE_ITEM_COUNT,
@@ -25,96 +38,6 @@ import { getLatestTMTResult, TMTResult } from '@/lib/attentional/trail-making'
 import { getLatestShAResult, ShAResult } from '@/lib/attentional/shifting-attention'
 import { getLatestRAVLTResult, RAVLTResult } from '@/lib/memory/ravlt'
 import { getLatestDigitSpanResult, DigitSpanResult } from '@/lib/memory/digit-span'
-
-// ─── Exact same domain/test definitions as dashboard ──────────────────────────
-
-const DOMAINS = [
-  {
-    id: 'attentional',
-    name: 'Attentional capacities',
-    nameFr: 'Capacités attentionnelles',
-    icon: <Target className="w-4 h-4" />,
-    color: '#3b82f6',
-    score: 74,
-    tests: [
-      { id: 'test-divided-attention',       name: 'Divided attention',       status: 'completed',   score: 78 },
-      { id: 'test-selective-attention',     name: 'Selective attention',     status: 'completed',   score: 72 },
-      { id: 'test-sustained-attention',     name: 'Sustained attention',     status: 'in-progress', score: 65 },
-      { id: 'test-visuo-spatial-attention', name: 'Attentional flexibility', status: 'upcoming',    score: 0  },
-    ],
-  },
-  {
-    id: 'reasoning',
-    name: 'Reasoning capacities',
-    nameFr: 'Capacités de raisonnement',
-    icon: <Brain className="w-4 h-4" />,
-    color: '#8b5cf6',
-    score: 68,
-    tests: [
-      { id: 'test-deductive-reasoning', name: 'Deductive reasoning', status: 'completed', score: 75 },
-      { id: 'test-inductive-reasoning', name: 'Inductive reasoning', status: 'upcoming',  score: 0  },
-    ],
-  },
-  {
-    id: 'spatial',
-    name: 'Spatial reasoning',
-    nameFr: 'Raisonnement spatial',
-    icon: <Layers className="w-4 h-4" />,
-    color: '#10b981',
-    score: 61,
-    tests: [
-      { id: 'test-mental-rotation',        name: '2D mental rotation',    status: 'completed',   score: 65 },
-      { id: 'test-mental-rotation-3d',     name: '3D mental rotation',    status: 'in-progress', score: 55 },
-      { id: 'test-spatial-transformation', name: 'Mental transformation', status: 'upcoming',    score: 0  },
-      { id: 'test-spatial-orientation',    name: 'Spatial orientation',   status: 'upcoming',    score: 0  },
-    ],
-  },
-  {
-    id: 'visual',
-    name: 'Visual processing',
-    nameFr: 'Traitement visuel',
-    icon: <Eye className="w-4 h-4" />,
-    color: '#f59e0b',
-    score: 70,
-    tests: [
-      { id: 'test-visuo-motor',        name: 'Visual-motor ability',          status: 'completed',   score: 80 },
-      { id: 'test-visuo-constructive', name: 'Visual constructive ability',    status: 'completed',   score: 74 },
-      { id: 'test-visuo-perceptive',   name: 'Visual discrimination (TVPS)',   status: 'completed',   score: 72 },
-      { id: 'test-visuo-perceptive',   name: 'Visual memory (TVPS)',           status: 'completed',   score: 68 },
-      { id: 'test-visuo-perceptive',   name: 'Spatial relations (TVPS)',       status: 'in-progress', score: 60 },
-      { id: 'test-visuo-perceptive',   name: 'Form constancy (TVPS)',          status: 'upcoming',    score: 0  },
-      { id: 'test-visuo-perceptive',   name: 'Sequential memory (TVPS)',       status: 'upcoming',    score: 0  },
-      { id: 'test-visuo-perceptive',   name: 'Figure-ground (TVPS)',           status: 'upcoming',    score: 0  },
-      { id: 'test-visuo-perceptive',   name: 'Visual closure (TVPS)',          status: 'upcoming',    score: 0  },
-    ],
-  },
-  {
-    id: 'memory',
-    name: 'Memory capacities',
-    nameFr: 'Capacités de mémoire',
-    icon: <Activity className="w-4 h-4" />,
-    color: '#ef4444',
-    score: 66,
-    tests: [
-      { id: 'test-visuo-spatial-memory', name: 'Working memory (visuospatial)', status: 'completed',   score: 70 },
-      { id: 'test-working-memory',       name: 'Working memory (global)',        status: 'in-progress', score: 58 },
-      { id: 'test-long-term-memory',     name: 'Long-term memory',               status: 'upcoming',    score: 0  },
-    ],
-  },
-  {
-    id: 'executive',
-    name: 'Executive functions',
-    nameFr: 'Fonctions exécutives',
-    icon: <Zap className="w-4 h-4" />,
-    color: '#06b6d4',
-    score: 63,
-    tests: [
-      { id: 'test-cognitive-flexibility', name: 'Cognitive flexibility', status: 'completed',   score: 68 },
-      { id: 'test-inhibition',            name: 'Inhibition',            status: 'completed',   score: 60 },
-      { id: 'test-processing-speed',      name: 'Processing speed',      status: 'upcoming',    score: 0  },
-    ],
-  },
-]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -158,7 +81,12 @@ function scoreColor(score: number) {
 
 export default function ResultsPage() {
   const isMobile = useIsMobile()
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
+  const [mergedTests, setMergedTests] = useState<TestWithProgress[]>(() =>
+    mergeCatalogWithSessions(mockTests, []),
+  )
+  const [resultsFetchError, setResultsFetchError] = useState<string | null>(null)
+  const [sessionsLoading, setSessionsLoading] = useState(true)
   const [beery, setBeery] = useState<BeeryMotriceResult | null>(null)
   const [da, setDa] = useState<DARResult | null>(null)
   const [sa, setSa] = useState<SAResult | null>(null)
@@ -201,13 +129,53 @@ export default function ResultsPage() {
     }
   }, [user])
 
-  const totalTests = DOMAINS.reduce((s, d) => s + d.tests.length, 0)
-  const completedTests = DOMAINS.reduce(
-    (s, d) => s + d.tests.filter(t => t.status === 'completed').length, 0
+  useEffect(() => {
+    if (!user) {
+      setMergedTests(mergeCatalogWithSessions(mockTests, []))
+      setSessionsLoading(false)
+      setResultsFetchError(null)
+      return
+    }
+    let cancelled = false
+    setSessionsLoading(true)
+    setResultsFetchError(null)
+    listMySessions({ limit: 500 })
+      .then(({ data, error }) => {
+        if (cancelled) return
+        if (error) {
+          setResultsFetchError(error)
+          setMergedTests(mergeCatalogWithSessions(mockTests, []))
+          return
+        }
+        setMergedTests(mergeCatalogWithSessions(mockTests, data))
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setResultsFetchError('Could not load your sessions.')
+          setMergedTests(mergeCatalogWithSessions(mockTests, []))
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setSessionsLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [user])
+
+  const groupedDomains = useMemo(
+    () => groupTestsByDomain(mergedTests),
+    [mergedTests],
   )
-  const overallScore = Math.round(
-    DOMAINS.reduce((s, d) => s + d.score, 0) / DOMAINS.length
+  const totalTests = mergedTests.length
+  const completedTests = mergedTests.filter((t) => t.status === 'completed').length
+  const completedWithScore = mergedTests.filter(
+    (t) => t.status === 'completed' && t.latestScore != null,
   )
+  const overallScoreLabel =
+    completedWithScore.length > 0
+      ? `${averageCompletedScore(mergedTests)}%`
+      : '—'
 
   return (
     <div className="bg-background min-h-screen">
@@ -220,13 +188,30 @@ export default function ResultsPage() {
         />
 
         <main className={cn('p-4 md:p-6 pt-24 max-w-5xl', isMobile && 'pb-20')}>
+          {resultsFetchError && (
+            <p className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
+              {resultsFetchError} Les domaines ci-dessous reflètent le catalogue seulement jusqu&apos;à la
+              prochaine synchronisation.
+            </p>
+          )}
+          {(authLoading || sessionsLoading) && user && (
+            <p className="mb-4 text-xs text-muted-foreground">
+              Synchronisation de vos résultats avec le serveur…
+            </p>
+          )}
+
+          <p className="mb-6 text-xs text-muted-foreground">
+            Les tableaux par domaine proviennent de votre compte (sessions Supabase). Les encarts
+            mémoire / attention / Beery ci-dessus utilisent le stockage local de ce navigateur lorsque
+            vous avez passé ces épreuves ici.
+          </p>
 
           {/* ── Summary bar ─────────────────────────────────────────────────── */}
           <div className="grid grid-cols-3 gap-4 mb-8">
             <Card className="text-center">
               <CardContent className="pt-5 pb-4">
-                <p className="text-3xl font-bold text-primary">{overallScore}%</p>
-                <p className="text-xs text-muted-foreground mt-1">Overall score</p>
+                <p className="text-3xl font-bold text-primary">{overallScoreLabel}</p>
+                <p className="text-xs text-muted-foreground mt-1">Moyenne score (tests terminés)</p>
               </CardContent>
             </Card>
             <Card className="text-center">
@@ -329,33 +314,36 @@ export default function ResultsPage() {
             </Card>
           )}
 
-          {/* ── Domain → Tests → Scores ─────────────────────────────────────── */}
+          {/* ── Domain → Tests → Scores (Supabase-backed) ───────────────────── */}
           <div className="space-y-6">
-            {DOMAINS.map((domain) => {
-              const completed = domain.tests.filter(t => t.status === 'completed').length
-              const total = domain.tests.length
+            {groupedDomains.map(({ domain, tests }) => {
+              const ui = getDomainPresentation(domain)
+              const domainScore = averageCompletedScore(tests)
+              const completed = tests.filter((t) => t.status === 'completed').length
+              const total = tests.length
 
               return (
-                <Card key={domain.id} className="overflow-hidden">
-                  {/* Domain header */}
+                <Card key={domain} className="overflow-hidden">
                   <CardHeader
                     className="pb-3"
-                    style={{ borderLeft: `4px solid ${domain.color}` }}
+                    style={{ borderLeft: `4px solid ${ui.color}` }}
                   >
-                    <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <span style={{ color: domain.color }}>{domain.icon}</span>
+                        <span style={{ color: ui.color }}>{ui.icon}</span>
                         <div>
-                          <CardTitle className="text-base">{domain.name}</CardTitle>
-                          <p className="text-xs text-muted-foreground">{domain.nameFr}</p>
+                          <CardTitle className="text-base">{domain}</CardTitle>
+                          <p className="text-xs text-muted-foreground">{ui.nameFr}</p>
                         </div>
                       </div>
                       <div className="text-right">
                         <p
                           className="text-2xl font-bold"
-                          style={{ color: domain.color }}
+                          style={{ color: ui.color }}
                         >
-                          {domain.score}%
+                          {completed > 0 && tests.some((t) => t.latestScore != null)
+                            ? `${domainScore}%`
+                            : '—'}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {completed}/{total} completed
@@ -363,58 +351,50 @@ export default function ResultsPage() {
                       </div>
                     </div>
 
-                    {/* Domain progress bar */}
                     <div className="mt-3">
                       <Progress
-                        value={domain.score}
+                        value={domainScore}
                         className="h-2"
-                        style={{ '--progress-color': domain.color } as React.CSSProperties}
+                        style={{ '--progress-color': ui.color } as React.CSSProperties}
                       />
                     </div>
                   </CardHeader>
 
-                  {/* Tests list */}
                   <CardContent className="pt-0">
                     <div className="divide-y divide-border">
-                      {domain.tests.map((test, idx) => (
+                      {tests.map((test) => (
                         <div
-                          key={`${test.id}-${idx}`}
-                          className="flex items-center justify-between py-3 gap-3"
+                          key={test.id}
+                          className="flex items-center justify-between gap-3 py-3"
                         >
-                          {/* Test name + status */}
-                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="flex min-w-0 flex-1 items-center gap-3">
                             <div
-                              className="w-2 h-2 rounded-full flex-shrink-0"
+                              className="h-2 w-2 flex-shrink-0 rounded-full"
                               style={{
                                 backgroundColor:
                                   test.status === 'completed'
                                     ? '#16a34a'
                                     : test.status === 'in-progress'
-                                    ? '#f59e0b'
-                                    : '#d1d5db',
+                                      ? '#f59e0b'
+                                      : '#d1d5db',
                               }}
                             />
-                            <span className="text-sm font-medium truncate">
-                              {test.name}
-                            </span>
+                            <span className="truncate text-sm font-medium">{test.title}</span>
                           </div>
 
-                          {/* Status badge */}
                           <div className="flex-shrink-0">
                             <StatusBadge status={test.status} />
                           </div>
 
-                          {/* Score */}
-                          <div className="w-16 text-right flex-shrink-0">
-                            {test.status !== 'upcoming' ? (
+                          <div className="w-16 flex-shrink-0 text-right">
+                            {test.status === 'completed' && test.latestScore != null ? (
                               <span
-                                className={cn(
-                                  'text-sm font-bold',
-                                  scoreColor(test.score)
-                                )}
+                                className={cn('text-sm font-bold', scoreColor(test.latestScore))}
                               >
-                                {test.score}%
+                                {test.latestScore}%
                               </span>
+                            ) : test.status === 'in-progress' ? (
+                              <span className="text-xs text-amber-600">En cours</span>
                             ) : (
                               <span className="text-xs text-muted-foreground">—</span>
                             )}

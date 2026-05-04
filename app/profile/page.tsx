@@ -10,7 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { mockStudentResults, mockTeacherStudents } from '@/lib/mock-data'
+import { mockTests } from '@/lib/mock-data'
+import { listMySessions, listMyStudentsView } from '@/lib/results/results-service'
+import { mergeCatalogWithSessions, averageCompletedScore } from '@/lib/student-test-progress'
+import { mergeRosterWithSessions } from '@/lib/teacher-cohort-stats'
 import { useAuth } from '@/lib/auth-context'
 import type { StudentAcademicProfile } from '@/lib/student-profile-types'
 import { Mail, User, Calendar, Award, Activity, School } from 'lucide-react'
@@ -20,6 +23,21 @@ export default function ProfilePage() {
   const isMobile = useIsMobile()
   const { user, loading } = useAuth()
   const [academic, setAcademic] = useState<StudentAcademicProfile | null>(null)
+  const [studentSessionStats, setStudentSessionStats] = useState<{
+    averageScore: number | null
+    latestScore: number | null
+    latestLabel: string | null
+    latestDate: string | null
+  }>({
+    averageScore: null,
+    latestScore: null,
+    latestLabel: null,
+    latestDate: null,
+  })
+  const [teacherOverview, setTeacherOverview] = useState<{
+    studentCount: number
+    classAverage: number | null
+  }>({ studentCount: 0, classAverage: null })
 
   useEffect(() => {
     if (!loading && !user) router.replace('/')
@@ -35,6 +53,70 @@ export default function ProfilePage() {
       .catch(() => setAcademic(null))
   }, [user])
 
+  useEffect(() => {
+    if (!user || user.role !== 'student') return
+    listMySessions({ limit: 200 })
+      .then(({ data, error }) => {
+        if (error || !data?.length) {
+          setStudentSessionStats({
+            averageScore: null,
+            latestScore: null,
+            latestLabel: null,
+            latestDate: null,
+          })
+          return
+        }
+        const merged = mergeCatalogWithSessions(mockTests, data)
+        const avg = averageCompletedScore(merged)
+        const hasCompleted = merged.some(
+          (t) => t.status === 'completed' && t.latestScore != null,
+        )
+        const completed = [...data]
+          .filter((s) => s.status === 'completed' && s.score != null)
+          .sort(
+            (a, b) =>
+              new Date(b.completed_at ?? b.started_at).getTime() -
+              new Date(a.completed_at ?? a.started_at).getTime(),
+          )
+        const last = completed[0]
+        const title = last ? mockTests.find((t) => t.id === last.test_id)?.title ?? last.test_id : null
+        setStudentSessionStats({
+          averageScore: hasCompleted ? avg : null,
+          latestScore: last != null ? Math.round(Number(last.score)) : null,
+          latestLabel: title,
+          latestDate:
+            last != null
+              ? new Date(last.completed_at ?? last.started_at).toLocaleDateString('fr-FR')
+              : null,
+        })
+      })
+      .catch(() =>
+        setStudentSessionStats({
+          averageScore: null,
+          latestScore: null,
+          latestLabel: null,
+          latestDate: null,
+        }),
+      )
+  }, [user])
+
+  useEffect(() => {
+    if (!user || user.role !== 'teacher') return
+    Promise.all([listMyStudentsView(), listMySessions({ limit: 2000 })])
+      .then(([rosterRes, sessRes]) => {
+        const roster = rosterRes.data ?? []
+        const sessions = sessRes.data ?? []
+        const merged = mergeRosterWithSessions(roster, sessions)
+        const active = merged.filter((m) => m.completedTests > 0)
+        const classAvg =
+          active.length > 0
+            ? active.reduce((sum, m) => sum + m.averageScore, 0) / active.length
+            : null
+        setTeacherOverview({ studentCount: roster.length, classAverage: classAvg })
+      })
+      .catch(() => setTeacherOverview({ studentCount: 0, classAverage: null }))
+  }, [user])
+
   if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -47,13 +129,8 @@ export default function ProfilePage() {
   const displayName = user.displayName?.trim() || user.username
   const displayEmail = user.username
 
-  const latestResult = mockStudentResults[0]
-  const averageScore =
-    mockStudentResults.reduce((sum, r) => sum + r.score, 0) / mockStudentResults.length
-
-  const totalStudents = mockTeacherStudents.length
-  const classAverage =
-    mockTeacherStudents.reduce((sum, s) => sum + s.averageScore, 0) / totalStudents
+  const totalStudents = teacherOverview.studentCount
+  const classAverage = teacherOverview.classAverage
 
   const initials = displayName
     .split(/\s+/)
@@ -125,8 +202,8 @@ export default function ProfilePage() {
                 {!isTeacher && (
                   <p className="text-xs text-muted-foreground">
                     Les données académiques détaillées proviennent de votre dossier CogniTest lorsque
-                    le profil élève a été complété. Les indicateurs ci-dessous restent des exemples
-                    de visualisation.
+                    le profil élève a été complété. Les scores d&apos;évaluation proviennent de vos
+                    sessions enregistrées dans Supabase.
                   </p>
                 )}
                 {isTeacher && (
@@ -163,7 +240,10 @@ export default function ProfilePage() {
                       <div className="space-y-1">
                         <p className="text-xs text-muted-foreground">Class average</p>
                         <p className="text-xl font-semibold text-foreground">
-                          {classAverage.toFixed(1)}%
+                          {classAverage != null ? `${classAverage.toFixed(1)}%` : '—'}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          Moyenne des élèves ayant au moins une session terminée
                         </p>
                       </div>
                     </>
@@ -172,16 +252,23 @@ export default function ProfilePage() {
                       <div className="space-y-1">
                         <p className="text-xs text-muted-foreground">Overall score</p>
                         <p className="text-xl font-semibold text-foreground">
-                          {Math.round(averageScore)}%
+                          {studentSessionStats.averageScore != null
+                            ? `${studentSessionStats.averageScore}%`
+                            : '—'}
                         </p>
                       </div>
                       <div className="space-y-1">
                         <p className="text-xs text-muted-foreground">Latest assessment</p>
                         <p className="text-xl font-semibold text-foreground">
-                          {latestResult?.score ?? 0}%
+                          {studentSessionStats.latestScore != null
+                            ? `${studentSessionStats.latestScore}%`
+                            : '—'}
                         </p>
                         <p className="text-[11px] text-muted-foreground">
-                          {latestResult?.domain} · {latestResult?.date}
+                          {studentSessionStats.latestLabel ?? '—'}
+                          {studentSessionStats.latestDate
+                            ? ` · ${studentSessionStats.latestDate}`
+                            : ''}
                         </p>
                       </div>
                     </>

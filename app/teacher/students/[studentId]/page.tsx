@@ -1,31 +1,42 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
 import { useIsMobile } from '@/components/ui/use-mobile'
 import { cn } from '@/lib/utils'
-import { StatCard, ProgressCard } from '@/components/dashboard-cards'
+import { StatCard } from '@/components/dashboard-cards'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/auth-context'
-import { getStudentsForTeacher, mockDomains } from '@/lib/mock-data'
-import { 
-  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, 
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, 
-  Tooltip, Legend, ResponsiveContainer, Area, AreaChart
+import { mockTests } from '@/lib/mock-data'
+import { listMyStudentsView, listSessionsForStudent } from '@/lib/results/results-service'
+import {
+  mergeCatalogWithSessions,
+  groupTestsByDomain,
+  averageCompletedScore,
+} from '@/lib/student-test-progress'
+import { mergeRosterWithSessions, type RosterStudentRow } from '@/lib/teacher-cohort-stats'
+import type { Database } from '@/lib/types/database'
+import {
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Area,
+  AreaChart,
+  XAxis,
+  YAxis,
+  CartesianGrid,
 } from 'recharts'
 import { ArrowLeft, Mail, Calendar, Award, TrendingUp, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 
-const radarData = [
-  { capacity: 'Counting', score: 85 },
-  { capacity: 'Arithmetic', score: 72 },
-  { capacity: 'Comparison', score: 80 },
-  { capacity: 'Rotation', score: 65 },
-  { capacity: 'Geometry', score: 72 },
-]
+type SessionRow = Database['public']['Tables']['test_sessions']['Row']
 
 interface StudentDetailsPageProps {
   params: {
@@ -36,16 +47,115 @@ interface StudentDetailsPageProps {
 export default function StudentDetailsPage({ params }: StudentDetailsPageProps) {
   const router = useRouter()
   const isMobile = useIsMobile()
-  const { user } = useAuth()
-  const myStudents = getStudentsForTeacher(user?.username, user?.role === 'admin')
-  const student = myStudents.find((s) => s.id === params.studentId)
+  const { user, loading: authLoading } = useAuth()
+  const [student, setStudent] = useState<RosterStudentRow | null>(null)
+  const [sessions, setSessions] = useState<SessionRow[]>([])
+  const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading')
 
-  // Block access if the student doesn't belong to this teacher
   useEffect(() => {
-    if (user && !student) {
-      router.replace('/teacher/dashboard')
+    if (!user) return
+    let cancelled = false
+    setLoadState('loading')
+    Promise.all([listMyStudentsView(), listSessionsForStudent(params.studentId)])
+      .then(([rosterRes, sessRes]) => {
+        if (cancelled) return
+        const roster = rosterRes.data ?? []
+        const sess = sessRes.data ?? []
+        const merged = mergeRosterWithSessions(roster, sess)
+        const found = merged.find((s) => s.id === params.studentId) ?? null
+        setStudent(found)
+        setSessions(sess)
+        if (!found) router.replace('/teacher/dashboard')
+      })
+      .catch(() => {
+        if (!cancelled) setLoadState('error')
+      })
+      .finally(() => {
+        if (!cancelled) setLoadState('ready')
+      })
+    return () => {
+      cancelled = true
     }
-  }, [user, student, router])
+  }, [user, params.studentId, router])
+
+  const mergedTests = useMemo(
+    () => mergeCatalogWithSessions(mockTests, sessions),
+    [sessions],
+  )
+
+  const groupedDomains = useMemo(() => groupTestsByDomain(mergedTests), [mergedTests])
+
+  const radarData = useMemo(
+    () =>
+      groupedDomains.map(({ domain, tests }) => ({
+        capacity: domain.length > 18 ? `${domain.slice(0, 16)}…` : domain,
+        score: averageCompletedScore(tests),
+      })),
+    [groupedDomains],
+  )
+
+  const attemptHistory = useMemo(() => {
+    const testToDomain = new Map(mockTests.map((t) => [t.id, t.domain]))
+    return [...sessions]
+      .filter((s) => s.status === 'completed' && s.score != null)
+      .sort(
+        (a, b) =>
+          new Date(a.completed_at ?? a.started_at).getTime() -
+          new Date(b.completed_at ?? b.started_at).getTime(),
+      )
+      .map((s, i) => ({
+        attempt: String(i + 1),
+        date: new Date(s.completed_at ?? s.started_at).toLocaleDateString('fr-FR'),
+        score: Math.round(Number(s.score)),
+        domain: testToDomain.get(s.test_id) ?? s.test_id,
+      }))
+  }, [sessions])
+
+  const weakTitles = useMemo(
+    () =>
+      mergedTests
+        .filter(
+          (t) => t.status === 'completed' && t.latestScore != null && (t.latestScore as number) < 70,
+        )
+        .map((t) => t.title),
+    [mergedTests],
+  )
+
+  const bestScore = useMemo(() => {
+    const scores = sessions
+      .filter((s) => s.status === 'completed' && s.score != null)
+      .map((s) => Math.round(Number(s.score)))
+    return scores.length > 0 ? Math.max(...scores) : null
+  }, [sessions])
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground text-sm">Chargement…</p>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background p-6">
+        <p className="text-muted-foreground text-sm">Connexion requise.</p>
+        <Button variant="outline" asChild>
+          <Link href="/">Retour</Link>
+        </Button>
+      </div>
+    )
+  }
+
+  if (loadState === 'loading' || loadState === 'error') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground text-sm">
+          {loadState === 'error' ? 'Impossible de charger les données.' : 'Chargement…'}
+        </p>
+      </div>
+    )
+  }
 
   if (!student) {
     return (
@@ -56,42 +166,28 @@ export default function StudentDetailsPage({ params }: StudentDetailsPageProps) 
       </div>
     )
   }
-  const attemptHistory = [
-    { attempt: '1', date: '2025-02-15', score: 68, domain: 'Numerical' },
-    { attempt: '2', date: '2025-02-18', score: 72, domain: 'Spatial' },
-    { attempt: '3', date: '2025-02-20', score: 78, domain: 'Numerical' },
-    { attempt: '4', date: '2025-02-22', score: 65, domain: 'Problem Solving' },
-  ]
 
   return (
     <div className="bg-background min-h-screen">
       <Sidebar userRole="teacher" />
-      
-      <div className={cn("transition-all duration-200", isMobile ? "ml-0" : "ml-64")}>
+
+      <div className={cn('transition-all duration-200', isMobile ? 'ml-0' : 'ml-64')}>
         <Header
           title={`Profil élève : ${student.name}`}
-          subtitle="Progression détaillée et historique des évaluations"
+          subtitle="Progression détaillée et historique des évaluations (Supabase)"
         />
 
         <main className="p-4 md:p-6 pt-24 max-w-7xl">
-          {/* Back Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.back()}
-            className="mb-6"
-          >
+          <Button variant="outline" size="sm" onClick={() => router.back()} className="mb-6">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Class
           </Button>
 
-          {/* Student Info Card */}
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className="text-2xl">{student.name}</CardTitle>
               <CardDescription>
-                Inscrit le {student.joinDate}
-                {student.scholarLevel ? ` · ${student.scholarLevel}` : ''}
+                {student.scholarLevel ? `Niveau : ${student.scholarLevel}` : 'Profil élève'}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -101,18 +197,14 @@ export default function StudentDetailsPage({ params }: StudentDetailsPageProps) 
                     <Mail className="w-5 h-5 text-muted-foreground" />
                     <div>
                       <p className="text-xs text-muted-foreground">Gmail</p>
-                      <p className="text-sm font-medium text-foreground">
-                        {student.email}
-                      </p>
+                      <p className="text-sm font-medium text-foreground">{student.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Calendar className="w-5 h-5 text-muted-foreground" />
                     <div>
-                      <p className="text-xs text-muted-foreground">Inscription</p>
-                      <p className="text-sm font-medium text-foreground">
-                        {student.joinDate}
-                      </p>
+                      <p className="text-xs text-muted-foreground">Compte</p>
+                      <p className="text-sm font-medium text-foreground">Roster enseignant</p>
                     </div>
                   </div>
                 </div>
@@ -121,21 +213,16 @@ export default function StudentDetailsPage({ params }: StudentDetailsPageProps) 
                   <div className="bg-primary/5 rounded-lg p-3 border border-primary/20">
                     <p className="text-xs text-muted-foreground mb-1">Score moyen</p>
                     <p className="text-2xl font-bold text-primary">
-                      {student.averageScore.toFixed(1)}%
+                      {student.completedTests > 0 ? `${student.averageScore.toFixed(1)}%` : '—'}
                     </p>
                   </div>
                   <div className="bg-secondary/5 rounded-lg p-3 border border-secondary/20">
-                    <p className="text-xs text-muted-foreground mb-1">
-                      Tests réalisés
-                    </p>
-                    <p className="text-2xl font-bold text-secondary">
-                      {student.completedTests}
-                    </p>
+                    <p className="text-xs text-muted-foreground mb-1">Tests réalisés</p>
+                    <p className="text-2xl font-bold text-secondary">{student.completedTests}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Math averages — moyenne générale en mathématiques */}
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-6">
                 <div className="rounded-lg border p-3">
                   <p className="text-xs text-muted-foreground mb-1">
@@ -161,13 +248,12 @@ export default function StudentDetailsPage({ params }: StudentDetailsPageProps) 
             </CardContent>
           </Card>
 
-          {/* Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatCard
               icon={<Award className="w-5 h-5" />}
               title="Current Avg"
-              value={`${student.averageScore.toFixed(1)}%`}
-              description="Performance level"
+              value={student.completedTests > 0 ? `${student.averageScore.toFixed(1)}%` : '—'}
+              description="Sessions terminées"
             />
             <StatCard
               icon={<TrendingUp className="w-5 h-5" />}
@@ -178,151 +264,159 @@ export default function StudentDetailsPage({ params }: StudentDetailsPageProps) 
             <StatCard
               icon={<AlertCircle className="w-5 h-5" />}
               title="Focus Areas"
-              value={student.weakAreas.length}
-              description="Need improvement"
+              value={weakTitles.length}
+              description="Tests terminés sous 70 %"
             />
             <StatCard
               icon={<Award className="w-5 h-5" />}
               title="Best Score"
-              value="85%"
-              description="Counting capacity"
+              value={bestScore != null ? `${bestScore}%` : '—'}
+              description="Meilleure épreuve"
             />
           </div>
 
-          {/* Performance Radar */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <Card>
               <CardHeader>
                 <CardTitle>Capacity Profile</CardTitle>
-                <CardDescription>Performance across different capacities</CardDescription>
+                <CardDescription>Score moyen par domaine (catalogue + sessions)</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <RadarChart data={radarData}>
-                    <PolarGrid stroke="#e2e8f0" />
-                    <PolarAngleAxis dataKey="capacity" tick={{ fontSize: 12 }} />
-                    <PolarRadiusAxis tick={{ fontSize: 12 }} domain={[0, 100]} />
-                    <Radar
-                      name="Score"
-                      dataKey="score"
-                      stroke="#1e3a8a"
-                      fill="#1e3a8a"
-                      fillOpacity={0.6}
-                    />
-                    <Tooltip />
-                  </RadarChart>
-                </ResponsiveContainer>
+                {radarData.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-12 text-center">
+                    Pas encore de domaine avec scores.
+                  </p>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <RadarChart data={radarData}>
+                      <PolarGrid stroke="#e2e8f0" />
+                      <PolarAngleAxis dataKey="capacity" tick={{ fontSize: 11 }} />
+                      <PolarRadiusAxis tick={{ fontSize: 12 }} domain={[0, 100]} />
+                      <Radar
+                        name="Score"
+                        dataKey="score"
+                        stroke="#1e3a8a"
+                        fill="#1e3a8a"
+                        fillOpacity={0.6}
+                      />
+                      <Tooltip />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
 
-            {/* Domain Progress */}
             <Card>
               <CardHeader>
                 <CardTitle>Domain Progress</CardTitle>
-                <CardDescription>Completion across domains</CardDescription>
+                <CardDescription>Moyenne par domaine</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {mockDomains.slice(0, 3).map((domain) => (
-                  <div key={domain.id}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-foreground">
-                        {domain.name}
-                      </span>
-                      <span className="text-sm font-bold text-primary">
-                        {domain.progress}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div
-                        className="bg-gradient-to-r from-primary to-secondary h-full rounded-full"
-                        style={{ width: `${domain.progress}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
+                {groupedDomains.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Aucune donnée.</p>
+                ) : (
+                  groupedDomains.slice(0, 6).map(({ domain, tests }) => {
+                    const pct = averageCompletedScore(tests)
+                    return (
+                      <div key={domain}>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-foreground">{domain}</span>
+                          <span className="text-sm font-bold text-primary">{pct}%</span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2">
+                          <div
+                            className="bg-gradient-to-r from-primary to-secondary h-full rounded-full"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Assessment Trend */}
           <Card className="mb-8">
             <CardHeader>
               <CardTitle>Performance Trend</CardTitle>
-              <CardDescription>Score progression over recent assessments</CardDescription>
+              <CardDescription>Scores des évaluations terminées (ordre chronologique)</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={attemptHistory}>
-                  <defs>
-                    <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#1e3a8a" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#1e3a8a" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="date" />
-                  <YAxis domain={[0, 100]} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '8px',
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="score"
-                    stroke="#1e3a8a"
-                    fillOpacity={1}
-                    fill="url(#colorScore)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              {attemptHistory.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-12 text-center">
+                  Aucune session terminée enregistrée.
+                </p>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={attemptHistory}>
+                    <defs>
+                      <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#1e3a8a" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="#1e3a8a" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis dataKey="date" />
+                    <YAxis domain={[0, 100]} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="score"
+                      stroke="#1e3a8a"
+                      fillOpacity={1}
+                      fill="url(#colorScore)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
 
-          {/* Attempt History */}
           <Card className="mb-8">
             <CardHeader>
               <CardTitle>Assessment History</CardTitle>
-              <CardDescription>Recent test attempts and results</CardDescription>
+              <CardDescription>Sessions terminées</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {attemptHistory.map((attempt) => (
-                  <div
-                    key={attempt.attempt}
-                    className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border border-border hover:border-primary transition-colors"
-                  >
-                    <div className="flex-1">
-                      <p className="font-medium text-foreground">
-                        {attempt.domain}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {attempt.date}
-                      </p>
+                {attemptHistory.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Aucun historique.</p>
+                ) : (
+                  attemptHistory.map((attempt, idx) => (
+                    <div
+                      key={`${attempt.date}-${attempt.score}-${idx}`}
+                      className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border border-border hover:border-primary transition-colors"
+                    >
+                      <div className="flex-1">
+                        <p className="font-medium text-foreground">{attempt.domain}</p>
+                        <p className="text-xs text-muted-foreground">{attempt.date}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-primary">{attempt.score}%</p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-primary">
-                        {attempt.score}%
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Weak Areas & Recommendations */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Areas Needing Support</CardTitle>
               </CardHeader>
               <CardContent>
-                {student.weakAreas.length > 0 ? (
+                {weakTitles.length > 0 ? (
                   <div className="space-y-2">
-                    {student.weakAreas.map((area) => (
+                    {weakTitles.map((area) => (
                       <div
                         key={area}
                         className="flex items-center gap-3 p-3 bg-destructive/5 rounded-lg border border-destructive/20"
@@ -333,9 +427,7 @@ export default function StudentDetailsPage({ params }: StudentDetailsPageProps) 
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">
-                    No weak areas identified
-                  </p>
+                  <p className="text-sm text-muted-foreground">No weak areas identified</p>
                 )}
               </CardContent>
             </Card>

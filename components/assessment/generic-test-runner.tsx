@@ -165,6 +165,7 @@ export function GenericTestRunner({ test }: GenericTestRunnerProps) {
     try {
       const res = await fetch('/api/submissions', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user.userId,
@@ -173,16 +174,19 @@ export function GenericTestRunner({ test }: GenericTestRunnerProps) {
           answers,
         }),
       })
-      if (!res.ok) throw new Error('Submit failed')
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}))
+        throw new Error(typeof errBody.error === 'string' ? errBody.error : 'Submit failed')
+      }
       toast({
         title: 'Test completed and saved successfully',
         description: 'Your responses have been recorded.',
       })
       router.push('/dashboard')
-    } catch {
+    } catch (e) {
       toast({
         title: 'Save failed',
-        description: 'Could not submit. Try again.',
+        description: e instanceof Error ? e.message : 'Could not submit. Try again.',
         variant: 'destructive',
       })
     } finally {
