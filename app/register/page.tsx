@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useAuth } from '@/lib/auth-context'
 import type { PublicRegisterRole } from '@/lib/auth-types'
+import type { PublicSchool } from '@/lib/school-directory'
 import { Brain, Loader2, Lock, Mail, ShieldCheck } from 'lucide-react'
 
 export default function RegisterPage() {
@@ -27,6 +28,32 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [pendingEmail, setPendingEmail] = useState<string | null>(null)
+  const [schools, setSchools] = useState<PublicSchool[]>([])
+  const [schoolsLoading, setSchoolsLoading] = useState(true)
+  const [teacherSchoolId, setTeacherSchoolId] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    setSchoolsLoading(true)
+    fetch('/api/schools')
+      .then((r) => r.json())
+      .then((d: { schools?: PublicSchool[] }) => {
+        if (!cancelled) setSchools(d.schools ?? [])
+      })
+      .catch(() => {
+        if (!cancelled) setSchools([])
+      })
+      .finally(() => {
+        if (!cancelled) setSchoolsLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (role !== 'teacher') setTeacherSchoolId('')
+  }, [role])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -39,7 +66,13 @@ export default function RegisterPage() {
     // useAuth().register() → Supabase signUp. If "Confirm email" is on in
     // Supabase, there is no session until the user clicks the link.
     const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ')
-    const res = await register(email.trim(), password, role, fullName)
+    const res = await register(
+      email.trim(),
+      password,
+      role,
+      fullName,
+      role === 'teacher' ? teacherSchoolId : null,
+    )
     setLoading(false)
 
     if (!res.ok) {
@@ -101,6 +134,42 @@ export default function RegisterPage() {
               <strong className="font-medium text-foreground">enseignant</strong>. Pour toute autre demande, contactez
               l&apos;équipe du projet.
             </p>
+
+            {role === 'teacher' && (
+              <div className="space-y-2">
+                <Label htmlFor="teacher-school">Établissement de rattachement</Label>
+                {schoolsLoading ? (
+                  <p className="text-xs text-muted-foreground flex items-center gap-2 py-2">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Chargement des établissements…
+                  </p>
+                ) : schools.length === 0 ? (
+                  <p className="text-xs text-amber-700 dark:text-amber-500/90 leading-snug rounded-md border border-amber-200 bg-amber-50 dark:bg-amber-950/30 px-3 py-2">
+                    Aucun établissement actif pour le moment. Le super-administrateur doit d&apos;abord créer des écoles
+                    dans l&apos;espace d&apos;administration ; contactez l&apos;équipe si besoin.
+                  </p>
+                ) : (
+                  <select
+                    id="teacher-school"
+                    className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                    value={teacherSchoolId}
+                    onChange={(e) => setTeacherSchoolId(e.target.value)}
+                    required
+                  >
+                    <option value="">— Choisir un établissement —</option>
+                    {schools.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                        {s.city ? ` · ${s.city}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                <p className="text-[11px] text-muted-foreground">
+                  Les enseignants sont rattachés à un établissement enregistré sur la plateforme.
+                </p>
+              </div>
+            )}
 
             {/* First & Last name */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -217,7 +286,11 @@ export default function RegisterPage() {
             <Button
               type="submit"
               className="w-full"
-              disabled={loading || !consentAccepted}
+              disabled={
+                loading ||
+                !consentAccepted ||
+                (role === 'teacher' && (schoolsLoading || schools.length === 0 || !teacherSchoolId))
+              }
             >
               {loading ? (
                 <>

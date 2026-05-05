@@ -13,7 +13,9 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   BarChart3,
+  Building2,
   GitCompare,
+  GraduationCap,
   Gauge,
   LineChart,
   LogOut,
@@ -30,6 +32,16 @@ import { useIsMobile } from '@/components/ui/use-mobile'
 import { useAuth } from '@/lib/auth-context'
 
 const superAdminNav = [
+  {
+    icon: <Building2 className="w-5 h-5" />,
+    label: 'Écoles',
+    href: '/admin/schools',
+  },
+  {
+    icon: <GraduationCap className="w-5 h-5" />,
+    label: 'Enseignants',
+    href: '/admin/teachers',
+  },
   {
     icon: <UserCog className="w-5 h-5" />,
     label: 'Administrateurs',

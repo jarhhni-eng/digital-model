@@ -101,12 +101,40 @@ type MetricsRow = {
 export interface Database {
   public: {
     Tables: {
+      schools: {
+        Row: {
+          id: string
+          name: string
+          city: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          city?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          name?: string
+          city?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+
       profiles: {
         Row: {
           id: string
           email: string
           full_name: string | null
           role: UserRole
+          school_id: string | null
           created_at: string
           updated_at: string
         }
@@ -115,6 +143,7 @@ export interface Database {
           email: string
           full_name?: string | null
           role?: UserRole
+          school_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -122,6 +151,7 @@ export interface Database {
           email?: string
           full_name?: string | null
           role?: UserRole
+          school_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -246,6 +276,7 @@ export interface Database {
       role_of: { Args: { uid: string }; Returns: UserRole }
       is_admin: { Args: Record<string, never>; Returns: boolean }
       is_teacher: { Args: Record<string, never>; Returns: boolean }
+      is_super_admin: { Args: Record<string, never>; Returns: boolean }
       is_my_student: { Args: { student: string }; Returns: boolean }
     }
     Enums: {

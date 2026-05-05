@@ -29,6 +29,8 @@ type AuthContextValue = {
         password: string,
         role: PublicRegisterRole,
         fullName?: string,
+        /** Required when `role` is `teacher` (must match an active `schools.id`). */
+        schoolIdForTeacher?: string | null,
     ) => Promise<RegisterOutcome>
     logout: () => Promise<void>
 }
@@ -138,13 +140,28 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
             password: string,
             role: PublicRegisterRole,
             fullName?: string,
+            schoolIdForTeacher?: string | null,
         ): Promise<RegisterOutcome> => {
+            if (role === 'teacher') {
+                const sid = typeof schoolIdForTeacher === 'string' ? schoolIdForTeacher.trim() : ''
+                if (!sid) {
+                    return {
+                        ok: false as const,
+                        error:
+                            'Choisissez l’établissement auquel vous êtes rattaché pour créer un compte enseignant.',
+                    }
+                }
+            }
             const sb = getSupabaseBrowser()
+            const meta: Record<string, string> = {role, full_name: fullName ?? ''}
+            if (role === 'teacher' && schoolIdForTeacher) {
+                meta.school_id = schoolIdForTeacher.trim()
+            }
             const {data, error} = await sb.auth.signUp({
                 email,
                 password,
                 options: {
-                    data: {role, full_name: fullName ?? ''},
+                    data: meta,
                 },
             })
             if (error) {

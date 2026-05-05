@@ -4,27 +4,8 @@
  * POST body: { email: string, password: string, fullName?: string }
  */
 import { NextResponse } from 'next/server'
-import { getSupabaseServer, getSupabaseAdmin } from '@/lib/supabase/server'
-
-async function requireSuperAdmin() {
-  const sb = await getSupabaseServer()
-  const {
-    data: { user },
-    error: authErr,
-  } = await sb.auth.getUser()
-  if (authErr || !user) {
-    return { response: NextResponse.json({ error: 'Not authenticated' }, { status: 401 }) }
-  }
-  const { data: row, error: pErr } = await sb
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .maybeSingle()
-  if (pErr || row?.role !== 'super_admin') {
-    return { response: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) }
-  }
-  return { user }
-}
+import { getSupabaseAdmin } from '@/lib/supabase/server'
+import { requireSuperAdmin } from '@/lib/api/require-super-admin'
 
 export async function GET() {
   const gate = await requireSuperAdmin()

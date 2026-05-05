@@ -48,6 +48,7 @@ export async function ensureTestSessionFkPrereqs(
           email,
           full_name: typeof meta?.full_name === 'string' ? meta.full_name.trim() || null : null,
           role,
+          school_id: null,
         })
         if (pErr && pErr.code !== '23505') {
           return { ok: false, status: 500, message: `profiles: ${pErr.message}` }
