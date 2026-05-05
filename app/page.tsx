@@ -1,24 +1,16 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/lib/auth-context'
 import { isAdminAreaRole } from '@/lib/auth-types'
 import { LocaleSwitcher } from '@/components/locale-switcher'
-import {
-  Brain,
-  Lock,
-  Loader2,
-  GraduationCap,
-  LayoutDashboard,
-  BarChart3,
-  User,
-} from 'lucide-react'
+import { HeroAnimatedBackdrop } from '@/components/landing/hero-animated-backdrop'
+import { Brain, Lock, Loader2, Sparkles, User, ArrowRight } from 'lucide-react'
 
 export default function LandingPage() {
   const { t } = useTranslation()
@@ -28,6 +20,14 @@ export default function LandingPage() {
   const [error, setError] = useState('')
   const router = useRouter()
   const { login, user, loading: authLoading } = useAuth()
+  const accessRef = useRef<HTMLDivElement>(null)
+
+  const goToSignIn = useCallback(() => {
+    accessRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    window.setTimeout(() => {
+      document.getElementById('landing-username')?.focus()
+    }, 380)
+  }, [])
 
   useEffect(() => {
     if (authLoading || !user) return
@@ -53,223 +53,200 @@ export default function LandingPage() {
 
   if (!authLoading && user) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3 p-6">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden />
-        <p className="text-sm text-muted-foreground">{t('landing.redirecting')}</p>
+      <div className="relative flex min-h-dvh flex-col items-center justify-center gap-3 bg-[#030712] p-6 text-zinc-100">
+        <Loader2 className="h-8 w-8 animate-spin text-sky-400" aria-hidden />
+        <p className="text-sm text-zinc-400">{t('landing.redirecting')}</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-stretch relative">
-      <div className="fixed top-4 right-4 z-50">
-        <LocaleSwitcher trigger="button" />
-      </div>
-      <div className="mx-auto flex w-full max-w-6xl flex-1 px-4 py-10 lg:py-16">
-        <div className="grid w-full gap-10 lg:grid-cols-2 lg:items-center">
-          {/* Left: brand + storytelling */}
-          <section className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-primary/90 via-primary to-secondary text-primary-foreground p-8 lg:p-10 shadow-xl">
-            {/* ENS badge */}
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1 text-xs backdrop-blur-md">
-              <GraduationCap className="h-4 w-4" />
-              <span className="font-semibold tracking-wide">{t('landing.badge')}</span>
-            </div>
+    <div className="relative min-h-dvh overflow-x-hidden bg-[#030712] text-zinc-100">
+      <HeroAnimatedBackdrop />
 
-            {/* Logo + title */}
-            <div className="mt-8 flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 shadow-lg">
-                <Brain className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl [font-family:var(--font-display)]">
-                  CogniTest
-                </h1>
-                <p className="mt-1 text-xs font-medium uppercase tracking-[0.2em] text-primary-foreground/70">
-                  {t('landing.subtitle')}
-                </p>
-              </div>
-            </div>
+      <div className="relative z-10 flex min-h-dvh flex-col">
+        <header className="flex shrink-0 items-center justify-between gap-4 px-4 py-5 sm:px-8">
+          <Link
+            href="/"
+            className="group flex min-h-0 items-center gap-3 text-inherit no-underline"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5 shadow-[0_0_24px_-6px_rgba(56,189,248,0.4)] transition group-hover:border-sky-400/30">
+              <Brain className="h-5 w-5 text-sky-300" aria-hidden />
+            </span>
+            <span className="flex flex-col">
+              <span className="text-base font-semibold tracking-tight [font-family:var(--font-display)]">
+                CogniTest
+              </span>
+              <span className="hidden text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500 sm:block">
+                {t('landing.subtitle')}
+              </span>
+            </span>
+          </Link>
 
-            {/* Value prop */}
-            <div className="mt-6 max-w-md space-y-3 text-sm text-primary-foreground/80">
-              <p>{t('landing.valueLead')}</p>
-              <p className="text-xs text-primary-foreground/75">{t('landing.researchIntro')}</p>
-              <ul className="list-disc space-y-1 pl-4 text-xs text-primary-foreground/75">
-                <li>{t('landing.researchBullet1')}</li>
-                <li>{t('landing.researchBullet2')}</li>
-                <li>{t('landing.researchBullet3')}</li>
-              </ul>
-            </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <LocaleSwitcher
+              trigger="button"
+              className="hidden h-9 border-white/20 bg-white/5 text-zinc-200 hover:bg-white/10 hover:text-white sm:inline-flex"
+            />
+            <LocaleSwitcher
+              trigger="icon"
+              className="border-0 text-zinc-400 hover:bg-white/10 hover:text-white sm:hidden"
+            />
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={goToSignIn}
+              className="hidden h-9 border-white/25 bg-transparent text-zinc-200 hover:bg-white/10 hover:text-white md:inline-flex"
+            >
+              {t('landing.navAccess')}
+            </Button>
+          </div>
+        </header>
 
-            {/* Mini preview cards */}
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl bg-white/10 p-4 shadow-md backdrop-blur">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary-foreground/10">
-                      <LayoutDashboard className="h-4 w-4" />
-                    </span>
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide">
-                        {t('landing.studentDashboard')}
-                      </p>
-                      <p className="text-[11px] text-primary-foreground/70">
-                        {t('landing.studentDashboardHint')}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="rounded-full bg-emerald-400/10 px-2 py-0.5 text-[10px] font-medium text-emerald-100">
-                    {t('landing.live')}
-                  </span>
-                </div>
-
-                <div className="mt-4 h-20 rounded-xl bg-primary-foreground/10 p-3 text-[11px] text-primary-foreground/80">
-                  <div className="flex items-center justify-between">
-                    <span>{t('landing.metricHigherOrder')}</span>
-                    <span className="font-semibold">78%</span>
-                  </div>
-                  <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-primary-foreground/20">
-                    <div className="h-full w-4/5 rounded-full bg-emerald-300" />
-                  </div>
-                  <div className="mt-2 flex items-center justify-between text-primary-foreground/70">
-                    <span>{t('landing.metricGeometry')}</span>
-                    <span>68%</span>
-                  </div>
-                </div>
+        <main className="flex flex-1 flex-col justify-center px-4 pb-10 pt-2 sm:px-8 sm:pb-12 sm:pt-4">
+          <div className="mx-auto grid w-full max-w-6xl gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,420px)] lg:items-center lg:gap-16 xl:gap-20">
+            <div className="flex max-w-xl flex-col lg:max-w-none">
+              <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.22em] text-sky-200/90 backdrop-blur-sm">
+                <Sparkles className="h-3.5 w-3.5 text-amber-200/90" aria-hidden />
+                {t('landing.badge')}
               </div>
 
-              <div className="rounded-2xl bg-black/10 p-4 shadow-md backdrop-blur">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-black/20">
-                      <BarChart3 className="h-4 w-4 text-amber-200" />
-                    </span>
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide">
-                        {t('landing.teacherInsights')}
-                      </p>
-                      <p className="text-[11px] text-primary-foreground/70">
-                        {t('landing.teacherInsightsHint')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+              <h1 className="mt-7 text-balance text-4xl font-semibold leading-[1.08] tracking-tight [font-family:var(--font-display)] sm:text-5xl lg:text-[3.25rem] xl:text-[3.5rem]">
+                <span className="bg-gradient-to-br from-white via-white to-cyan-200/85 bg-clip-text text-transparent">
+                  {t('landing.heroTitle')}
+                </span>
+              </h1>
 
-                <div className="mt-4 space-y-2 text-[11px] text-primary-foreground/80">
-                  <div className="flex items-center justify-between">
-                    <span>{t('landing.classAverage')}</span>
-                    <span className="font-semibold">76.5%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>{t('landing.studentsSupport')}</span>
-                    <span className="rounded-full bg-red-400/20 px-2 py-0.5 text-[10px] text-red-50">
-                      {t('landing.identified')}
-                    </span>
-                  </div>
-                </div>
+              <p className="mt-6 max-w-xl text-pretty text-base leading-relaxed text-zinc-400 sm:text-lg">
+                {t('landing.heroSubtitle')}
+              </p>
+
+              <p className="mt-4 text-sm font-medium tracking-wide text-zinc-500">
+                {t('landing.heroAudienceLine')}
+              </p>
+
+              <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <Button
+                  type="button"
+                  size="lg"
+                  onClick={goToSignIn}
+                  className="h-12 min-h-12 rounded-full bg-white px-8 text-base font-semibold text-slate-950 shadow-[0_0_48px_-12px_rgba(56,189,248,0.55)] transition hover:bg-zinc-100 hover:shadow-[0_0_56px_-8px_rgba(34,211,238,0.45)]"
+                >
+                  {t('landing.navAccess')}
+                  <ArrowRight className="ml-1 h-4 w-4" />
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="h-12 min-h-12 rounded-full border-white/25 bg-white/5 text-white hover:bg-white/10"
+                >
+                  <Link href="/register">{t('landing.register')}</Link>
+                </Button>
               </div>
             </div>
 
-            {/* Professors / research team */}
-            <div className="mt-10 border-t border-primary-foreground/15 pt-4 text-xs text-primary-foreground/80">
-              <p className="font-semibold tracking-wide">{t('landing.supervision')}</p>
-              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-                <span>Prof. Jalal Asermouh</span>
-                <span className="opacity-60">·</span>
-                <span>Prof. Achraf Jarhni</span>
-              </div>
-            </div>
-          </section>
-
-          {/* Right: login card */}
-          <section className="flex items-center">
-            <div className="w-full">
-              <Card className="border-border bg-card/80 shadow-lg backdrop-blur">
-                <CardHeader className="space-y-1">
-                  <CardTitle className="text-xl font-semibold text-foreground">
+            <div ref={accessRef} id="access" className="relative w-full justify-self-end lg:max-w-[420px]">
+              <div
+                className="absolute -inset-px rounded-[1.75rem] bg-gradient-to-br from-sky-400/25 via-white/10 to-teal-400/20 opacity-80 blur-sm"
+                aria-hidden
+              />
+              <div className="relative rounded-[1.75rem] border border-white/15 bg-white/[0.07] p-8 shadow-[0_28px_90px_-24px_rgba(0,0,0,0.75)] backdrop-blur-2xl">
+                <div className="mb-6 space-y-1">
+                  <h2 className="text-lg font-semibold text-white [font-family:var(--font-display)]">
                     {t('landing.signInTitle')}
-                  </CardTitle>
-                  <CardDescription className="text-xs">{t('landing.signInHint')}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-5">
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-foreground">{t('landing.username')}</label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                          type="text"
-                          placeholder={t('landing.usernamePlaceholder')}
-                          value={username}
-                          onChange={(e) => setUsername(e.target.value)}
-                          className="h-10 border-border bg-background pl-10 text-sm"
-                          required
-                          autoComplete="username"
-                          disabled={isLoading || authLoading}
-                        />
-                      </div>
-                    </div>
+                  </h2>
+                  <p className="text-sm leading-relaxed text-zinc-400">{t('landing.signInHint')}</p>
+                </div>
 
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-foreground">{t('landing.password')}</label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                          type="password"
-                          placeholder="••••••••"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          className="h-10 border-border bg-background pl-10 text-sm"
-                          required
-                          autoComplete="current-password"
-                          disabled={isLoading || authLoading}
-                        />
-                      </div>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-zinc-300" htmlFor="landing-username">
+                      {t('landing.username')}
+                    </label>
+                    <div className="relative">
+                      <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+                      <Input
+                        id="landing-username"
+                        type="text"
+                        placeholder={t('landing.usernamePlaceholder')}
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        className="h-11 border-white/15 bg-white/95 pl-10 text-slate-900 placeholder:text-slate-400"
+                        required
+                        autoComplete="username"
+                        disabled={isLoading || authLoading}
+                      />
                     </div>
+                  </div>
 
-                    {error && (
-                      <p className="text-xs text-destructive">{error}</p>
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-zinc-300" htmlFor="landing-password">
+                      {t('landing.password')}
+                    </label>
+                    <div className="relative">
+                      <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+                      <Input
+                        id="landing-password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="h-11 border-white/15 bg-white/95 pl-10 text-slate-900 placeholder:text-slate-400"
+                        required
+                        autoComplete="current-password"
+                        disabled={isLoading || authLoading}
+                      />
+                    </div>
+                  </div>
+
+                  {error ? <p className="text-sm text-red-300">{error}</p> : null}
+
+                  <Button
+                    type="submit"
+                    className="mt-2 h-11 w-full rounded-xl bg-sky-500 font-semibold text-white shadow-[0_0_32px_-8px_rgba(14,165,233,0.7)] hover:bg-sky-400"
+                    disabled={isLoading || authLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t('landing.loggingIn')}
+                      </>
+                    ) : authLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t('landing.checkingSession')}
+                      </>
+                    ) : (
+                      t('landing.continue')
                     )}
-                    <Button
-                      type="submit"
-                      className="h-10 w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                      disabled={isLoading || authLoading}
+                  </Button>
+
+                  <p className="pt-1 text-center text-sm text-zinc-400">
+                    {t('landing.noAccount')}{' '}
+                    <Link
+                      href="/register"
+                      className="inline-flex min-h-0 items-center font-semibold text-sky-300 underline-offset-4 hover:text-sky-200 hover:underline"
                     >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {t('landing.loggingIn')}
-                        </>
-                      ) : authLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {t('landing.checkingSession')}
-                        </>
-                      ) : (
-                        t('landing.continue')
-                      )}
-                    </Button>
+                      {t('landing.register')}
+                    </Link>
+                  </p>
 
-                    <p className="text-center text-xs text-muted-foreground">
-                      {t('landing.noAccount')}{' '}
-                      <Link href="/register" className="font-medium text-primary underline">
-                        {t('landing.register')}
-                      </Link>
-                    </p>
-
-                    <div className="rounded-md border border-dashed border-border/70 bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
-                      {t('landing.demoHint')}
-                    </div>
-                  </form>
-                </CardContent>
-              </Card>
-
-              <div className="mt-4 text-[11px] text-muted-foreground">
-                <p>{t('landing.footerBlurb')}</p>
+                  <p className="rounded-lg border border-dashed border-white/15 bg-white/[0.04] px-3 py-2.5 text-center text-[11px] leading-relaxed text-zinc-500">
+                    {t('landing.demoHint')}
+                  </p>
+                </form>
               </div>
             </div>
-          </section>
-        </div>
+          </div>
+        </main>
+
+        <footer className="relative shrink-0 border-t border-white/[0.08] px-4 py-6 sm:px-8">
+          <p className="mx-auto max-w-3xl text-center text-[11px] leading-relaxed text-zinc-600">
+            {t('landing.footerBlurb')}
+          </p>
+        </footer>
       </div>
     </div>
   )

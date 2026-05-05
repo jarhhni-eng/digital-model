@@ -3,98 +3,172 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Landing hero — ambient motion (honours prefers-reduced-motion below) */
+@keyframes landing-aurora {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  33% {
+    transform: translate(2.5%, -2%) rotate(5deg);
+  }
+  66% {
+    transform: translate(-2%, 2.5%) rotate(-4deg);
+  }
+}
+
+@keyframes landing-float-a {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(6%, -5%);
+  }
+}
+
+@keyframes landing-float-b {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-7%, 6%);
+  }
+}
+
+@keyframes landing-pulse-glow {
+  0%,
+  100% {
+    opacity: 0.38;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.58;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes landing-grid-drift {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 64px 64px;
+  }
+}
+
+.landing-backdrop-aurora {
+  animation: landing-aurora 32s ease-in-out infinite;
+}
+.landing-backdrop-float-a {
+  animation: landing-float-a 22s ease-in-out infinite;
+}
+.landing-backdrop-float-b {
+  animation: landing-float-b 26s ease-in-out infinite;
+}
+.landing-backdrop-pulse {
+  animation: landing-pulse-glow 14s ease-in-out infinite;
+}
+.landing-backdrop-grid {
+  animation: landing-grid-drift 60s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-backdrop-aurora,
+  .landing-backdrop-float-a,
+  .landing-backdrop-float-b,
+  .landing-backdrop-pulse,
+  .landing-backdrop-grid {
+    animation: none !important;
+  }
+}
+
 :root {
-  /* Academic Cognitive Palette */
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  /* Institutional cognitive assessment: navy (trust), teal (growth), warm sand (human warmth) */
+  --background: #f3f5f9;
+  --foreground: #0b1220;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #0b1220;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  
-  /* Deep Academic Blue as Primary */
-  --primary: #1e3a8a;
+  --popover-foreground: #0b1220;
+
+  --primary: #0c3d5c;
   --primary-foreground: #ffffff;
-  
-  /* Teal as Secondary */
-  --secondary: #0d9488;
+
+  --secondary: #0f6f64;
   --secondary-foreground: #ffffff;
-  
+
   --muted: #e2e8f0;
-  --muted-foreground: #64748b;
-  
-  /* Cognitive Purple as Accent */
-  --accent: #7c3aed;
-  --accent-foreground: #ffffff;
-  
-  --destructive: #ef4444;
+  --muted-foreground: #5c6b7f;
+
+  --accent: #fdf6e9;
+  --accent-foreground: #7c4a03;
+
+  --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --border: #e2e8f0;
-  --input: #f1f5f9;
-  --ring: #1e3a8a;
-  
-  /* Chart Colors */
-  --chart-1: #1e3a8a;
-  --chart-2: #0d9488;
-  --chart-3: #7c3aed;
-  --chart-4: #16a34a;
-  --chart-5: #f59e0b;
-  
+  --border: #dfe4ec;
+  --input: #eef2f7;
+  --ring: #0c3d5c;
+
+  --chart-1: #0c3d5c;
+  --chart-2: #0f6f64;
+  --chart-3: #b45309;
+  --chart-4: #15803d;
+  --chart-5: #6d28d9;
+
   --radius: 0.625rem;
-  
-  /* Sidebar */
-  --sidebar: #f8fafc;
-  --sidebar-foreground: #0f172a;
-  --sidebar-primary: #1e3a8a;
+
+  --sidebar: #f3f5f9;
+  --sidebar-foreground: #0b1220;
+  --sidebar-primary: #0c3d5c;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #0d9488;
+  --sidebar-accent: #0f6f64;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #e2e8f0;
-  --sidebar-ring: #1e3a8a;
+  --sidebar-border: #dfe4ec;
+  --sidebar-ring: #0c3d5c;
 }
 
 .dark {
-  /* Dark Theme */
-  --background: #0f172a;
-  --foreground: #f1f5f9;
-  --card: #1e293b;
-  --card-foreground: #f1f5f9;
-  --popover: #1e293b;
-  --popover-foreground: #f1f5f9;
-  
-  --primary: #3b82f6;
-  --primary-foreground: #0f172a;
-  
-  --secondary: #14b8a6;
-  --secondary-foreground: #0f172a;
-  
-  --muted: #334155;
+  --background: #0a1019;
+  --foreground: #eef2f7;
+  --card: #121a26;
+  --card-foreground: #eef2f7;
+  --popover: #121a26;
+  --popover-foreground: #eef2f7;
+
+  --primary: #5eb0e0;
+  --primary-foreground: #0a1019;
+
+  --secondary: #2dd4bf;
+  --secondary-foreground: #0a1019;
+
+  --muted: #1e293b;
   --muted-foreground: #94a3b8;
-  
-  --accent: #a78bfa;
-  --accent-foreground: #0f172a;
-  
+
+  --accent: #422006;
+  --accent-foreground: #fde68a;
+
   --destructive: #f87171;
-  --destructive-foreground: #0f172a;
-  --border: #334155;
-  --input: #1e293b;
-  --ring: #3b82f6;
-  
-  /* Chart Colors */
-  --chart-1: #3b82f6;
-  --chart-2: #14b8a6;
-  --chart-3: #a78bfa;
-  --chart-4: #22c55e;
-  --chart-5: #fbbf24;
-  
-  --sidebar: #1e293b;
-  --sidebar-foreground: #f1f5f9;
-  --sidebar-primary: #3b82f6;
-  --sidebar-primary-foreground: #0f172a;
-  --sidebar-accent: #14b8a6;
-  --sidebar-accent-foreground: #0f172a;
-  --sidebar-border: #334155;
-  --sidebar-ring: #3b82f6;
+  --destructive-foreground: #0a1019;
+  --border: #273449;
+  --input: #121a26;
+  --ring: #5eb0e0;
+
+  --chart-1: #5eb0e0;
+  --chart-2: #2dd4bf;
+  --chart-3: #fbbf24;
+  --chart-4: #4ade80;
+  --chart-5: #c4b5fd;
+
+  --sidebar: #121a26;
+  --sidebar-foreground: #eef2f7;
+  --sidebar-primary: #5eb0e0;
+  --sidebar-primary-foreground: #0a1019;
+  --sidebar-accent: #2dd4bf;
+  --sidebar-accent-foreground: #0a1019;
+  --sidebar-border: #273449;
+  --sidebar-ring: #5eb0e0;
 }
 
 @theme inline {
