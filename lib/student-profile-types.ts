@@ -20,6 +20,9 @@ export interface StudentAcademicProfile {
   fullName: string
   age: number
   gender: 'Male' | 'Female' | ''
+  /** Set when the student chose a registered teacher (`student_profiles.teacher_id`). */
+  teacherId: string | null
+  /** Display label (denormalized from the teacher profile or legacy free text). */
   teacherName: string
   schoolName: string
   gradeLevel: MoroccanGradeLevel

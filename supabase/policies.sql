@@ -40,6 +40,11 @@ returns boolean language sql stable as $$
   select coalesce(public.role_of(auth.uid()) = 'teacher', false)
 $$;
 
+create or replace function public.is_super_admin()
+returns boolean language sql stable as $$
+  select coalesce(public.role_of(auth.uid()) = 'super_admin', false)
+$$;
+
 create or replace function public.is_my_student(student uuid)
 returns boolean
 language sql
@@ -68,6 +73,11 @@ drop policy if exists profiles_admin_update  on public.profiles;
 create policy profiles_self_read on public.profiles
   for select using (auth.uid() = id);
 
+-- Any signed-in user may list registered teachers (for student profile "referent teacher" picker).
+drop policy if exists profiles_teacher_directory on public.profiles;
+create policy profiles_teacher_directory on public.profiles
+  for select using (role = 'teacher' and auth.uid() is not null);
+
 create policy profiles_admin_read on public.profiles
   for select using (public.is_admin());
 
@@ -79,6 +89,19 @@ create policy profiles_self_update on public.profiles
 
 create policy profiles_admin_update on public.profiles
   for update using (public.is_admin()) with check (public.is_admin());
+
+-- -----------------------------------------------------------------------------
+-- schools
+-- -----------------------------------------------------------------------------
+alter table public.schools enable row level security;
+
+drop policy if exists schools_public_read on public.schools;
+create policy schools_public_read on public.schools
+  for select using (is_active = true);
+
+drop policy if exists schools_super_admin_all on public.schools;
+create policy schools_super_admin_all on public.schools
+  for all using (public.is_super_admin()) with check (public.is_super_admin());
 
 -- -----------------------------------------------------------------------------
 -- student_profiles
