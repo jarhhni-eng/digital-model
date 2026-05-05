@@ -13,6 +13,7 @@ import {
 } from '@/lib/student-profile-types'
 import { SCHOLAR_LEVELS } from '@/lib/mock-data'
 import { Brain, Loader2 } from 'lucide-react'
+import { CenteredCardFormSkeleton } from '@/components/skeletons'
 
 export default function ProfileSetupPage() {
   const router = useRouter()
@@ -66,11 +67,7 @@ export default function ProfileSetupPage() {
   }
 
   if (authLoading || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground">Loading…</p>
-      </div>
-    )
+    return <CenteredCardFormSkeleton />
   }
 
   return (

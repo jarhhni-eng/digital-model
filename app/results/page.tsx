@@ -39,6 +39,8 @@ import { getLatestTMTResult, TMTResult } from '@/lib/attentional/trail-making'
 import { getLatestShAResult, ShAResult } from '@/lib/attentional/shifting-attention'
 import { getLatestRAVLTResult, RAVLTResult } from '@/lib/memory/ravlt'
 import { getLatestDigitSpanResult, DigitSpanResult } from '@/lib/memory/digit-span'
+import { ChartAreaSkeleton, ValueHeadlineSkeleton } from '@/components/ui/value-skeleton'
+import { Skeleton } from '@/components/ui/skeleton'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -184,6 +186,36 @@ export default function ResultsPage() {
       ? `${averageCompletedScore(mergedTests)}%`
       : '—'
 
+  if (authLoading) {
+    return (
+      <div className="bg-background min-h-screen">
+        <Sidebar userRole="student" />
+        <div className={cn('transition-all duration-200', isMobile ? 'ml-0' : 'ml-64')}>
+          <Header
+            title="Résultats des évaluations"
+            subtitle="Vos performances par domaine cognitif et par test"
+          />
+          <main className={cn('p-4 md:p-6 pt-24 max-w-5xl space-y-6', isMobile && 'pb-20')}>
+            <div className="grid grid-cols-3 gap-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Card key={i} className="text-center">
+                  <CardContent className="pt-5 pb-4 space-y-3">
+                    <ValueHeadlineSkeleton className="mx-auto" />
+                    <Skeleton className="h-3 w-32 mx-auto" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            <ChartAreaSkeleton height={200} />
+          </main>
+        </div>
+      </div>
+    )
+  }
+
+  /** Supabase session list merged into catalogue — when false, only show grey placeholders for scores. */
+  const sessionDataReady = !user || !sessionsLoading
+
   return (
     <div className="bg-background min-h-screen">
       <Sidebar userRole="student" />
@@ -201,11 +233,6 @@ export default function ResultsPage() {
               prochaine synchronisation.
             </p>
           )}
-          {(authLoading || sessionsLoading) && user && (
-            <p className="mb-4 text-xs text-muted-foreground">
-              Synchronisation de vos résultats avec le serveur…
-            </p>
-          )}
 
           <p className="mb-6 text-xs text-muted-foreground">
             Les tableaux par domaine proviennent de votre compte (sessions Supabase). Les encarts
@@ -217,19 +244,31 @@ export default function ResultsPage() {
           <div className="grid grid-cols-3 gap-4 mb-8">
             <Card className="text-center">
               <CardContent className="pt-5 pb-4">
-                <p className="text-3xl font-bold text-primary">{overallScoreLabel}</p>
+                {user && !sessionDataReady ? (
+                  <ValueHeadlineSkeleton className="mx-auto" />
+                ) : (
+                  <p className="text-3xl font-bold text-primary">{overallScoreLabel}</p>
+                )}
                 <p className="text-xs text-muted-foreground mt-1">Moyenne score (tests terminés)</p>
               </CardContent>
             </Card>
             <Card className="text-center">
               <CardContent className="pt-5 pb-4">
-                <p className="text-3xl font-bold text-green-600">{completedTests}</p>
+                {user && !sessionDataReady ? (
+                  <ValueHeadlineSkeleton className="mx-auto" />
+                ) : (
+                  <p className="text-3xl font-bold text-green-600">{completedTests}</p>
+                )}
                 <p className="text-xs text-muted-foreground mt-1">Tests completed</p>
               </CardContent>
             </Card>
             <Card className="text-center">
               <CardContent className="pt-5 pb-4">
-                <p className="text-3xl font-bold text-muted-foreground">{totalTests}</p>
+                {user && !sessionDataReady ? (
+                  <ValueHeadlineSkeleton className="mx-auto" />
+                ) : (
+                  <p className="text-3xl font-bold text-muted-foreground">{totalTests}</p>
+                )}
                 <p className="text-xs text-muted-foreground mt-1">Total tests</p>
               </CardContent>
             </Card>
@@ -348,6 +387,13 @@ export default function ResultsPage() {
                         </div>
                       </div>
                       <div className="text-right">
+                        {user && !sessionDataReady ? (
+                          <div className="flex flex-col items-end gap-2">
+                            <ValueHeadlineSkeleton className="self-end" />
+                            <Skeleton className="h-3 w-36 rounded" />
+                          </div>
+                        ) : (
+                          <>
                         <p
                           className="text-2xl font-bold"
                           style={{ color: ui.color }}
@@ -360,15 +406,21 @@ export default function ResultsPage() {
                             ? ` · bar: ${completionPct}% of catalogue`
                             : ''}
                         </p>
+                          </>
+                        )}
                       </div>
                     </div>
 
                     <div className="mt-3">
+                      {user && !sessionDataReady ? (
+                        <Skeleton className="h-2 w-full rounded-full" />
+                      ) : (
                       <Progress
                         value={progressBarValue}
                         className="h-2"
                         style={{ '--progress-color': ui.color } as React.CSSProperties}
                       />
+                      )}
                     </div>
                   </CardHeader>
 
@@ -384,22 +436,30 @@ export default function ResultsPage() {
                               className="h-2 w-2 flex-shrink-0 rounded-full"
                               style={{
                                 backgroundColor:
-                                  test.status === 'completed'
-                                    ? '#16a34a'
-                                    : test.status === 'in-progress'
-                                      ? '#f59e0b'
-                                      : '#d1d5db',
+                                  user && !sessionDataReady
+                                    ? '#e4e4e7'
+                                    : test.status === 'completed'
+                                      ? '#16a34a'
+                                      : test.status === 'in-progress'
+                                        ? '#f59e0b'
+                                        : '#d1d5db',
                               }}
                             />
                             <span className="truncate text-sm font-medium">{test.title}</span>
                           </div>
 
                           <div className="flex-shrink-0">
-                            <StatusBadge status={test.status} />
+                            {user && !sessionDataReady ? (
+                              <Skeleton className="h-6 w-24 rounded-full" />
+                            ) : (
+                              <StatusBadge status={test.status} />
+                            )}
                           </div>
 
                           <div className="w-16 flex-shrink-0 text-right">
-                            {test.status === 'completed' && test.latestScore != null ? (
+                            {user && !sessionDataReady ? (
+                              <Skeleton className="h-5 w-10 rounded ml-auto" />
+                            ) : test.status === 'completed' && test.latestScore != null ? (
                               <span
                                 className={cn('text-sm font-bold', scoreColor(test.latestScore))}
                               >

@@ -12,6 +12,11 @@ type ProfileRow = Database['public']['Tables']['profiles']['Row']
 type StudentProfileRow = Database['public']['Tables']['student_profiles']['Row']
 export type SessionRow = Database['public']['Tables']['test_sessions']['Row']
 
+export type AdminCapacityBreakdown = Record<
+  string,
+  { earned: number; max: number; percent?: number }
+>
+
 export type AdminStudentSummary = {
   id: string
   name: string
@@ -22,6 +27,15 @@ export type AdminStudentSummary = {
   teacherName: string
   institutionId: string
   testScores: Record<string, number>
+  /** Latest session with `metadata.capacityBreakdown` (geometry Cₖ payload). */
+  capacityByTest?: Record<
+    string,
+    {
+      completedAt: string | null
+      unit: 'fraction' | 'points'
+      breakdown: AdminCapacityBreakdown
+    }
+  >
 }
 
 export function domainAverageForAdminStudent(
@@ -109,9 +123,21 @@ export async function fetchAdminResultsData(): Promise<{
     const rows = byUser.get(p.id) ?? []
     const latest = latestSessionByTestId(rows)
     const testScores: Record<string, number> = {}
+    const capacityByTest: NonNullable<AdminStudentSummary['capacityByTest']> = {}
     for (const [tid, row] of latest) {
       if (row.status === 'completed' && row.score != null) {
         testScores[tid] = Math.round(Number(row.score))
+      }
+      if (row.status === 'completed' && row.metadata && typeof row.metadata === 'object') {
+        const meta = row.metadata as Record<string, unknown>
+        const br = meta.capacityBreakdown
+        if (br && typeof br === 'object' && !Array.isArray(br)) {
+          capacityByTest[tid] = {
+            completedAt: row.completed_at,
+            unit: meta.breakdownUnit === 'points' ? 'points' : 'fraction',
+            breakdown: br as AdminCapacityBreakdown,
+          }
+        }
       }
     }
     const tid = sp?.teacher_id ?? null
@@ -128,6 +154,7 @@ export async function fetchAdminResultsData(): Promise<{
       teacherName: tid ? teacherNames.get(tid) ?? '—' : '—',
       institutionId: school || '—',
       testScores,
+      capacityByTest: Object.keys(capacityByTest).length > 0 ? capacityByTest : undefined,
     }
   })
 

@@ -12,13 +12,13 @@
  *   lesson  D1 = Produit scalaire
  *   lesson  D2 = Géométrie analytique
  *
- * Competencies (C1 → C6):
+ * Competencies (C1 → C5):
  *  C1 Définition et propriétés du produit scalaire
  *  C2 Lecture / calcul dans un repère
  *  C3 Théorèmes (Al-Kashi, médiane) et raisonnement métrique
  *  C4 Cercles : équations, centre et rayon
  *  C5 Géométrie analytique : droites, distances, projections
- *  C6 Angles, cosinus et applications
+ *  (ancien C6 regroupé sous C5 — propriétés analytiques / applications)
  */
 
 export const PRODUIT_SCALAIRE_TEST_ID = 'test-geo-produit-scalaire'
@@ -241,7 +241,7 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     number: 12,
     typeCode: 2,
     lessonCode: 1,
-    competencies: ['C6'],
+    competencies: ['C5'],
     question: 'Calculer \\( \\cos(\\widehat{(\\vec{a},\\vec{w})}) \\) :',
     options: [
       '\\( \\dfrac{9}{\\sqrt{34}} \\)',
@@ -256,7 +256,7 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     number: 13,
     typeCode: 2,
     lessonCode: 1,
-    competencies: ['C6'],
+    competencies: ['C5'],
     question: 'Calculer \\( \\vec{a}\\cdot\\vec{w} \\) :',
     options: ['\\( 8 \\)', '\\( -8 \\)', '\\( 9 \\)'],
     correctAnswer: 2,

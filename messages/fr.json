@@ -1,0 +1,67 @@
+{
+  "landing": {
+    "badge": "ENS FES · Recherche cognitive",
+    "subtitle": "Plateforme d'évaluation cognitive",
+    "valueLead": "Plateforme de recherche conçue pour mesurer et visualiser les capacités cognitives d'ordre supérieur mobilisées dans l'apprentissage de la géométrie, en vue de repérer les déficiences cognitives au moyen de modèles numériques adaptés dans le cadre d'études longitudinales.",
+    "researchIntro": "Cette plateforme s'inscrit dans une recherche académique visant à :",
+    "researchBullet1": "analyser l'apprentissage de la géométrie ;",
+    "researchBullet2": "identifier les défaillances au niveau des capacités cognitives supérieures ;",
+    "researchBullet3": "exploiter des modèles numériques pour une analyse longitudinale.",
+    "studentDashboard": "Tableau de bord élève",
+    "studentDashboardHint": "Progression par domaine et scores personnalisés.",
+    "live": "En direct",
+    "metricHigherOrder": "Capacités cognitives d'ordre supérieur",
+    "metricGeometry": "Cognition géométrique",
+    "teacherInsights": "Vue enseignant",
+    "teacherInsightsHint": "Performance des cohortes et axes fragiles.",
+    "classAverage": "Moyenne de classe",
+    "studentsSupport": "Élèves à accompagner",
+    "identified": "3 repérés",
+    "supervision": "ENS FES · Encadrement recherche",
+    "signInTitle": "Connexion à CogniTest",
+    "signInHint": "Choisissez votre rôle et utilisez les identifiants de démonstration pour explorer la plateforme.",
+    "username": "Identifiant",
+    "password": "Mot de passe",
+    "usernamePlaceholder": "votre_identifiant",
+    "loggingIn": "Connexion…",
+    "checkingSession": "Vérification de la session…",
+    "continue": "Continuer",
+    "noAccount": "Pas de compte ?",
+    "register": "S'inscrire",
+    "demoHint": "Inscrivez-vous d'abord, puis connectez-vous. Les données de démo sont stockées sous /data sur le serveur.",
+    "footerBlurb": "Conçu dans le cadre académique de l'ENS FES pour soutenir la recherche doctorale en cognition mathématique.",
+    "redirecting": "Déjà connecté. Redirection…"
+  },
+  "auth": {
+    "loginFailed": "Échec de la connexion"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "domains": "Domaines",
+    "tests": "Tests",
+    "results": "Résultats",
+    "students": "Élèves",
+    "analytics": "Analytique",
+    "reports": "Rapports",
+    "profile": "Profil"
+  },
+  "sidebar": {
+    "tagline": "Recherche académique",
+    "connectedAs": "Connecté en tant que",
+    "logout": "Déconnexion",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "userFallback": "Utilisateur",
+    "openProfileAria": "Ouvrir le profil"
+  },
+  "header": {
+    "searchPlaceholder": "Rechercher…",
+    "notificationsAria": "Notifications",
+    "settingsAria": "Paramètres"
+  },
+  "locale": {
+    "label": "Langue",
+    "en": "Anglais",
+    "fr": "Français"
+  }
+}

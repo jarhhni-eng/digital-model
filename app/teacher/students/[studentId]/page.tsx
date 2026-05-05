@@ -35,6 +35,8 @@ import {
 } from 'recharts'
 import { ArrowLeft, Mail, Calendar, Award, TrendingUp, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
+import { ChartAreaSkeleton, ValueTextSkeleton } from '@/components/ui/value-skeleton'
+import { Skeleton } from '@/components/ui/skeleton'
 
 type SessionRow = Database['public']['Tables']['test_sessions']['Row']
 
@@ -131,8 +133,24 @@ export default function StudentDetailsPage({ params }: StudentDetailsPageProps) 
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground text-sm">Chargement…</p>
+      <div className="bg-background min-h-screen">
+        <Sidebar userRole="teacher" />
+        <div className={cn('transition-all duration-200', isMobile ? 'ml-0' : 'ml-64')}>
+          <Header title="Profil élève" subtitle="Chargement…" />
+          <main className="p-4 md:p-6 pt-24 max-w-7xl space-y-6">
+            <Skeleton className="h-9 w-40 rounded-md" />
+            <Card>
+              <CardContent className="pt-6 space-y-4">
+                <Skeleton className="h-8 w-56" />
+                <div className="grid grid-cols-2 gap-4">
+                  <ValueTextSkeleton className="h-10 w-full max-w-[8rem]" />
+                  <ValueTextSkeleton className="h-10 w-full max-w-[8rem]" />
+                </div>
+              </CardContent>
+            </Card>
+            <ChartAreaSkeleton height={260} />
+          </main>
+        </div>
       </div>
     )
   }
@@ -148,11 +166,59 @@ export default function StudentDetailsPage({ params }: StudentDetailsPageProps) 
     )
   }
 
-  if (loadState === 'loading' || loadState === 'error') {
+  if (loadState === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground text-sm">
-          {loadState === 'error' ? 'Impossible de charger les données.' : 'Chargement…'}
+      <div className="bg-background min-h-screen">
+        <Sidebar userRole="teacher" />
+        <div className={cn('transition-all duration-200', isMobile ? 'ml-0' : 'ml-64')}>
+          <Header
+            title="Profil élève"
+            subtitle="Chargement des données d&apos;évaluation…"
+          />
+          <main className="p-4 md:p-6 pt-24 max-w-7xl space-y-6">
+            <Button variant="outline" size="sm" onClick={() => router.back()} className="mb-2">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Class
+            </Button>
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-8 w-64 max-w-full" />
+                <Skeleton className="h-4 w-48 mt-2" />
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <Skeleton className="h-4 w-full max-w-xs" />
+                    <Skeleton className="h-4 w-full max-w-sm" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="rounded-lg border p-3 space-y-2">
+                      <Skeleton className="h-3 w-24" />
+                      <ValueTextSkeleton className="h-9 w-20" />
+                    </div>
+                    <div className="rounded-lg border p-3 space-y-2">
+                      <Skeleton className="h-3 w-28" />
+                      <ValueTextSkeleton className="h-9 w-16" />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ChartAreaSkeleton height={240} />
+              <ChartAreaSkeleton height={240} />
+            </div>
+          </main>
+        </div>
+      </div>
+    )
+  }
+
+  if (loadState === 'error') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <p className="text-muted-foreground text-sm text-center max-w-sm">
+          Impossible de charger les données.
         </p>
       </div>
     )

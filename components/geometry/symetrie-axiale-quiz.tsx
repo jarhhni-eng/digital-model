@@ -18,6 +18,8 @@ import {
 import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { scoreGeometryQuestion, computeFinalPercent } from '@/lib/geometry/scoring'
 import { CapacityLegend } from '@/components/geometry/capacity-legend'
+import { CapacityBreakdownCard } from '@/components/geometry/capacity-breakdown-card'
+import { buildGeometrySessionMetadataFraction } from '@/lib/geometry/capacity-results'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
 
@@ -120,7 +122,20 @@ export function SymetrieAxialeQuiz() {
           score: t.score ?? (t.correct ? 1 : 0),
           reaction_time_ms: t.reactionTimeMs,
         })),
-        metadata: { source: 'symetrie-axiale-quiz' },
+        metadata: {
+          source: 'symetrie-axiale-quiz',
+          ...buildGeometrySessionMetadataFraction({
+            lessonTestId: SYMETRIE_AXIALE_TEST_ID,
+            questions: SYMETRIE_AXIALE_QUESTIONS,
+            trials: r.trials.map((t) => ({
+              index: t.index,
+              questionId: t.questionId,
+              score: t.score ?? (t.correct ? 1 : 0),
+              correct: t.correct,
+            })),
+            isScorableIndex: (i) => SYMETRIE_AXIALE_QUESTIONS[i]?.correctAnswer !== null,
+          }),
+        },
       })
     }
   }, [phase, trials, startedAt, user])
@@ -183,7 +198,7 @@ function Intro({ onStart, onQuit }: { onStart: () => void; onQuit: () => void })
           décision ministérielle 2.853.06.
         </p>
         <div className="mb-4">
-          <CapacityLegend testId="test-symetrie-axiale" />
+          <CapacityLegend testId={SYMETRIE_AXIALE_TEST_ID} />
         </div>
         <div className="mb-6 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
           <strong>Durée estimée :</strong> ~15 minutes. Répondez avec soin à chaque question.
@@ -401,6 +416,18 @@ function Results({ trials, onExit }: ResultsProps) {
   const correct = scorableTrials.filter((t) => t.correct).length
   const percentage = scorableTrials.length > 0 ? Math.round((correct / scorableTrials.length) * 100) : 0
 
+  const geo = buildGeometrySessionMetadataFraction({
+    lessonTestId: SYMETRIE_AXIALE_TEST_ID,
+    questions: SYMETRIE_AXIALE_QUESTIONS,
+    trials: trials.map((t) => ({
+      index: t.index,
+      questionId: t.questionId,
+      score: t.score ?? (t.correct ? 1 : 0),
+      correct: t.correct,
+    })),
+    isScorableIndex: (i) => SYMETRIE_AXIALE_QUESTIONS[i]?.correctAnswer !== null,
+  })
+
   return (
     <main className="container mx-auto max-w-2xl py-10">
       <Card className="p-8 text-center">
@@ -418,6 +445,11 @@ function Results({ trials, onExit }: ResultsProps) {
             <p className="text-2xl font-bold">{percentage}%</p>
           </div>
         </div>
+        <CapacityBreakdownCard
+          testId={SYMETRIE_AXIALE_TEST_ID}
+          breakdown={geo.capacityBreakdown}
+          unit="fraction"
+        />
         <div className="mb-6 max-h-64 overflow-auto rounded-md border bg-slate-50 p-3 dark:bg-slate-900">
           <p className="mb-2 text-xs font-semibold text-muted-foreground">Détails :</p>
           {trials.map((t) => {

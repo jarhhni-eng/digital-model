@@ -1,0 +1,67 @@
+{
+  "landing": {
+    "badge": "ENS FES · Cognitive Research",
+    "subtitle": "Cognitive Assessment Platform",
+    "valueLead": "A research-driven platform designed to measure and visualize higher-order cognitive capacities involved in geometry learning, with the aim of detecting cognitive deficiencies through appropriate numerical models within longitudinal academic studies.",
+    "researchIntro": "This platform is part of academic research that aims to:",
+    "researchBullet1": "analyze geometry learning;",
+    "researchBullet2": "identify deficiencies in higher-order cognitive capacities;",
+    "researchBullet3": "use numerical models for longitudinal analysis.",
+    "studentDashboard": "Student Dashboard",
+    "studentDashboardHint": "Personalised domain progress & scores.",
+    "live": "Live",
+    "metricHigherOrder": "Higher-order cognitive capacities",
+    "metricGeometry": "Geometry cognition",
+    "teacherInsights": "Teacher Insights",
+    "teacherInsightsHint": "Cohort performance & weak areas.",
+    "classAverage": "Class average",
+    "studentsSupport": "Students needing support",
+    "identified": "3 identified",
+    "supervision": "ENS FES · Research supervision",
+    "signInTitle": "Sign in to CogniTest",
+    "signInHint": "Select your role and use any demo credentials to explore the platform.",
+    "username": "Username",
+    "password": "Password",
+    "usernamePlaceholder": "your_username",
+    "loggingIn": "Logging in…",
+    "checkingSession": "Checking session…",
+    "continue": "Continue",
+    "noAccount": "No account?",
+    "register": "Register",
+    "demoHint": "Register first, then sign in. Demo data is stored under /data on the server.",
+    "footerBlurb": "Built within the ENS FES academic context to support PhD-level research in mathematical cognition.",
+    "redirecting": "Already signed in. Redirecting…"
+  },
+  "auth": {
+    "loginFailed": "Login failed"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "domains": "Domains",
+    "tests": "Tests",
+    "results": "Results",
+    "students": "Students",
+    "analytics": "Analytics",
+    "reports": "Reports",
+    "profile": "Profile"
+  },
+  "sidebar": {
+    "tagline": "Academic research",
+    "connectedAs": "Signed in as",
+    "logout": "Log out",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "userFallback": "User",
+    "openProfileAria": "Open profile"
+  },
+  "header": {
+    "searchPlaceholder": "Search…",
+    "notificationsAria": "Notifications",
+    "settingsAria": "Settings"
+  },
+  "locale": {
+    "label": "Language",
+    "en": "English",
+    "fr": "French"
+  }
+}

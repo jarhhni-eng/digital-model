@@ -11,6 +11,7 @@ import {
   domainAverageForAdminStudent,
   type AdminStudentSummary,
 } from '@/lib/admin-results'
+import { formatCapacityGlyph } from '@/lib/geometry/capacity-definitions'
 
 function color(v: number) {
   if (v >= 75) return 'text-green-600'
@@ -153,19 +154,54 @@ export default function IndividualResultsPage() {
                   <CardTitle className="text-sm">Scores par test</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid sm:grid-cols-2 gap-2 text-sm">
+                  <div className="grid sm:grid-cols-2 gap-3 text-sm">
                     {allTests.map((t) => {
                       const v = student.testScores[t.testId]
                       const display = v != null ? v : 0
+                      const cap = student.capacityByTest?.[t.testId]
                       return (
                         <div
                           key={t.testId}
-                          className="flex justify-between border-b border-slate-100 py-1.5"
+                          className="rounded-lg border border-slate-100 bg-white p-2 shadow-sm"
                         >
-                          <span className="truncate pr-2 text-slate-700">{t.name}</span>
-                          <span className={cn('font-bold tabular-nums', color(display))}>
-                            {v != null ? `${v}%` : '—'}
-                          </span>
+                          <div className="flex justify-between gap-2 border-b border-slate-50 pb-1.5">
+                            <span className="truncate pr-2 font-medium text-slate-800">
+                              {t.name}
+                            </span>
+                            <span className={cn('shrink-0 font-bold tabular-nums', color(display))}>
+                              {v != null ? `${v}%` : '—'}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-400">
+                            Leçon · {t.testId}
+                          </p>
+                          {cap ? (
+                            <div className="mt-2 space-y-1 rounded-md bg-slate-50 p-2 text-[11px]">
+                              <p className="font-semibold text-slate-600">Détail par Cₖ</p>
+                              {Object.entries(cap.breakdown)
+                                .sort(([a], [b]) => a.localeCompare(b))
+                                .map(([code, br]) => (
+                                  <div
+                                    key={code}
+                                    className="flex justify-between gap-2 border-b border-slate-100 py-0.5 last:border-0"
+                                  >
+                                    <span className="font-mono text-slate-700">
+                                      {formatCapacityGlyph(code)}
+                                    </span>
+                                    <span className="tabular-nums text-slate-800">
+                                      {cap.unit === 'points'
+                                        ? `${br.earned} / ${br.max} pts`
+                                        : `${br.percent ?? (br.max > 0 ? Math.round((br.earned / br.max) * 100) : 0)}%`}
+                                    </span>
+                                  </div>
+                                ))}
+                            </div>
+                          ) : (
+                            <p className="mt-2 text-[11px] text-slate-400">
+                              Pas de ventilation Cₖ enregistrée (session antérieure ou autre
+                              type de test).
+                            </p>
+                          )}
                         </div>
                       )
                     })}

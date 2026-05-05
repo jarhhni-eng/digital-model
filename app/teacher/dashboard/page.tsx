@@ -26,6 +26,8 @@ import { Users, TrendingUp, AlertCircle, BookOpen } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 import type { Database } from '@/lib/types/database'
+import { ChartAreaSkeleton, ValueTextSkeleton } from '@/components/ui/value-skeleton'
+import { Skeleton } from '@/components/ui/skeleton'
 
 type SessionRow = Database['public']['Tables']['test_sessions']['Row']
 
@@ -105,10 +107,35 @@ export default function TeacherDashboard() {
       ? (myStudents.reduce((sum, s) => sum + s.completedTests, 0) / totalStudents).toFixed(1)
       : '0.0'
 
+  const cohortReady = !cohortLoading
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground">Loading…</p>
+      <div className="bg-background min-h-screen">
+        <Sidebar userRole="teacher" />
+        <div className={cn('transition-all duration-200', isMobile ? 'ml-0' : 'ml-64')}>
+          <Header
+            title="Tableau de bord professeur"
+            subtitle="Gérez vos élèves et suivez la progression de la classe"
+          />
+          <main className="p-4 md:p-6 pt-24 max-w-7xl space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Card key={i}>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-5 w-5 rounded" />
+                  </CardHeader>
+                  <CardContent>
+                    <ValueTextSkeleton className="h-9 w-20" />
+                    <Skeleton className="h-3 w-36 mt-2" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            <ChartAreaSkeleton height={280} />
+          </main>
+        </div>
       </div>
     )
   }
@@ -142,12 +169,10 @@ export default function TeacherDashboard() {
               {cohortError} Certaines cartes peuvent être incomplètes.
             </p>
           )}
-          {cohortLoading && (
-            <p className="mb-4 text-xs text-muted-foreground">Chargement des données classe…</p>
-          )}
-
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {cohortReady ? (
+              <>
             <StatCard
               icon={<Users className="w-5 h-5" />}
               title="Total Students"
@@ -172,6 +197,30 @@ export default function TeacherDashboard() {
               value={avgTestsPerStudent}
               description="Sessions terminées / élève"
             />
+              </>
+            ) : (
+              <>
+                {[
+                  'Total Students',
+                  'Class Average',
+                  'Need Support',
+                  'Avg Tests/Student',
+                ].map((title) => (
+                  <Card key={title}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        {title}
+                      </CardTitle>
+                      <Skeleton className="h-5 w-5 rounded" />
+                    </CardHeader>
+                    <CardContent>
+                      <ValueTextSkeleton className="h-9 w-20" />
+                      <Skeleton className="h-3 w-40 mt-2" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </>
+            )}
           </div>
 
           <div className="mb-8">
@@ -197,7 +246,9 @@ export default function TeacherDashboard() {
                 <CardDescription>Average scores across cognitive domains</CardDescription>
               </CardHeader>
               <CardContent>
-                {classDomainData.length === 0 ? (
+                {!cohortReady ? (
+                  <ChartAreaSkeleton height={300} />
+                ) : classDomainData.length === 0 ? (
                   <p className="text-sm text-muted-foreground py-16 text-center">
                     Pas encore de scores agrégés par domaine (sessions terminées visibles sous RLS).
                   </p>
@@ -228,7 +279,9 @@ export default function TeacherDashboard() {
                 <CardDescription>Tests completed vs average score</CardDescription>
               </CardHeader>
               <CardContent>
-                {studentPerformanceScatter.length === 0 ? (
+                {!cohortReady ? (
+                  <ChartAreaSkeleton height={300} />
+                ) : studentPerformanceScatter.length === 0 ? (
                   <p className="text-sm text-muted-foreground py-16 text-center">
                     Aucun élève dans le roster ou données encore vides.
                   </p>
@@ -271,7 +324,9 @@ export default function TeacherDashboard() {
               <CardDescription>Nombre de sessions terminées par semaine (cohorte visible)</CardDescription>
             </CardHeader>
             <CardContent>
-              {weeklyTrend.length === 0 ? (
+              {!cohortReady ? (
+                <ChartAreaSkeleton height={250} />
+              ) : weeklyTrend.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-12 text-center">
                   Aucune complétion enregistrée sur la période.
                 </p>
@@ -312,7 +367,17 @@ export default function TeacherDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {weakDomains.length === 0 ? (
+                  {!cohortReady ? (
+                    Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="flex items-center justify-between gap-4">
+                        <div className="space-y-2 flex-1">
+                          <Skeleton className="h-4 w-40 rounded" />
+                          <Skeleton className="h-3 w-56 rounded" />
+                        </div>
+                        <Skeleton className="h-8 w-10 rounded" />
+                      </div>
+                    ))
+                  ) : weakDomains.length === 0 ? (
                     <p className="text-sm text-muted-foreground">Pas assez de données pour classer les domaines.</p>
                   ) : (
                     weakDomains.map((area) => (
@@ -369,6 +434,14 @@ export default function TeacherDashboard() {
               </Button>
             </CardHeader>
             <CardContent>
+              {!cohortReady ? (
+                <div className="space-y-2 py-2">
+                  <Skeleton className="h-10 w-full rounded-md" />
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <Skeleton key={i} className="h-12 w-full rounded-md" />
+                  ))}
+                </div>
+              ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
@@ -452,6 +525,7 @@ export default function TeacherDashboard() {
                   </tbody>
                 </table>
               </div>
+              )}
             </CardContent>
           </Card>
         </main>

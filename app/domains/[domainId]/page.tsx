@@ -18,6 +18,8 @@ import { useAuth } from '@/lib/auth-context'
 import type { Database } from '@/lib/types/database'
 import { ArrowLeft, ClipboardList, ChevronRight, Brain, Calculator, CheckCircle2, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { ValueTextSkeleton } from '@/components/ui/value-skeleton'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface DomainDetailPageProps {
   params: Promise<{ domainId: string }>
@@ -99,6 +101,42 @@ export default function DomainDetailPage({ params }: DomainDetailPageProps) {
     return { totalCap, completed, inProg, avg, completionPct }
   }, [domain, byTestId, capacityIds])
 
+  if (authLoading) {
+    return (
+      <div className="bg-background min-h-screen">
+        <Sidebar userRole="student" />
+        <div className={cn('transition-all duration-200', isMobile ? 'ml-0' : 'ml-64')}>
+          <Header
+            title={domain?.name ?? 'Domaine'}
+            subtitle={domain?.description ?? 'Chargement…'}
+          />
+          <main className={cn('p-4 md:p-6 pt-24 max-w-5xl space-y-6', isMobile && 'pb-20')}>
+            <Skeleton className="h-4 w-48" />
+            <Card>
+              <CardContent className="py-6 space-y-4">
+                <div className="flex gap-4">
+                  <Skeleton className="h-14 w-14 rounded-xl shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-5 w-56" />
+                    <Skeleton className="h-3 w-72" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="rounded-lg border bg-background/80 px-3 py-2 space-y-2">
+                      <ValueTextSkeleton className="h-6 w-12 mx-auto" />
+                      <Skeleton className="h-2 w-full rounded" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </main>
+        </div>
+      </div>
+    )
+  }
+
   if (!domain) {
     return (
       <div className="bg-background min-h-screen">
@@ -122,6 +160,7 @@ export default function DomainDetailPage({ params }: DomainDetailPageProps) {
   }
 
   const DomainIcon = domain.id === 'geometry-learning' ? Calculator : Brain
+  const sessionDataReady = !user || !sessionsLoading
 
   return (
     <div className="bg-background min-h-screen">
@@ -148,10 +187,6 @@ export default function DomainDetailPage({ params }: DomainDetailPageProps) {
               {fetchError} Progress below shows the catalogue only until sync works.
             </p>
           )}
-          {(authLoading || sessionsLoading) && user && (
-            <p className="mb-4 text-xs text-muted-foreground">Loading your progress from the server…</p>
-          )}
-
           <Card className="mb-8 border-primary/20 bg-primary/5">
             <CardContent className="py-6 space-y-4">
               <div className="flex items-center gap-4">
@@ -166,7 +201,27 @@ export default function DomainDetailPage({ params }: DomainDetailPageProps) {
                 </div>
               </div>
 
-              {user && domainStats && (
+              {user && !sessionDataReady && (
+                <>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="rounded-lg border bg-background/80 px-3 py-2 text-center space-y-2">
+                        <ValueTextSkeleton className="h-7 w-12 mx-auto" />
+                        <Skeleton className="h-2 w-full rounded mx-auto max-w-[5rem]" />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3 space-y-2">
+                    <div className="flex justify-between">
+                      <Skeleton className="h-3 w-28 rounded" />
+                      <Skeleton className="h-3 w-8 rounded" />
+                    </div>
+                    <Skeleton className="h-2 w-full rounded-full" />
+                  </div>
+                </>
+              )}
+
+              {user && sessionDataReady && domainStats && (
                 <>
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     <div className="rounded-lg border bg-background/80 px-3 py-2 text-center">
@@ -231,6 +286,7 @@ export default function DomainDetailPage({ params }: DomainDetailPageProps) {
                         key={capacity.id}
                         capacity={capacity}
                         progress={byTestId.get(capacity.testId)}
+                        scoresReady={sessionDataReady}
                       />
                     ))}
                   </div>
@@ -247,9 +303,11 @@ export default function DomainDetailPage({ params }: DomainDetailPageProps) {
 function CapacityCard({
   capacity,
   progress,
+  scoresReady = true,
 }: {
   capacity: DomainCapacity
   progress?: TestWithProgress
+  scoresReady?: boolean
 }) {
   return (
     <Link
@@ -273,18 +331,24 @@ function CapacityCard({
         </div>
       </div>
       <div className="flex flex-shrink-0 items-center gap-2">
-        {progress?.status === 'completed' && progress.latestScore != null && (
-          <span className="text-sm font-bold tabular-nums text-green-600">{progress.latestScore}%</span>
-        )}
-        {progress?.status === 'completed' && progress.latestScore == null && (
-          <Badge variant="secondary" className="text-[10px] shrink-0">
-            Done
-          </Badge>
-        )}
-        {progress?.status === 'in-progress' && (
-          <Badge variant="outline" className="text-[10px] shrink-0 border-amber-300 text-amber-800">
-            In progress
-          </Badge>
+        {scoresReady ? (
+          <>
+            {progress?.status === 'completed' && progress.latestScore != null && (
+              <span className="text-sm font-bold tabular-nums text-green-600">{progress.latestScore}%</span>
+            )}
+            {progress?.status === 'completed' && progress.latestScore == null && (
+              <Badge variant="secondary" className="text-[10px] shrink-0">
+                Done
+              </Badge>
+            )}
+            {progress?.status === 'in-progress' && (
+              <Badge variant="outline" className="text-[10px] shrink-0 border-amber-300 text-amber-800">
+                In progress
+              </Badge>
+            )}
+          </>
+        ) : (
+          <Skeleton className="h-6 w-14 rounded-md shrink-0" />
         )}
         <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
       </div>
