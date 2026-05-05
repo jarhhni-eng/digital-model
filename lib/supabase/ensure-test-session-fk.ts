@@ -42,7 +42,7 @@ export async function ensureTestSessionFkPrereqs(
             : `user-${user.id.slice(0, 8)}@pending.local`) || `user-${user.id.slice(0, 8)}@pending.local`
         const r = meta?.role
         const role: UserRole =
-          r === 'admin' || r === 'teacher' || r === 'student' ? r : 'student'
+          r === 'admin' || r === 'super_admin' || r === 'teacher' || r === 'student' ? r : 'student'
         const { error: pErr } = await admin.from('profiles').insert({
           id: user.id,
           email,

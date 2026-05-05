@@ -25,6 +25,7 @@ import {
 import { Users, TrendingUp, AlertCircle, BookOpen } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
+import { isAdminAreaRole } from '@/lib/auth-types'
 import type { Database } from '@/lib/types/database'
 import { ChartAreaSkeleton, ValueTextSkeleton } from '@/components/ui/value-skeleton'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -55,13 +56,13 @@ export default function TeacherDashboard() {
   )
 
   useEffect(() => {
-    if (!loading && (!user || (user.role !== 'teacher' && user.role !== 'admin'))) {
+    if (!loading && (!user || (user.role !== 'teacher' && !isAdminAreaRole(user.role)))) {
       router.replace('/')
     }
   }, [loading, user, router])
 
   useEffect(() => {
-    if (!user || (user.role !== 'teacher' && user.role !== 'admin')) return
+    if (!user || (user.role !== 'teacher' && !isAdminAreaRole(user.role))) return
     let cancelled = false
     setCohortLoading(true)
     setCohortError(null)

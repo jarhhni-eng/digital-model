@@ -32,7 +32,7 @@ grant execute on function public.role_of(uuid) to authenticated;
 
 create or replace function public.is_admin()
 returns boolean language sql stable as $$
-  select coalesce(public.role_of(auth.uid()) = 'admin', false)
+  select coalesce(public.role_of(auth.uid()) in ('admin', 'super_admin'), false)
 $$;
 
 create or replace function public.is_teacher()
