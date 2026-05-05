@@ -13,6 +13,7 @@ import {
   INHIBITION_ISI_MS,
   INHIBITION_NO_GO_LETTER,
   INHIBITION_STIMULUS_MS,
+  INHIBITION_TRIAL_COUNT,
   buildInhibitionTrials,
   saveInhibitionResult,
   scoreInhibition,
@@ -20,6 +21,7 @@ import {
   type InhibitionTrial,
   type InhibitionTrialResult,
 } from '@/lib/attentional/inhibition'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 
 type Phase = 'intro' | 'instructions' | 'fixation' | 'stimulus' | 'isi' | 'done'
 
@@ -34,8 +36,10 @@ export function InhibitionTest() {
   const trialStart = useRef(0)
   const pressed = useRef(false)
   const reactionMs = useRef<number | null>(null)
+  const supabaseSynced = useRef(false)
 
   const begin = () => {
+    supabaseSynced.current = false
     setTrials(buildInhibitionTrials())
     setCurrent(0)
     setResponses([])
@@ -102,6 +106,8 @@ export function InhibitionTest() {
   // save on done
   useEffect(() => {
     if (phase !== 'done' || responses.length === 0) return
+    if (supabaseSynced.current) return
+    supabaseSynced.current = true
     const stats = scoreInhibition(responses)
     const r: InhibitionResult = {
       id: `inhibition-${Date.now()}`,
@@ -113,6 +119,33 @@ export function InhibitionTest() {
       ...stats,
     }
     saveInhibitionResult(r)
+    persistCompletedTestSessionBestEffort({
+      testId: INHIBITION_TEST_ID,
+      startedAt: r.startedAt,
+      completedAt: r.completedAt,
+      totalMs: r.totalMs,
+      score: r.score,
+      correctCount: r.trials.filter((t) => t.correct).length,
+      totalQuestions: INHIBITION_TRIAL_COUNT,
+      trials: r.trials.map((t, i) => ({
+        question_index: i,
+        question_id: `inh-${t.index}`,
+        selected: [t.letter, t.isNoGo, t.pressed],
+        correct: t.correct,
+        score: t.correct ? 1 : 0,
+        reaction_time_ms: t.reactionTimeMs,
+      })),
+      metadata: {
+        source: 'inhibition',
+        resultId: r.id,
+        hits: r.hits,
+        commissionErrors: r.commissionErrors,
+        omissionErrors: r.omissionErrors,
+        meanRT: r.meanRT,
+        accuracy: r.accuracy,
+        commissionRate: r.commissionRate,
+      },
+    })
   }, [phase, responses, startedAt, user])
 
   if (phase === 'intro')

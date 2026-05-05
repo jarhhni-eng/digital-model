@@ -11,11 +11,13 @@ import { useAuth } from '@/lib/auth-context'
 import {
   PRODUIT_SCALAIRE_LESSON_LABELS,
   PRODUIT_SCALAIRE_QUESTIONS,
+  PRODUIT_SCALAIRE_TEST_ID,
   PRODUIT_SCALAIRE_TYPE_LABELS,
   ProduitScalaireResult,
   ProduitScalaireTrialResult,
   saveProduitScalaireResult,
 } from '@/lib/geometry/produit-scalaire'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { toggleSelectionWithExclusive } from '@/lib/quiz-helpers'
 import { InteractiveLinePlot, PlottedPoint } from '@/components/geometry/interactive-line-plot'
 import { scoreGeometryQuestion, computeFinalPercent } from '@/lib/geometry/scoring'
@@ -146,6 +148,25 @@ export function ProduitScalaireQuiz() {
         score: computeFinalPercent(scorable.map((t) => t.score ?? 0)),
       }
       saveProduitScalaireResult(r)
+      persistCompletedTestSessionBestEffort({
+        testId: PRODUIT_SCALAIRE_TEST_ID,
+        startedAt: r.startedAt,
+        completedAt: r.completedAt,
+        totalMs: r.totalMs,
+        score: r.score,
+        correctCount: r.correctCount,
+        totalQuestions: PRODUIT_SCALAIRE_QUESTIONS.length,
+        trials: r.trials.map((t) => ({
+          question_index: t.index,
+          question_id: t.questionId,
+          selected: t.selected,
+          free_text: t.freeText ?? null,
+          correct: t.correct,
+          score: t.score ?? (t.correct ? 1 : 0),
+          reaction_time_ms: t.reactionTimeMs,
+        })),
+        metadata: { source: 'produit-scalaire-quiz' },
+      })
     }
   }, [phase, trials, startedAt, user])
 

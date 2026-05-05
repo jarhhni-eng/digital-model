@@ -17,6 +17,7 @@ import {
   saveSARTResult,
   SUSTAINED_ATTENTION_TEST_ID,
 } from '@/lib/attentional/sustained-attention'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { TestIntroSection } from '@/components/assessment/test-intro-section'
 
 type Phase = 'intro' | 'instructions' | 'fixation' | 'stimulus' | 'isi' | 'done'
@@ -32,8 +33,10 @@ export function SustainedAttentionTest() {
   const trialStart = useRef(0)
   const pressed = useRef(false)
   const reactionMs = useRef<number | null>(null)
+  const supabaseSynced = useRef(false)
 
   const begin = () => {
+    supabaseSynced.current = false
     setTrials(buildSARTTrials())
     setCurrent(0)
     setResponses([])
@@ -99,6 +102,8 @@ export function SustainedAttentionTest() {
   // save
   useEffect(() => {
     if (phase !== 'done' || responses.length === 0) return
+    if (supabaseSynced.current) return
+    supabaseSynced.current = true
     const correctCount = responses.filter((r) => r.correct).length
     const commission = responses.filter((r) => r.isNoGo && r.pressed).length
     const omission = responses.filter((r) => !r.isNoGo && !r.pressed).length
@@ -118,6 +123,30 @@ export function SustainedAttentionTest() {
       score: Math.round((correctCount / responses.length) * 100),
     }
     saveSARTResult(r)
+    persistCompletedTestSessionBestEffort({
+      testId: SUSTAINED_ATTENTION_TEST_ID,
+      startedAt: r.startedAt,
+      completedAt: r.completedAt,
+      totalMs: r.totalMs,
+      score: r.score,
+      correctCount: r.correctCount,
+      totalQuestions: SART_TRIAL_COUNT,
+      trials: r.trials.map((t, i) => ({
+        question_index: i,
+        question_id: `sart-${t.index}`,
+        selected: [t.digit, t.isNoGo, t.pressed],
+        correct: t.correct,
+        score: t.correct ? 1 : 0,
+        reaction_time_ms: t.reactionTimeMs,
+      })),
+      metadata: {
+        source: 'sustained-attention',
+        resultId: r.id,
+        commissionErrors: r.commissionErrors,
+        omissionErrors: r.omissionErrors,
+        meanRT: r.meanRT,
+      },
+    })
   }, [phase, responses, startedAt, user])
 
   if (phase === 'intro') return <Intro onNext={() => setPhase('instructions')} onQuit={() => router.push('/dashboard')} />

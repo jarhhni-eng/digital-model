@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import {
   BLOCK_POSITIONS,
   CORSI_STORAGE_KEY,
+  CORSI_TEST_ID,
   TOTAL_ATTEMPTS,
   HIGHLIGHT_DURATION_MS,
   INTER_BLOCK_DELAY_MS,
@@ -16,6 +17,7 @@ import {
   type AttemptRecord,
   type CorsiResult,
 } from '@/lib/corsi-test'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { Brain, CheckCircle, XCircle, BookOpen } from 'lucide-react'
 
 // ─── Phases ───────────────────────────────────────────────────────────────────
@@ -321,6 +323,25 @@ export function CorsiTest() {
           completedAt: new Date().toISOString(),
         }
         sessionStorage.setItem(CORSI_STORAGE_KEY, JSON.stringify(finalResult))
+        const trials = finalResult.attempts.map((a, i) => ({
+          question_index: i,
+          question_id: `corsi-attempt-${a.attemptNumber}`,
+          selected: a.userSequence,
+          free_text: JSON.stringify({ target: a.targetSequence, length: a.sequenceLength }),
+          correct: a.isCorrect,
+          score: a.isCorrect ? 1 : 0,
+          reaction_time_ms: null,
+        }))
+        persistCompletedTestSessionBestEffort({
+          testId: CORSI_TEST_ID,
+          completedAt: finalResult.completedAt,
+          totalMs: null,
+          score: Math.round((finalResult.score / finalResult.maxScore) * 100),
+          correctCount: finalResult.score,
+          totalQuestions: finalResult.maxScore,
+          trials,
+          metadata: { source: 'corsi' },
+        })
         setResult(finalResult)
         setPhase('done')
       } else {

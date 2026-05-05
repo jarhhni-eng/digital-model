@@ -15,6 +15,7 @@ import {
   SymetrieAxialeTrialResult,
   saveSymetrieAxialeResult,
 } from '@/lib/geometry/symetrie-axiale'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { scoreGeometryQuestion, computeFinalPercent } from '@/lib/geometry/scoring'
 import { CapacityLegend } from '@/components/geometry/capacity-legend'
 
@@ -103,6 +104,24 @@ export function SymetrieAxialeQuiz() {
         score: computeFinalPercent(scorableTrials.map((t) => (t as { score?: number }).score ?? 0)),
       }
       saveSymetrieAxialeResult(r)
+      persistCompletedTestSessionBestEffort({
+        testId: SYMETRIE_AXIALE_TEST_ID,
+        startedAt: r.startedAt,
+        completedAt: r.completedAt,
+        totalMs: r.totalMs,
+        score: r.score,
+        correctCount: r.correctCount,
+        totalQuestions: SYMETRIE_AXIALE_QUESTIONS.length,
+        trials: r.trials.map((t) => ({
+          question_index: t.index,
+          question_id: t.questionId,
+          selected: [t.selected],
+          correct: t.correct,
+          score: t.score ?? (t.correct ? 1 : 0),
+          reaction_time_ms: t.reactionTimeMs,
+        })),
+        metadata: { source: 'symetrie-axiale-quiz' },
+      })
     }
   }, [phase, trials, startedAt, user])
 

@@ -1,7 +1,8 @@
 'use client'
 
 import { use } from 'react'
-import { mockTests } from '@/lib/mock-data'
+import { useTestsCatalog } from '@/hooks/use-tests-catalog'
+import { getTestForRunner } from '@/lib/tests-catalog'
 import { BEERY_VMI_TEST_ID } from '@/lib/beery-vmi'
 import { VISUO_CONSTRUCTIVE_TEST_ID } from '@/lib/visuo-constructive'
 import { VP_HUB_TEST_ID, getSubtestByTestId } from '@/lib/visuo-perceptive'
@@ -65,7 +66,8 @@ interface TestPageProps {
 
 export default function TestPage({ params }: TestPageProps) {
   const { testId } = use(params)
-  const test = mockTests.find((t) => t.id === testId)
+  const { catalog } = useTestsCatalog()
+  const test = getTestForRunner(testId, catalog)
 
   if (testId === BEERY_VMI_TEST_ID) {
     return <BeeryMotriceTest />

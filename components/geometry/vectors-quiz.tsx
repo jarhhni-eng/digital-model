@@ -10,10 +10,12 @@ import { ArrowLeft, ArrowRight, CheckCircle2, BarChart3 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import {
   VECTORS_QUESTIONS,
+  VECTORS_TEST_ID,
   VectorsResult,
   VectorsTrialResult,
   saveVectorsResult,
 } from '@/lib/geometry/geo-vectors-complete'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { toggleSelectionWithExclusive } from '@/lib/quiz-helpers'
 import { ClickableVectorsPlane } from '@/components/geometry/clickable-vectors-plane'
 import { scoreGeometryQuestion, computeFinalPercent } from '@/lib/geometry/scoring'
@@ -106,6 +108,26 @@ export function VectorsQuizTest() {
         score: computeFinalPercent(scorable.map((t) => t.score ?? 0)),
       }
       saveVectorsResult(r)
+      const trialsPayload = r.trials.map((t) => ({
+        question_index: t.index,
+        question_id: t.questionId,
+        selected: (t.selectedList?.length ? t.selectedList : [t.selected]) as unknown[],
+        free_text: t.freeText ?? null,
+        correct: t.correct,
+        score: t.score ?? (t.correct ? 1 : 0),
+        reaction_time_ms: t.reactionTimeMs,
+      }))
+      persistCompletedTestSessionBestEffort({
+        testId: VECTORS_TEST_ID,
+        startedAt: r.startedAt,
+        completedAt: r.completedAt,
+        totalMs: r.totalMs,
+        score: r.score,
+        correctCount: r.correctCount,
+        totalQuestions: VECTORS_QUESTIONS.length,
+        trials: trialsPayload,
+        metadata: { source: 'vectors-quiz' },
+      })
     }
   }, [phase, trials, startedAt, user])
 

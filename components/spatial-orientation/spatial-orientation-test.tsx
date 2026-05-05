@@ -15,6 +15,7 @@ import {
   type AnswerValue,
   type SpatialResult,
 } from '@/lib/spatial-orientation-test'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { TestIntroSection } from '@/components/assessment/test-intro-section'
 import {
   CheckCircle,
@@ -228,6 +229,24 @@ export function SpatialOrientationTest() {
     }))
     const r = computeSpatialResult(responses)
     sessionStorage.setItem(SPATIAL_ORIENTATION_STORAGE_KEY, JSON.stringify(r))
+    const trials = r.responses.map((resp, i) => ({
+      question_index: i,
+      question_id: `so-${resp.questionNumber}`,
+      selected: resp.selected != null ? [resp.selected] : [],
+      correct: resp.isCorrect,
+      score: resp.isCorrect ? 1 : 0,
+      reaction_time_ms: resp.responseTimeMs,
+    }))
+    persistCompletedTestSessionBestEffort({
+      testId: SPATIAL_ORIENTATION_TEST_ID,
+      completedAt: r.completedAt,
+      totalMs: null,
+      score: Math.round((r.totalCorrect / r.totalQuestions) * 100),
+      correctCount: r.totalCorrect,
+      totalQuestions: r.totalQuestions,
+      trials,
+      metadata: { source: 'spatial-orientation' },
+    })
     setResult(r)
   }
 

@@ -27,6 +27,7 @@ import {
 import { useAuth } from '@/lib/auth-context'
 import {
   SYMETRIE_CENTRALE_QUESTIONS,
+  SYMETRIE_CENTRALE_TEST_ID,
   SymCentraleQuestion,
   SymCentraleResult,
   SymCentraleTrialResult,
@@ -37,6 +38,7 @@ import {
   LEVEL_INSIGHT,
   FigureKey,
 } from '@/lib/geometry/symetrie-centrale'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { CapacityLegend } from '@/components/geometry/capacity-legend'
 import { toggleSelectionWithExclusive } from '@/lib/quiz-helpers'
 
@@ -157,6 +159,24 @@ export function SymetrieCentraleQuiz() {
       level: levelFor(totalScore),
     }
     saveSymCentraleResult(r)
+    persistCompletedTestSessionBestEffort({
+      testId: SYMETRIE_CENTRALE_TEST_ID,
+      startedAt: r.startedAt,
+      completedAt: r.completedAt,
+      totalMs: r.totalMs,
+      score: r.maxScore > 0 ? Math.round((r.totalScore / r.maxScore) * 100) : 0,
+      correctCount: r.trials.filter((t) => t.correct).length,
+      totalQuestions: SYMETRIE_CENTRALE_QUESTIONS.length,
+      trials: r.trials.map((t) => ({
+        question_index: t.index,
+        question_id: t.questionId,
+        selected: t.selected,
+        correct: t.correct,
+        score: t.correct ? 1 : Math.min(1, t.pointsEarned / 4),
+        reaction_time_ms: t.reactionTimeMs,
+      })),
+      metadata: { source: 'symetrie-centrale-quiz', level: r.level },
+    })
   }, [phase, trials, startedAt, user])
 
   if (phase === 'intro') {

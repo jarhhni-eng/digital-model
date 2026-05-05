@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
@@ -10,10 +10,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { mockTests } from '@/lib/mock-data'
 import type { Test } from '@/lib/mock-data'
+import type { Database } from '@/lib/types/database'
 import { listMySessions } from '@/lib/results/results-service'
-import { mergeCatalogWithSessions, type TestWithProgress } from '@/lib/student-test-progress'
+import { useTestsCatalog } from '@/hooks/use-tests-catalog'
+import {
+  mergeCatalogWithSessions,
+  averageCompletedScore,
+  type TestWithProgress,
+} from '@/lib/student-test-progress'
 import { useAuth } from '@/lib/auth-context'
 import {
   ClipboardList,
@@ -28,6 +33,8 @@ import {
   ArrowRight,
   Info,
 } from 'lucide-react'
+
+type SessionRow = Database['public']['Tables']['test_sessions']['Row']
 
 const testTypeConfig: Record<Test['type'], { label: string; icon: React.ReactNode }> = {
   mcq: { label: 'MCQ', icon: <FileQuestion className="w-4 h-4" /> },
@@ -47,15 +54,19 @@ function formatDuration(seconds: number): string {
 export default function TestsPage() {
   const isMobile = useIsMobile()
   const { user, loading: authLoading } = useAuth()
-  const [tests, setTests] = useState<TestWithProgress[]>(() =>
-    mergeCatalogWithSessions(mockTests, []),
-  )
+  const { catalog, fromDatabase } = useTestsCatalog()
+  const [sessions, setSessions] = useState<SessionRow[]>([])
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [sessionsLoading, setSessionsLoading] = useState(true)
 
+  const tests = useMemo(
+    () => mergeCatalogWithSessions(catalog, user ? sessions : []),
+    [catalog, sessions, user],
+  )
+
   useEffect(() => {
     if (!user) {
-      setTests(mergeCatalogWithSessions(mockTests, []))
+      setSessions([])
       setSessionsLoading(false)
       setFetchError(null)
       return
@@ -68,15 +79,15 @@ export default function TestsPage() {
         if (cancelled) return
         if (error) {
           setFetchError(error)
-          setTests(mergeCatalogWithSessions(mockTests, []))
+          setSessions([])
           return
         }
-        setTests(mergeCatalogWithSessions(mockTests, data))
+        setSessions(data)
       })
       .catch(() => {
         if (!cancelled) {
           setFetchError('Could not load your sessions.')
-          setTests(mergeCatalogWithSessions(mockTests, []))
+          setSessions([])
         }
       })
       .finally(() => {
@@ -85,13 +96,18 @@ export default function TestsPage() {
     return () => {
       cancelled = true
     }
-  }, [user])
+  }, [user, fromDatabase])
 
   const completed = tests.filter((t) => t.status === 'completed')
   const inProgress = tests.filter((t) => t.status === 'in-progress')
   const upcoming = tests.filter((t) => t.status === 'upcoming')
   const total = tests.length
   const completedPercent = total ? Math.round((completed.length / total) * 100) : 0
+  const overallAvg = useMemo(() => {
+    const hasScored = tests.some((t) => t.status === 'completed' && t.latestScore != null)
+    if (!hasScored) return null
+    return averageCompletedScore(tests)
+  }, [tests])
 
   return (
     <div className="bg-background min-h-screen">
@@ -164,6 +180,13 @@ export default function TestsPage() {
               </CardContent>
             </Card>
           </div>
+
+          {user && overallAvg != null && (
+            <p className="mb-4 text-sm text-muted-foreground">
+              Average score (completed tests with a score):{' '}
+              <span className="font-semibold text-foreground">{overallAvg}%</span>
+            </p>
+          )}
 
           {/* Progress overview */}
           <Card className="mb-8">

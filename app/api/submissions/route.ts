@@ -10,6 +10,10 @@
  */
 import { NextResponse } from 'next/server'
 import { getSupabaseServer } from '@/lib/supabase/server'
+import {
+  ensureTestSessionFkPrereqs,
+  normalizeTrialQuestionIndices,
+} from '@/lib/supabase/ensure-test-session-fk'
 import { mockTestQuestions, mockTests } from '@/lib/mock-data'
 import type { Question } from '@/lib/mock-data'
 import type { Json } from '@/lib/types/database'
@@ -80,6 +84,11 @@ export async function POST(request: Request) {
 
     const { scorePercent, correctCount, total, perQuestion } = scoreAnswers(testId, answers)
 
+    const fk = await ensureTestSessionFkPrereqs(sb, user, testId)
+    if (!fk.ok) {
+      return NextResponse.json({ error: fk.message }, { status: fk.status })
+    }
+
     const { data: session, error } = await sb
       .from('test_sessions')
       .insert({
@@ -97,26 +106,37 @@ export async function POST(request: Request) {
       .single()
 
     if (error || !session) {
-      console.error('[submissions POST]', error?.message)
-      return NextResponse.json({ error: error?.message ?? 'Insert failed' }, { status: 500 })
+      console.error('[submissions POST]', error?.message, error?.code)
+      const code = error?.code
+      const hint =
+        code === '23503'
+          ? 'Foreign key violation (missing tests row or profiles row).'
+          : code === '23505'
+            ? 'Unique constraint violation.'
+            : error?.message ?? 'Insert failed'
+      const status = code === '23503' || code === '23505' ? 409 : 500
+      return NextResponse.json({ error: hint, code: code ?? undefined }, { status })
     }
 
     if (perQuestion.length > 0) {
-      const rows = perQuestion.map((p, i) => ({
-        session_id: session.id,
-        question_index: i,
-        question_id: p.questionId,
-        selected: (p.selected !== null ? [p.selected] : []) as Json,
-        free_text: null,
-        correct: p.correct,
-        score: p.correct ? 1 : 0,
-      }))
+      const rows = normalizeTrialQuestionIndices(
+        perQuestion.map((p, i) => ({
+          session_id: session.id,
+          question_index: i,
+          question_id: p.questionId,
+          selected: (p.selected !== null ? [p.selected] : []) as Json,
+          free_text: null,
+          correct: p.correct,
+          score: p.correct ? 1 : 0,
+        })),
+      )
       const { error: trialErr } = await sb.from('trial_results').insert(rows)
       if (trialErr) {
-        console.error('[submissions POST] trial_results', trialErr.message)
+        console.error('[submissions POST] trial_results', trialErr.message, trialErr.code)
+        const st = trialErr.code === '23505' || trialErr.code === '23503' ? 409 : 500
         return NextResponse.json(
-          { error: `Session saved but trials failed: ${trialErr.message}` },
-          { status: 500 },
+          { error: `Session saved but trials failed: ${trialErr.message}`, code: trialErr.code },
+          { status: st },
         )
       }
     }

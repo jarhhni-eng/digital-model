@@ -17,6 +17,7 @@ import {
   type RavensResult,
   type SeriesId,
 } from '@/lib/ravens-test'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { TestIntroSection } from '@/components/assessment/test-intro-section'
 import { Brain, CheckCircle, Clock, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react'
 
@@ -253,6 +254,28 @@ export function RavensTest() {
       completedAt: new Date().toISOString(),
     }
     sessionStorage.setItem(RAVENS_STORAGE_KEY, JSON.stringify(res))
+    const trials = ravensQuestions.map((q, i) => {
+      const sel = ans[q.code]
+      const correct = sel === q.correctAnswer
+      return {
+        question_index: i,
+        question_id: q.code,
+        selected: sel != null ? [sel] : [],
+        correct,
+        score: correct ? 1 : 0,
+        reaction_time_ms: null,
+      }
+    })
+    persistCompletedTestSessionBestEffort({
+      testId: RAVENS_TEST_ID,
+      completedAt: res.completedAt,
+      totalMs: elapsedSeconds * 1000,
+      score: Math.round((res.score.total / res.score.maxTotal) * 100),
+      correctCount: res.score.total,
+      totalQuestions: res.score.maxTotal,
+      trials,
+      metadata: { source: 'ravens' },
+    })
     setResult(res)
     setPhase('done')
   }, [])

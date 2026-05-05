@@ -19,7 +19,9 @@ import {
   type ProcSpeedTrialResult,
   type RectStim,
   PROCESSING_SPEED_TEST_ID,
+  PROC_SPEED_TRIAL_COUNT,
 } from '@/lib/attentional/processing-speed'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { TestIntroSection } from '@/components/assessment/test-intro-section'
 
 type Phase = 'intro' | 'instructions' | 'fixation' | 'stimulus' | 'isi' | 'done'
@@ -40,8 +42,10 @@ export function ProcessingSpeedTest() {
   const [startedAt, setStartedAt] = useState<number>(0)
   const trialStart = useRef(0)
   const clickedRef = useRef<{ id: string; rt: number } | null>(null)
+  const supabaseSynced = useRef(false)
 
   const begin = () => {
+    supabaseSynced.current = false
     setTrials(buildProcSpeedTrials())
     setCurrent(0)
     setResponses([])
@@ -124,6 +128,8 @@ export function ProcessingSpeedTest() {
   // Save
   useEffect(() => {
     if (phase !== 'done' || responses.length === 0) return
+    if (supabaseSynced.current) return
+    supabaseSynced.current = true
     const stats = scoreProcSpeed(responses)
     const r: ProcSpeedResult = {
       id: `procspeed-${Date.now()}`,
@@ -135,6 +141,29 @@ export function ProcessingSpeedTest() {
       ...stats,
     }
     saveProcSpeedResult(r)
+    persistCompletedTestSessionBestEffort({
+      testId: PROCESSING_SPEED_TEST_ID,
+      startedAt: r.startedAt,
+      completedAt: r.completedAt,
+      totalMs: r.totalMs,
+      score: r.score,
+      correctCount: r.correctCount,
+      totalQuestions: PROC_SPEED_TRIAL_COUNT,
+      trials: r.trials.map((t, i) => ({
+        question_index: i,
+        question_id: `ps-${t.index}`,
+        selected: [t.hasTarget, t.clickedId ?? 'none', t.errorType],
+        correct: t.correct,
+        score: t.correct ? 1 : 0,
+        reaction_time_ms: t.reactionTimeMs,
+      })),
+      metadata: {
+        source: 'processing-speed',
+        resultId: r.id,
+        meanRT: r.meanRT,
+        accuracy: r.accuracy,
+      },
+    })
   }, [phase, responses, startedAt, user])
 
   if (phase === 'intro')

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
@@ -9,8 +9,8 @@ import { cn } from '@/lib/utils'
 import { StatCard } from '@/components/dashboard-cards'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { mockTests } from '@/lib/mock-data'
 import { listMySessions, listMyStudentsView } from '@/lib/results/results-service'
+import { useTestsCatalog } from '@/hooks/use-tests-catalog'
 import {
   mergeRosterWithSessions,
   classDomainAveragesFromSessions,
@@ -25,17 +25,32 @@ import {
 import { Users, TrendingUp, AlertCircle, BookOpen } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
+import type { Database } from '@/lib/types/database'
+
+type SessionRow = Database['public']['Tables']['test_sessions']['Row']
 
 export default function TeacherDashboard() {
   const router = useRouter()
   const { user, loading } = useAuth()
+  const { catalog } = useTestsCatalog()
   const isMobile = useIsMobile()
   const [myStudents, setMyStudents] = useState<RosterStudentRow[]>([])
-  const [classDomainData, setClassDomainData] = useState<{ domain: string; avgScore: number }[]>([])
-  const [weeklyTrend, setWeeklyTrend] = useState<{ week: string; completion: number }[]>([])
-  const [weakDomains, setWeakDomains] = useState<{ name: string; students: number }[]>([])
+  const [cohortSessions, setCohortSessions] = useState<SessionRow[]>([])
   const [cohortError, setCohortError] = useState<string | null>(null)
   const [cohortLoading, setCohortLoading] = useState(false)
+
+  const classDomainData = useMemo(
+    () => classDomainAveragesFromSessions(catalog, cohortSessions),
+    [catalog, cohortSessions],
+  )
+  const weeklyTrend = useMemo(
+    () => weeklyCompletionCounts(cohortSessions),
+    [cohortSessions],
+  )
+  const weakDomains = useMemo(
+    () => weakDomainsFromSessions(catalog, cohortSessions),
+    [catalog, cohortSessions],
+  )
 
   useEffect(() => {
     if (!loading && (!user || (user.role !== 'teacher' && user.role !== 'admin'))) {
@@ -56,9 +71,7 @@ export default function TeacherDashboard() {
         const roster = rosterRes.data ?? []
         const sessions = sessRes.data ?? []
         setMyStudents(mergeRosterWithSessions(roster, sessions))
-        setClassDomainData(classDomainAveragesFromSessions(mockTests, sessions))
-        setWeeklyTrend(weeklyCompletionCounts(sessions))
-        setWeakDomains(weakDomainsFromSessions(mockTests, sessions))
+        setCohortSessions(sessions)
       })
       .catch(() => {
         if (!cancelled) setCohortError('Could not load roster or sessions.')

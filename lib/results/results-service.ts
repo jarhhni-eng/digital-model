@@ -119,6 +119,7 @@ export async function listMySessions(opts?: {
   limit?: number
 }): Promise<{ data: SessionRow[]; error: string | null }> {
   const sb = getSupabaseBrowser()
+  await sb.auth.getUser()
   let q = sb
     .from('test_sessions')
     .select('*')
@@ -135,6 +136,7 @@ export async function listSessionsForStudent(
   studentId: string,
 ): Promise<{ data: SessionRow[]; error: string | null }> {
   const sb = getSupabaseBrowser()
+  await sb.auth.getUser()
   const { data, error } = await sb
     .from('test_sessions')
     .select('*')

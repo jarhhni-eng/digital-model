@@ -10,8 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { mockTests } from '@/lib/mock-data'
 import { listMySessions, listMyStudentsView } from '@/lib/results/results-service'
+import { useTestsCatalog } from '@/hooks/use-tests-catalog'
 import { mergeCatalogWithSessions, averageCompletedScore } from '@/lib/student-test-progress'
 import { mergeRosterWithSessions } from '@/lib/teacher-cohort-stats'
 import { useAuth } from '@/lib/auth-context'
@@ -22,6 +22,7 @@ export default function ProfilePage() {
   const router = useRouter()
   const isMobile = useIsMobile()
   const { user, loading } = useAuth()
+  const { catalog, fromDatabase } = useTestsCatalog()
   const [academic, setAcademic] = useState<StudentAcademicProfile | null>(null)
   const [studentSessionStats, setStudentSessionStats] = useState<{
     averageScore: number | null
@@ -66,7 +67,7 @@ export default function ProfilePage() {
           })
           return
         }
-        const merged = mergeCatalogWithSessions(mockTests, data)
+        const merged = mergeCatalogWithSessions(catalog, data)
         const avg = averageCompletedScore(merged)
         const hasCompleted = merged.some(
           (t) => t.status === 'completed' && t.latestScore != null,
@@ -79,7 +80,7 @@ export default function ProfilePage() {
               new Date(a.completed_at ?? a.started_at).getTime(),
           )
         const last = completed[0]
-        const title = last ? mockTests.find((t) => t.id === last.test_id)?.title ?? last.test_id : null
+        const title = last ? catalog.find((t) => t.id === last.test_id)?.title ?? last.test_id : null
         setStudentSessionStats({
           averageScore: hasCompleted ? avg : null,
           latestScore: last != null ? Math.round(Number(last.score)) : null,
@@ -98,7 +99,7 @@ export default function ProfilePage() {
           latestDate: null,
         }),
       )
-  }, [user])
+  }, [user, catalog, fromDatabase])
 
   useEffect(() => {
     if (!user || user.role !== 'teacher') return

@@ -20,6 +20,7 @@ import {
   saveTMTResult,
   TRAIL_MAKING_TEST_ID,
 } from '@/lib/attentional/trail-making'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { TestIntroSection } from '@/components/assessment/test-intro-section'
 
 type Phase = 'intro' | 'train-a' | 'test-a' | 'train-b' | 'test-b' | 'done'
@@ -30,6 +31,7 @@ export function TrailMakingTest() {
   const [phase, setPhase] = useState<Phase>('intro')
   const [results, setResults] = useState<TMTPhaseResult[]>([])
   const startedRef = useRef<number>(Date.now())
+  const supabaseSynced = useRef(false)
 
   const finishPhase = (pr: TMTPhaseResult) => {
     setResults((r) => [...r, pr])
@@ -41,6 +43,8 @@ export function TrailMakingTest() {
 
   useEffect(() => {
     if (phase !== 'done') return
+    if (supabaseSynced.current) return
+    supabaseSynced.current = true
     const testA = results.find((r) => r.phase === 'test' && r.part === 'A')
     const testB = results.find((r) => r.phase === 'test' && r.part === 'B')
     const errors = results.reduce((s, r) => s + r.errors, 0)
@@ -58,6 +62,32 @@ export function TrailMakingTest() {
       score: Math.max(0, 100 - errors * 5),
     }
     saveTMTResult(r)
+    const phases = r.phases
+    persistCompletedTestSessionBestEffort({
+      testId: TRAIL_MAKING_TEST_ID,
+      startedAt: r.startedAt,
+      completedAt: r.completedAt,
+      totalMs: Date.now() - startedRef.current,
+      score: r.score,
+      correctCount: phases.filter((p) => p.errors === 0).length,
+      totalQuestions: phases.length,
+      trials: phases.map((p, i) => ({
+        question_index: i,
+        question_id: `tmt-${p.phase}-${p.part}`,
+        selected: [p.errors, p.totalMs],
+        correct: p.errors === 0,
+        score: p.errors === 0 ? 1 : Math.max(0, 1 - p.errors * 0.15),
+        reaction_time_ms: p.totalMs,
+      })),
+      metadata: {
+        source: 'trail-making',
+        resultId: r.id,
+        testAtime: r.testAtime,
+        testBtime: r.testBtime,
+        switchCost: r.switchCost,
+        totalErrors: r.totalErrors,
+      },
+    })
   }, [phase, results, user])
 
   if (phase === 'intro')

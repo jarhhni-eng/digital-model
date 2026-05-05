@@ -24,6 +24,7 @@ import { useAuth } from '@/lib/auth-context'
 import { Tex } from '@/components/trigonometry/tex'
 import {
   TRIG_CIRCLE_QUESTIONS,
+  TRIG_CIRCLE_TEST_ID,
   anglesMatch,
   valuesMatch,
   saveTrigCircleResult,
@@ -33,6 +34,7 @@ import {
   type TrigSubAnswer,
   type TrigCircleResult,
 } from '@/lib/geometry/trig-unit-circle'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 
 type Phase = 'intro' | 'running' | 'done'
 
@@ -450,6 +452,25 @@ export function TrigCircleQuiz() {
       score: total > 0 ? Math.round((correct / total) * 100) : 0,
     }
     saveTrigCircleResult(r)
+    const totalSubs = TRIG_CIRCLE_QUESTIONS.reduce((n, q) => n + q.subs.length, 0)
+    persistCompletedTestSessionBestEffort({
+      testId: TRIG_CIRCLE_TEST_ID,
+      startedAt: r.startedAt,
+      completedAt: r.completedAt,
+      totalMs: r.totalMs,
+      score: r.score,
+      correctCount: r.correctCount,
+      totalQuestions: totalSubs,
+      trials: r.answers.map((a, i) => ({
+        question_index: i,
+        question_id: a.subId,
+        selected: [a.choiceId ?? a.clickedAngle ?? a.clickedValue].filter((x): x is string | number => x != null),
+        correct: a.correct,
+        score: a.correct ? 1 : 0,
+        reaction_time_ms: a.reactionTimeMs,
+      })),
+      metadata: { source: 'trig-circle-quiz' },
+    })
   }, [phase, answers, startedAt, user])
 
   // ── Placed points collected from answers of current question ─────────────

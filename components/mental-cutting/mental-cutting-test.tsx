@@ -15,6 +15,7 @@ import {
   TOTAL_QUESTIONS,
   type CuttingResult,
 } from '@/lib/mental-cutting-test'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { TestIntroSection } from '@/components/assessment/test-intro-section'
 import { Scissors, CheckCircle, XCircle, ChevronRight, BookOpen } from 'lucide-react'
 
@@ -266,6 +267,24 @@ export function MentalCuttingTest() {
   function handleSubmit() {
     const r = computeCuttingResult(answers)
     sessionStorage.setItem(MENTAL_CUTTING_STORAGE_KEY, JSON.stringify(r))
+    const trials = r.responses.map((resp, i) => ({
+      question_index: i,
+      question_id: `mcut-${resp.questionNumber}`,
+      selected: resp.selected != null ? [resp.selected] : [],
+      correct: resp.isCorrect,
+      score: resp.isCorrect ? 1 : 0,
+      reaction_time_ms: null,
+    }))
+    persistCompletedTestSessionBestEffort({
+      testId: MENTAL_CUTTING_TEST_ID,
+      completedAt: r.completedAt,
+      totalMs: null,
+      score: r.percentage,
+      correctCount: r.score,
+      totalQuestions: r.total,
+      trials,
+      metadata: { source: 'mental-cutting' },
+    })
     setResult(r)
     setPhase('done')
   }

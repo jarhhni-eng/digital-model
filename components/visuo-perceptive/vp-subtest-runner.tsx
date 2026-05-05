@@ -14,6 +14,7 @@ import {
   resultStorageKey,
 } from '@/lib/visuo-perceptive'
 import { gradeTrial, summarize, TrialAnswer } from '@/lib/visuo-perceptive/scoring'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { VPImage } from './vp-image'
 
 interface RunnerProps {
@@ -115,6 +116,24 @@ export function VPSubtestRunner({ subtest }: RunnerProps) {
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(resultStorageKey(subtest.id), JSON.stringify(summary))
       }
+      const approxTotalMs = Math.round(summary.averageTimeMs * summary.total)
+      persistCompletedTestSessionBestEffort({
+        testId: subtest.testId,
+        completedAt: summary.completedAt,
+        totalMs: approxTotalMs,
+        score: Math.round(summary.percentage),
+        correctCount: summary.totalCorrect,
+        totalQuestions: summary.total,
+        trials: summary.answers.map((a, i) => ({
+          question_index: i,
+          question_id: `vp-${a.trialIndex}-${a.questionNumber}`,
+          selected: a.userAnswer !== null ? [a.userAnswer] : [],
+          correct: a.score === 1,
+          score: a.score,
+          reaction_time_ms: a.timeMs,
+        })),
+        metadata: { source: 'vp-subtest-runner', vpSubtest: subtest.id },
+      })
       setPhase('done')
       return
     }

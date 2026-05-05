@@ -17,6 +17,7 @@ import {
   speakDigits,
   DIGIT_SPAN_TEST_ID,
 } from '@/lib/memory/digit-span'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { TestIntroSection } from '@/components/assessment/test-intro-section'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
@@ -31,6 +32,7 @@ export function DigitSpanTest() {
   const [playing, setPlaying] = useState(false)
   const [startedAt, setStartedAt] = useState<number>(0)
   const trialStart = useRef(0)
+  const supabaseSynced = useRef(false)
 
   const playSequence = useCallback(async () => {
     setPlaying(true)
@@ -61,20 +63,40 @@ export function DigitSpanTest() {
   }, [current, answer])
 
   useEffect(() => {
-    if (phase === 'done' && trials.length > 0) {
-      const correct = trials.filter((t) => t.correct).length
-      const r: DigitSpanResult = {
-        id: `ds-${Date.now()}`,
-        userName: user?.username,
-        startedAt: new Date(startedAt).toISOString(),
-        completedAt: new Date().toISOString(),
-        trials,
-        totalMs: Date.now() - startedAt,
-        correctCount: correct,
-        score: Math.round((correct / DIGIT_SPAN_SEQUENCES.length) * 100),
-      }
-      saveDigitSpanResult(r)
+    if (phase !== 'done' || trials.length !== DIGIT_SPAN_SEQUENCES.length) return
+    if (supabaseSynced.current) return
+    supabaseSynced.current = true
+    const correct = trials.filter((t) => t.correct).length
+    const r: DigitSpanResult = {
+      id: `ds-${Date.now()}`,
+      userName: user?.username,
+      startedAt: new Date(startedAt).toISOString(),
+      completedAt: new Date().toISOString(),
+      trials,
+      totalMs: Date.now() - startedAt,
+      correctCount: correct,
+      score: Math.round((correct / DIGIT_SPAN_SEQUENCES.length) * 100),
     }
+    saveDigitSpanResult(r)
+    persistCompletedTestSessionBestEffort({
+      testId: DIGIT_SPAN_TEST_ID,
+      startedAt: r.startedAt,
+      completedAt: r.completedAt,
+      totalMs: r.totalMs,
+      score: r.score,
+      correctCount: r.correctCount,
+      totalQuestions: DIGIT_SPAN_SEQUENCES.length,
+      trials: r.trials.map((t) => ({
+        question_index: t.index,
+        question_id: `ds-seq-${t.index}`,
+        selected: t.answer,
+        free_text: JSON.stringify(t.sequence),
+        correct: t.correct,
+        score: t.correct ? 1 : 0,
+        reaction_time_ms: t.reactionTimeMs,
+      })),
+      metadata: { source: 'digit-span', resultId: r.id },
+    })
   }, [phase, trials, startedAt, user])
 
   if (phase === 'intro') {
@@ -82,6 +104,7 @@ export function DigitSpanTest() {
       <Intro
         onQuit={() => router.push('/dashboard')}
         onStart={() => {
+          supabaseSynced.current = false
           setStartedAt(Date.now())
           setPhase('instructions')
         }}

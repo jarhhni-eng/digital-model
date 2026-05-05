@@ -21,7 +21,9 @@ import {
   saveActiveRAVLT,
   scoreList,
   speakWords,
+  RAVLT_TEST_ID,
 } from '@/lib/memory/ravlt'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 
 type Phase =
   | 'intro'
@@ -282,6 +284,30 @@ export function RAVLTTest() {
             }
             next.totalScore = computeTotalScore(next.levels)
             finalizeRAVLT(next)
+            const levelEntries = Object.entries(next.levels).filter(
+              (e): e is [RAVLTLevelKey, RAVLTLevelScore] => Boolean(e[1]),
+            )
+            const trials = levelEntries.map(([key, lv], i) => ({
+              question_index: i,
+              question_id: `ravlt-${key}`,
+              selected: lv.correctWords,
+              free_text: lv.extraWords.length ? lv.extraWords.join('; ') : null,
+              correct: lv.score > 0,
+              score: Math.min(1, lv.score / 15),
+              reaction_time_ms: null,
+            }))
+            const maxByLevels = levelEntries.length * 15 || 15
+            persistCompletedTestSessionBestEffort({
+              testId: RAVLT_TEST_ID,
+              startedAt: next.startedAt,
+              completedAt: next.completedAt ?? new Date().toISOString(),
+              totalMs: null,
+              score: Math.min(100, Math.round((next.totalScore / maxByLevels) * 100)),
+              correctCount: Math.round(next.totalScore),
+              totalQuestions: maxByLevels,
+              trials,
+              metadata: { source: 'ravlt-test', resultId: next.id, totalScore: next.totalScore },
+            })
             return next
           })
           setPhase('done')

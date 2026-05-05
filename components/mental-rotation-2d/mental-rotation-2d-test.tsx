@@ -17,6 +17,7 @@ import {
   type Side,
   type Rotation2DResult,
 } from '@/lib/mental-rotation-2d-test'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { TestIntroSection } from '@/components/assessment/test-intro-section'
 import {
   Brain,
@@ -262,6 +263,24 @@ export function MentalRotation2DTest() {
       } catch {
         /* ignore */
       }
+      const trials = r.responses.map((resp, i) => ({
+        question_index: i,
+        question_id: `mr2d-${resp.questionNumber}`,
+        selected: resp.selected != null ? [resp.selected] : [],
+        correct: resp.isCorrect,
+        score: resp.isCorrect ? 1 : 0,
+        reaction_time_ms: resp.responseTimeMs,
+      }))
+      persistCompletedTestSessionBestEffort({
+        testId: MENTAL_ROTATION_2D_TEST_ID,
+        completedAt: r.completedAt,
+        totalMs: elapsedSeconds * 1000,
+        score: Math.round((r.totalScore / r.maxScore) * 100),
+        correctCount: r.totalScore,
+        totalQuestions: r.maxScore,
+        trials,
+        metadata: { source: 'mental-rotation-2d' },
+      })
       setResult(r)
       setPhase('done')
     },

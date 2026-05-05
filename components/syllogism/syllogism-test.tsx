@@ -9,9 +9,11 @@ import {
   syllogismQuestions,
   computeSyllogismScore,
   SYLLOGISM_STORAGE_KEY,
+  SYLLOGISM_TEST_ID,
   type SyllogismAnswer,
   type SyllogismResult,
 } from '@/lib/syllogism-test'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const OPTIONS: { value: SyllogismAnswer; label: string; description: string }[] = [
@@ -54,6 +56,28 @@ export function SyllogismTest() {
       completedAt: new Date().toISOString(),
     }
     sessionStorage.setItem(SYLLOGISM_STORAGE_KEY, JSON.stringify(result))
+    const trials = syllogismQuestions.map((q, i) => {
+      const sel = answers[q.id]
+      const correct = sel === q.correct
+      return {
+        question_index: i,
+        question_id: `syllogism-${q.id}`,
+        selected: sel != null ? [sel] : [],
+        correct,
+        score: correct ? 1 : 0,
+        reaction_time_ms: null,
+      }
+    })
+    persistCompletedTestSessionBestEffort({
+      testId: SYLLOGISM_TEST_ID,
+      completedAt: result.completedAt,
+      totalMs: null,
+      score: Math.round((score / total) * 100),
+      correctCount: score,
+      totalQuestions: total,
+      trials,
+      metadata: { source: 'syllogism-test' },
+    })
     setSubmitted(true)
   }
 

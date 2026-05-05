@@ -10,10 +10,12 @@ import { ArrowLeft, ArrowRight, CheckCircle2, BarChart3, Box } from 'lucide-reac
 import { useAuth } from '@/lib/auth-context'
 import {
   GEO_SPACE_QUESTIONS,
+  GEO_SPACE_TEST_ID,
   GeoSpaceResult,
   GeoSpaceTrialResult,
   saveGeoSpaceResult,
 } from '@/lib/geometry/geo-space'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { toggleSelectionWithExclusive } from '@/lib/quiz-helpers'
 import { scoreGeometryQuestion, computeFinalPercent } from '@/lib/geometry/scoring'
 
@@ -112,6 +114,24 @@ export function GeoSpaceQuiz() {
         score: computeFinalPercent(scorable.map((t) => t.score ?? 0)),
       }
       saveGeoSpaceResult(r)
+      persistCompletedTestSessionBestEffort({
+        testId: GEO_SPACE_TEST_ID,
+        startedAt: r.startedAt,
+        completedAt: r.completedAt,
+        totalMs: r.totalMs,
+        score: r.score,
+        correctCount: r.correctCount,
+        totalQuestions: GEO_SPACE_QUESTIONS.length,
+        trials: r.trials.map((t) => ({
+          question_index: t.index,
+          question_id: t.questionId,
+          selected: (t.selectedList?.length ? t.selectedList : [t.selected]) as unknown[],
+          correct: t.correct,
+          score: t.score ?? (t.correct ? 1 : 0),
+          reaction_time_ms: t.reactionTimeMs,
+        })),
+        metadata: { source: 'geo-space-quiz' },
+      })
     }
   }, [phase, trials, startedAt, user])
 

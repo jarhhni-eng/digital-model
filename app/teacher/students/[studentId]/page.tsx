@@ -10,8 +10,8 @@ import { StatCard } from '@/components/dashboard-cards'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/auth-context'
-import { mockTests } from '@/lib/mock-data'
 import { listMyStudentsView, listSessionsForStudent } from '@/lib/results/results-service'
+import { useTestsCatalog } from '@/hooks/use-tests-catalog'
 import {
   mergeCatalogWithSessions,
   groupTestsByDomain,
@@ -48,6 +48,7 @@ export default function StudentDetailsPage({ params }: StudentDetailsPageProps) 
   const router = useRouter()
   const isMobile = useIsMobile()
   const { user, loading: authLoading } = useAuth()
+  const { catalog } = useTestsCatalog()
   const [student, setStudent] = useState<RosterStudentRow | null>(null)
   const [sessions, setSessions] = useState<SessionRow[]>([])
   const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading')
@@ -79,8 +80,8 @@ export default function StudentDetailsPage({ params }: StudentDetailsPageProps) 
   }, [user, params.studentId, router])
 
   const mergedTests = useMemo(
-    () => mergeCatalogWithSessions(mockTests, sessions),
-    [sessions],
+    () => mergeCatalogWithSessions(catalog, sessions),
+    [catalog, sessions],
   )
 
   const groupedDomains = useMemo(() => groupTestsByDomain(mergedTests), [mergedTests])
@@ -95,7 +96,7 @@ export default function StudentDetailsPage({ params }: StudentDetailsPageProps) 
   )
 
   const attemptHistory = useMemo(() => {
-    const testToDomain = new Map(mockTests.map((t) => [t.id, t.domain]))
+    const testToDomain = new Map(catalog.map((t) => [t.id, t.domain]))
     return [...sessions]
       .filter((s) => s.status === 'completed' && s.score != null)
       .sort(
@@ -109,7 +110,7 @@ export default function StudentDetailsPage({ params }: StudentDetailsPageProps) 
         score: Math.round(Number(s.score)),
         domain: testToDomain.get(s.test_id) ?? s.test_id,
       }))
-  }, [sessions])
+  }, [sessions, catalog])
 
   const weakTitles = useMemo(
     () =>

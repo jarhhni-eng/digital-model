@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import type { Database } from '@/lib/types/database'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
 import { useIsMobile } from '@/components/ui/use-mobile'
@@ -18,8 +19,8 @@ import {
 } from 'lucide-react'
 import { getDomainPresentation } from '@/lib/domain-ui'
 import { useAuth } from '@/lib/auth-context'
-import { mockTests } from '@/lib/mock-data'
 import { listMySessions } from '@/lib/results/results-service'
+import { useTestsCatalog } from '@/hooks/use-tests-catalog'
 import {
   mergeCatalogWithSessions,
   groupTestsByDomain,
@@ -71,6 +72,8 @@ function AttStat({ label, value, detail }: { label: string; value: string; detai
   )
 }
 
+type SessionRow = Database['public']['Tables']['test_sessions']['Row']
+
 function scoreColor(score: number) {
   if (score >= 75) return 'text-green-600'
   if (score >= 55) return 'text-amber-600'
@@ -82,11 +85,15 @@ function scoreColor(score: number) {
 export default function ResultsPage() {
   const isMobile = useIsMobile()
   const { user, loading: authLoading } = useAuth()
-  const [mergedTests, setMergedTests] = useState<TestWithProgress[]>(() =>
-    mergeCatalogWithSessions(mockTests, []),
-  )
+  const { catalog, fromDatabase } = useTestsCatalog()
+  const [sessions, setSessions] = useState<SessionRow[]>([])
   const [resultsFetchError, setResultsFetchError] = useState<string | null>(null)
   const [sessionsLoading, setSessionsLoading] = useState(true)
+
+  const mergedTests = useMemo(
+    () => mergeCatalogWithSessions(catalog, user ? sessions : []),
+    [catalog, sessions, user],
+  )
   const [beery, setBeery] = useState<BeeryMotriceResult | null>(null)
   const [da, setDa] = useState<DARResult | null>(null)
   const [sa, setSa] = useState<SAResult | null>(null)
@@ -131,7 +138,7 @@ export default function ResultsPage() {
 
   useEffect(() => {
     if (!user) {
-      setMergedTests(mergeCatalogWithSessions(mockTests, []))
+      setSessions([])
       setSessionsLoading(false)
       setResultsFetchError(null)
       return
@@ -144,15 +151,15 @@ export default function ResultsPage() {
         if (cancelled) return
         if (error) {
           setResultsFetchError(error)
-          setMergedTests(mergeCatalogWithSessions(mockTests, []))
+          setSessions([])
           return
         }
-        setMergedTests(mergeCatalogWithSessions(mockTests, data))
+        setSessions(data)
       })
       .catch(() => {
         if (!cancelled) {
           setResultsFetchError('Could not load your sessions.')
-          setMergedTests(mergeCatalogWithSessions(mockTests, []))
+          setSessions([])
         }
       })
       .finally(() => {
@@ -161,7 +168,7 @@ export default function ResultsPage() {
     return () => {
       cancelled = true
     }
-  }, [user])
+  }, [user, fromDatabase])
 
   const groupedDomains = useMemo(
     () => groupTestsByDomain(mergedTests),
@@ -321,6 +328,10 @@ export default function ResultsPage() {
               const domainScore = averageCompletedScore(tests)
               const completed = tests.filter((t) => t.status === 'completed').length
               const total = tests.length
+              const hasNumericScores = tests.some((t) => t.latestScore != null)
+              const completionPct = total ? Math.round((completed / total) * 100) : 0
+              /** Bar reflects catalogue completion; headline stays mean score when available. */
+              const progressBarValue = hasNumericScores ? domainScore : completionPct
 
               return (
                 <Card key={domain} className="overflow-hidden">
@@ -341,19 +352,20 @@ export default function ResultsPage() {
                           className="text-2xl font-bold"
                           style={{ color: ui.color }}
                         >
-                          {completed > 0 && tests.some((t) => t.latestScore != null)
-                            ? `${domainScore}%`
-                            : '—'}
+                          {completed > 0 && hasNumericScores ? `${domainScore}%` : '—'}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {completed}/{total} completed
+                          {!hasNumericScores && completed > 0
+                            ? ` · bar: ${completionPct}% of catalogue`
+                            : ''}
                         </p>
                       </div>
                     </div>
 
                     <div className="mt-3">
                       <Progress
-                        value={domainScore}
+                        value={progressBarValue}
                         className="h-2"
                         style={{ '--progress-color': ui.color } as React.CSSProperties}
                       />

@@ -10,11 +10,13 @@ import { ArrowLeft, ArrowRight, CheckCircle2, BarChart3, LineChart } from 'lucid
 import { useAuth } from '@/lib/auth-context'
 import {
   DROITE_PLAN_QUESTIONS,
+  DROITE_PLAN_TEST_ID,
   DROITE_PLAN_TYPE_LABELS,
   DroitePlanResult,
   DroitePlanTrialResult,
   saveDroitePlanResult,
 } from '@/lib/geometry/droite-plan'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { scoreGeometryQuestion, computeFinalPercent } from '@/lib/geometry/scoring'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
@@ -112,6 +114,24 @@ export function DroitePlanQuiz() {
         score: computeFinalPercent(scorable.map((t) => (t as { score?: number }).score ?? 0)),
       }
       saveDroitePlanResult(r)
+      persistCompletedTestSessionBestEffort({
+        testId: DROITE_PLAN_TEST_ID,
+        startedAt: r.startedAt,
+        completedAt: r.completedAt,
+        totalMs: r.totalMs,
+        score: r.score,
+        correctCount: r.correctCount,
+        totalQuestions: DROITE_PLAN_QUESTIONS.length,
+        trials: r.trials.map((t) => ({
+          question_index: t.index,
+          question_id: t.questionId,
+          selected: [t.selected],
+          correct: t.correct,
+          score: t.score ?? (t.correct ? 1 : 0),
+          reaction_time_ms: t.reactionTimeMs,
+        })),
+        metadata: { source: 'droite-plan-quiz' },
+      })
     }
   }, [phase, trials, startedAt, user])
 

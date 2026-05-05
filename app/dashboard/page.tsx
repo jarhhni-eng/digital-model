@@ -13,8 +13,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { useAuth } from '@/lib/auth-context'
-import { mockTests } from '@/lib/mock-data'
 import { listMySessions } from '@/lib/results/results-service'
+import { useTestsCatalog } from '@/hooks/use-tests-catalog'
 import {
   mergeCatalogWithSessions,
   groupTestsByDomain,
@@ -64,13 +64,16 @@ function CustomBarTooltip({
 export default function StudentDashboard() {
   const router = useRouter()
   const { user, loading } = useAuth()
-  const [mergedTests, setMergedTests] = useState<TestWithProgress[]>(() =>
-    mergeCatalogWithSessions(mockTests, []),
-  )
+  const { catalog, fromDatabase } = useTestsCatalog()
   const [sessions, setSessions] = useState<SessionRow[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(true)
   const [dashFetchError, setDashFetchError] = useState<string | null>(null)
   const isMobile = useIsMobile()
+
+  const mergedTests = useMemo(
+    () => mergeCatalogWithSessions(catalog, sessions),
+    [catalog, sessions],
+  )
 
   useEffect(() => {
     if (!loading && !user) router.replace('/')
@@ -78,7 +81,6 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     if (!user) {
-      setMergedTests(mergeCatalogWithSessions(mockTests, []))
       setSessions([])
       setSessionsLoading(false)
       setDashFetchError(null)
@@ -92,17 +94,14 @@ export default function StudentDashboard() {
         if (cancelled) return
         if (error) {
           setDashFetchError(error)
-          setMergedTests(mergeCatalogWithSessions(mockTests, []))
           setSessions([])
           return
         }
         setSessions(data)
-        setMergedTests(mergeCatalogWithSessions(mockTests, data))
       })
       .catch(() => {
         if (!cancelled) {
           setDashFetchError('Could not load your sessions.')
-          setMergedTests(mergeCatalogWithSessions(mockTests, []))
           setSessions([])
         }
       })
@@ -112,7 +111,7 @@ export default function StudentDashboard() {
     return () => {
       cancelled = true
     }
-  }, [user])
+  }, [user, fromDatabase])
 
   const groupedDomains = useMemo(() => groupTestsByDomain(mergedTests), [mergedTests])
 
@@ -137,8 +136,8 @@ export default function StudentDashboard() {
   )
 
   const timeline = useMemo(
-    () => completedSessionsChronology(mockTests, sessions),
-    [sessions],
+    () => completedSessionsChronology(catalog, sessions),
+    [catalog, sessions],
   )
 
   if (loading) {
