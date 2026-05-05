@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useAuth } from '@/lib/auth-context'
+import { isAdminAreaRole } from '@/lib/auth-types'
 import { mockInstitutions } from '@/lib/mock-groups'
 import {
   BarChart,
@@ -52,7 +53,7 @@ export default function AnalyticsPage() {
   const [instFilter, setInstFilter] = useState(mockInstitutions[0]?.id ?? '')
 
   useEffect(() => {
-    if (!loading && (!user || (user.role !== 'teacher' && user.role !== 'admin'))) {
+    if (!loading && (!user || (user.role !== 'teacher' && !isAdminAreaRole(user.role)))) {
       router.replace('/')
     }
   }, [loading, user, router])
@@ -125,7 +126,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="bg-background min-h-screen">
-      <Sidebar userRole={user.role === 'admin' ? 'admin' : 'teacher'} userName={user.username} />
+      <Sidebar userRole={isAdminAreaRole(user.role) ? 'admin' : 'teacher'} userName={user.username} />
       <div className={cn("transition-all duration-200", isMobile ? "ml-0" : "ml-64")}>
         <Header
           title="Analytique & aide à la décision"

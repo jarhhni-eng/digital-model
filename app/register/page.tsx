@@ -10,14 +10,14 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useAuth } from '@/lib/auth-context'
-import type { UserRole } from '@/lib/auth-types'
+import type { PublicRegisterRole } from '@/lib/auth-types'
 import { Brain, Loader2, Lock, Mail, ShieldCheck } from 'lucide-react'
 
 export default function RegisterPage() {
   const router = useRouter()
   const { register } = useAuth()
 
-  const [role, setRole] = useState<UserRole>('student')
+  const [role, setRole] = useState<PublicRegisterRole>('student')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
@@ -52,8 +52,7 @@ export default function RegisterPage() {
       return
     }
 
-    if (role === 'admin') router.push('/admin')
-    else if (role === 'teacher') router.push('/teacher/dashboard')
+    if (role === 'teacher') router.push('/teacher/dashboard')
     else router.push('/profile-setup')
   }
 
@@ -83,8 +82,8 @@ export default function RegisterPage() {
           ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Role selector */}
-            <div className="grid grid-cols-3 gap-1 rounded-lg bg-muted p-1">
-              {(['student', 'teacher', 'admin'] as const).map((r) => (
+            <div className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
+              {(['student', 'teacher'] as const).map((r) => (
                 <button
                   key={r}
                   type="button"
@@ -93,10 +92,15 @@ export default function RegisterPage() {
                     role === r ? 'bg-background shadow text-foreground' : 'text-muted-foreground'
                   }`}
                 >
-                  {r === 'student' ? 'Élève' : r === 'teacher' ? 'Professeur' : 'Admin'}
+                  {r === 'student' ? 'Élève' : 'Professeur'}
                 </button>
               ))}
             </div>
+            <p className="text-[11px] text-muted-foreground leading-snug">
+              Cette page permet uniquement de créer un compte <strong className="font-medium text-foreground">élève</strong> ou{' '}
+              <strong className="font-medium text-foreground">enseignant</strong>. Pour toute autre demande, contactez
+              l&apos;équipe du projet.
+            </p>
 
             {/* First & Last name */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

@@ -9,7 +9,7 @@ import {
     useState,
 } from 'react'
 import type {User} from '@supabase/supabase-js'
-import type {AuthSession, UserRole} from '@/lib/auth-types'
+import type {AuthSession, PublicRegisterRole, UserRole} from '@/lib/auth-types'
 import {getSupabaseBrowser} from '@/lib/supabase/client'
 
 export type RegisterOutcome =
@@ -27,7 +27,7 @@ type AuthContextValue = {
     register: (
         email: string,
         password: string,
-        role: UserRole,
+        role: PublicRegisterRole,
         fullName?: string,
     ) => Promise<RegisterOutcome>
     logout: () => Promise<void>
@@ -136,7 +136,7 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
         async (
             email: string,
             password: string,
-            role: UserRole,
+            role: PublicRegisterRole,
             fullName?: string,
         ): Promise<RegisterOutcome> => {
             const sb = getSupabaseBrowser()

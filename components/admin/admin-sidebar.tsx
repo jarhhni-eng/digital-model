@@ -21,12 +21,21 @@ import {
   Pencil,
   Shield,
   User,
+  UserCog,
   Users,
   X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useIsMobile } from '@/components/ui/use-mobile'
 import { useAuth } from '@/lib/auth-context'
+
+const superAdminNav = [
+  {
+    icon: <UserCog className="w-5 h-5" />,
+    label: 'Administrateurs',
+    href: '/admin/admins',
+  },
+]
 
 const adminNav = [
   { icon: <User className="w-5 h-5" />,      label: 'Résultats individuels',     href: '/admin/individual' },
@@ -42,8 +51,9 @@ export function AdminSidebar({ userName = 'Admin' }: { userName?: string }) {
   const pathname = usePathname()
   const router = useRouter()
   const isMobile = useIsMobile()
-  const { logout } = useAuth()
+  const { user, logout } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
+  const navItems = user?.role === 'super_admin' ? [...superAdminNav, ...adminNav] : adminNav
 
   const handleLogout = () => {
     logout()
@@ -85,7 +95,7 @@ export function AdminSidebar({ userName = 'Admin' }: { userName?: string }) {
         </div>
 
         <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-          {adminNav.map((item) => {
+          {navItems.map((item) => {
             const active = pathname === item.href || pathname.startsWith(item.href + '/')
             return (
               <Link
@@ -110,7 +120,9 @@ export function AdminSidebar({ userName = 'Admin' }: { userName?: string }) {
           <div className="mb-3 px-2">
             <p className="text-xs text-slate-400 mb-0.5">Connecté en tant que</p>
             <p className="font-medium text-sm truncate">{userName}</p>
-            <p className="text-xs text-slate-400">Administrateur</p>
+            <p className="text-xs text-slate-400">
+              {user?.role === 'super_admin' ? 'Super administrateur' : 'Administrateur'}
+            </p>
           </div>
           <button
             onClick={handleLogout}

@@ -12,7 +12,7 @@
  * being defined.
  */
 
-export type UserRole = 'admin' | 'teacher' | 'student'
+export type UserRole = 'admin' | 'super_admin' | 'teacher' | 'student'
 export type SessionStatus = 'in-progress' | 'completed' | 'abandoned'
 
 export type GradeLevel =

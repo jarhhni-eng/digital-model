@@ -9,7 +9,7 @@
  *   {
  *     username: string,        // email (kept name for back-compat)
  *     password: string,
- *     role: 'student' | 'teacher' | 'admin',
+ *     role: 'student' | 'teacher',
  *     firstName?: string,
  *     lastName?: string,
  *   }
@@ -21,7 +21,8 @@ import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import type { UserRole } from '@/lib/auth-types'
 
-const VALID_ROLES: UserRole[] = ['student', 'teacher', 'admin']
+/** Public self-registration only; admins are provisioned by a super_admin. */
+const VALID_ROLES: UserRole[] = ['student', 'teacher']
 
 export async function POST(request: Request) {
   try {

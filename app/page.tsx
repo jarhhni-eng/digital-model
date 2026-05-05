@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/lib/auth-context'
+import { isAdminAreaRole } from '@/lib/auth-types'
 import { LocaleSwitcher } from '@/components/locale-switcher'
 import {
   Brain,
@@ -30,7 +31,7 @@ export default function LandingPage() {
 
   useEffect(() => {
     if (authLoading || !user) return
-    if (user.role === 'admin') router.replace('/admin')
+    if (isAdminAreaRole(user.role)) router.replace('/admin')
     else if (user.role === 'teacher') router.replace('/teacher/dashboard')
     else router.replace('/dashboard')
   }, [authLoading, user, router])
@@ -45,7 +46,7 @@ export default function LandingPage() {
       setError(res.error ?? t('auth.loginFailed'))
       return
     }
-    if (res.session.role === 'admin') router.push('/admin')
+    if (isAdminAreaRole(res.session.role)) router.push('/admin')
     else if (res.session.role === 'teacher') router.push('/teacher/dashboard')
     else router.push('/dashboard')
   }

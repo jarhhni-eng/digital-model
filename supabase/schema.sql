@@ -20,7 +20,7 @@ create extension if not exists "uuid-ossp";  -- uuid_generate_v4 (legacy)
 do $$
 begin
   if not exists (select 1 from pg_type where typname = 'user_role') then
-    create type public.user_role as enum ('admin', 'teacher', 'student');
+    create type public.user_role as enum ('student', 'teacher', 'admin', 'super_admin');
   end if;
 
   if not exists (select 1 from pg_type where typname = 'session_status') then
@@ -60,13 +60,23 @@ language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  meta_role text;
+  safe_role public.user_role;
 begin
+  meta_role := lower(trim(coalesce(new.raw_user_meta_data->>'role', '')));
+  if meta_role in ('teacher', 'student') then
+    safe_role := meta_role::public.user_role;
+  else
+    safe_role := 'student';
+  end if;
+
   insert into public.profiles (id, email, full_name, role)
   values (
     new.id,
     coalesce(new.email, ''),
     coalesce(new.raw_user_meta_data->>'full_name', ''),
-    coalesce((new.raw_user_meta_data->>'role')::public.user_role, 'student')
+    safe_role
   )
   on conflict (id) do nothing;
   return new;

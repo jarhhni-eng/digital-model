@@ -1,4 +1,12 @@
-export type UserRole = 'student' | 'teacher' | 'admin'
+export type UserRole = 'student' | 'teacher' | 'admin' | 'super_admin'
+
+/** Roles allowed for public self-registration only (`/register`). */
+export type PublicRegisterRole = 'student' | 'teacher'
+
+/** Access to /admin and RLS paths that use `is_admin()` (admin + super_admin). */
+export function isAdminAreaRole(role: UserRole | null | undefined): boolean {
+  return role === 'admin' || role === 'super_admin'
+}
 
 export interface StoredUser {
   id: string
