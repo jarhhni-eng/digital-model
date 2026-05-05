@@ -10,12 +10,17 @@ import { ArrowLeft, ArrowRight, CheckCircle2, BarChart3, LineChart } from 'lucid
 import { useAuth } from '@/lib/auth-context'
 import {
   DROITE_PLAN_QUESTIONS,
+  DROITE_PLAN_TEST_ID,
   DROITE_PLAN_TYPE_LABELS,
   DroitePlanResult,
   DroitePlanTrialResult,
   saveDroitePlanResult,
 } from '@/lib/geometry/droite-plan'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { scoreGeometryQuestion, computeFinalPercent } from '@/lib/geometry/scoring'
+import { CapacityLegend } from '@/components/geometry/capacity-legend'
+import { CapacityBreakdownCard } from '@/components/geometry/capacity-breakdown-card'
+import { buildGeometrySessionMetadataFraction } from '@/lib/geometry/capacity-results'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
 
@@ -112,6 +117,44 @@ export function DroitePlanQuiz() {
         score: computeFinalPercent(scorable.map((t) => (t as { score?: number }).score ?? 0)),
       }
       saveDroitePlanResult(r)
+      persistCompletedTestSessionBestEffort({
+        testId: DROITE_PLAN_TEST_ID,
+        startedAt: r.startedAt,
+        completedAt: r.completedAt,
+        totalMs: r.totalMs,
+        score: r.score,
+        correctCount: r.correctCount,
+        totalQuestions: DROITE_PLAN_QUESTIONS.length,
+        trials: r.trials.map((t) => ({
+          question_index: t.index,
+          question_id: t.questionId,
+          selected: [t.selected],
+          correct: t.correct,
+          score: t.score ?? (t.correct ? 1 : 0),
+          reaction_time_ms: t.reactionTimeMs,
+        })),
+        metadata: {
+          source: 'droite-plan-quiz',
+          ...buildGeometrySessionMetadataFraction({
+            lessonTestId: DROITE_PLAN_TEST_ID,
+            questions: DROITE_PLAN_QUESTIONS.map((q) => ({
+              id: q.id,
+              competencies: q.competencies,
+              part: q.isDiagnostic ? 'diagnostic' : `T${q.typeCode}`,
+            })),
+            trials: r.trials.map((t) => ({
+              index: t.index,
+              questionId: t.questionId,
+              score: t.score ?? (t.correct ? 1 : 0),
+              correct: t.correct,
+            })),
+            isScorableIndex: (i) => {
+              const q = DROITE_PLAN_QUESTIONS[i]
+              return q?.correctAnswer !== null && !q.isDiagnostic
+            },
+          }),
+        },
+      })
     }
   }, [phase, trials, startedAt, user])
 
@@ -173,6 +216,9 @@ function Intro({ onStart, onQuit }: { onStart: () => void; onQuit: () => void })
           Référentiel : programme national marocain (Tronc commun),
           décision ministérielle 2.853.06.
         </p>
+        <div className="mb-4">
+          <CapacityLegend testId={DROITE_PLAN_TEST_ID} />
+        </div>
         <div className="mb-4 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
           <strong>Structure :</strong> 12 questions —
           Partie I (Q1–Q5) cours, Partie II (Q6–Q8) construction,
@@ -387,19 +433,28 @@ function Results({ trials, onExit }: ResultsProps) {
     const ok = items.filter((t) => t.correct).length
     return { ok, total: items.length }
   }
-  const byCompetency = (skill: 'C1' | 'C2') => {
-    const items = scorable.filter((t) =>
-      DROITE_PLAN_QUESTIONS[t.index].competencies.includes(skill),
-    )
-    const ok = items.filter((t) => t.correct).length
-    return { ok, total: items.length }
-  }
-
   const t1 = byType(1)
   const t2 = byType(2)
   const t3 = byType(3)
-  const c1 = byCompetency('C1')
-  const c2 = byCompetency('C2')
+
+  const geo = buildGeometrySessionMetadataFraction({
+    lessonTestId: DROITE_PLAN_TEST_ID,
+    questions: DROITE_PLAN_QUESTIONS.map((q) => ({
+      id: q.id,
+      competencies: q.competencies,
+      part: q.isDiagnostic ? 'diagnostic' : `T${q.typeCode}`,
+    })),
+    trials: trials.map((t) => ({
+      index: t.index,
+      questionId: t.questionId,
+      score: t.score ?? (t.correct ? 1 : 0),
+      correct: t.correct,
+    })),
+    isScorableIndex: (i) => {
+      const q = DROITE_PLAN_QUESTIONS[i]
+      return q?.correctAnswer !== null && !q.isDiagnostic
+    },
+  })
 
   return (
     <main className="container mx-auto max-w-2xl py-10">
@@ -435,20 +490,11 @@ function Results({ trials, onExit }: ResultsProps) {
             </div>
           </div>
         </div>
-        <div className="mb-6 grid grid-cols-2 gap-3 text-sm">
-          <div className="rounded border p-3">
-            <div className="text-xs text-muted-foreground">Compétence C1</div>
-            <div className="text-lg font-semibold">
-              {c1.ok} / {c1.total}
-            </div>
-          </div>
-          <div className="rounded border p-3">
-            <div className="text-xs text-muted-foreground">Compétence C2</div>
-            <div className="text-lg font-semibold">
-              {c2.ok} / {c2.total}
-            </div>
-          </div>
-        </div>
+        <CapacityBreakdownCard
+          testId={DROITE_PLAN_TEST_ID}
+          breakdown={geo.capacityBreakdown}
+          unit="fraction"
+        />
         <div className="flex justify-center gap-3">
           <Button variant="outline" onClick={() => window.location.reload()}>
             Recommencer

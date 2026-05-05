@@ -10,14 +10,18 @@ import { ArrowLeft, ArrowRight, CheckCircle2, BarChart3 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import {
   VECTORS_QUESTIONS,
+  VECTORS_TEST_ID,
   VectorsResult,
   VectorsTrialResult,
   saveVectorsResult,
 } from '@/lib/geometry/geo-vectors-complete'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { toggleSelectionWithExclusive } from '@/lib/quiz-helpers'
 import { ClickableVectorsPlane } from '@/components/geometry/clickable-vectors-plane'
 import { scoreGeometryQuestion, computeFinalPercent } from '@/lib/geometry/scoring'
 import { CapacityLegend } from '@/components/geometry/capacity-legend'
+import { CapacityBreakdownCard } from '@/components/geometry/capacity-breakdown-card'
+import { buildGeometrySessionMetadataFraction } from '@/lib/geometry/capacity-results'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
 
@@ -106,6 +110,44 @@ export function VectorsQuizTest() {
         score: computeFinalPercent(scorable.map((t) => t.score ?? 0)),
       }
       saveVectorsResult(r)
+      const trialsPayload = r.trials.map((t) => ({
+        question_index: t.index,
+        question_id: t.questionId,
+        selected: (t.selectedList?.length ? t.selectedList : [t.selected]) as unknown[],
+        free_text: t.freeText ?? null,
+        correct: t.correct,
+        score: t.score ?? (t.correct ? 1 : 0),
+        reaction_time_ms: t.reactionTimeMs,
+      }))
+      persistCompletedTestSessionBestEffort({
+        testId: VECTORS_TEST_ID,
+        startedAt: r.startedAt,
+        completedAt: r.completedAt,
+        totalMs: r.totalMs,
+        score: r.score,
+        correctCount: r.correctCount,
+        totalQuestions: VECTORS_QUESTIONS.length,
+        trials: trialsPayload,
+        metadata: {
+          source: 'vectors-quiz',
+          ...buildGeometrySessionMetadataFraction({
+            lessonTestId: VECTORS_TEST_ID,
+            questions: VECTORS_QUESTIONS,
+            trials: r.trials.map((t) => ({
+              index: t.index,
+              questionId: t.questionId,
+              score: t.score ?? (t.correct ? 1 : 0),
+              correct: t.correct,
+            })),
+            isScorableIndex: (i) => {
+              const q = VECTORS_QUESTIONS[i]
+              return (
+                q?.correctAnswer !== null && !q.pointPlacement && !q.fillIn
+              )
+            },
+          }),
+        },
+      })
     }
   }, [phase, trials, startedAt, user])
 
@@ -453,10 +495,28 @@ interface ResultsProps {
 function Results({ trials, onExit }: ResultsProps) {
   const scorable = trials.filter((t) => {
     const q = VECTORS_QUESTIONS[t.index]
-    return q.correctAnswer !== null
+    return q.correctAnswer !== null && !q.pointPlacement && !q.fillIn
   })
   const correct = scorable.filter((t) => t.correct).length
-  const pct = scorable.length > 0 ? Math.round((correct / scorable.length) * 100) : 0
+  const pct =
+    scorable.length > 0
+      ? computeFinalPercent(scorable.map((t) => t.score ?? (t.correct ? 1 : 0)))
+      : 0
+
+  const geo = buildGeometrySessionMetadataFraction({
+    lessonTestId: VECTORS_TEST_ID,
+    questions: VECTORS_QUESTIONS,
+    trials: trials.map((t) => ({
+      index: t.index,
+      questionId: t.questionId,
+      score: t.score ?? (t.correct ? 1 : 0),
+      correct: t.correct,
+    })),
+    isScorableIndex: (i) => {
+      const q = VECTORS_QUESTIONS[i]
+      return q?.correctAnswer !== null && !q.pointPlacement && !q.fillIn
+    },
+  })
 
   return (
     <main className="container mx-auto max-w-2xl py-10">
@@ -475,6 +535,11 @@ function Results({ trials, onExit }: ResultsProps) {
             <p className="text-2xl font-bold">{pct}%</p>
           </div>
         </div>
+        <CapacityBreakdownCard
+          testId={VECTORS_TEST_ID}
+          breakdown={geo.capacityBreakdown}
+          unit="fraction"
+        />
         <div className="mb-6 max-h-64 overflow-auto rounded-md border bg-slate-50 p-3 dark:bg-slate-900">
           <p className="mb-2 text-xs font-semibold text-muted-foreground">Détails :</p>
           {trials.map((t) => {

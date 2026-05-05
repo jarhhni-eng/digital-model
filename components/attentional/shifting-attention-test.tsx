@@ -21,6 +21,7 @@ import {
   saveShAResult,
   SHIFTING_ATTENTION_TEST_ID,
 } from '@/lib/attentional/shifting-attention'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { TestIntroSection } from '@/components/assessment/test-intro-section'
 
 type Phase = 'intro' | 'instructions' | 'training' | 'training-done' | 'test' | 'done'
@@ -38,8 +39,10 @@ export function ShiftingAttentionTest() {
   const pressed = useRef<'left' | 'right' | null>(null)
   const [feedback, setFeedback] = useState<'ok' | 'ko' | null>(null)
   const [startedAt, setStartedAt] = useState<number>(0)
+  const supabaseSynced = useRef(false)
 
   const begin = (p: 'training' | 'test') => {
+    supabaseSynced.current = false
     setTrials(buildShATrials(p === 'training' ? SHA_TRAINING_COUNT : SHA_TEST_COUNT))
     setCurrent(0)
     setResponses([])
@@ -113,6 +116,8 @@ export function ShiftingAttentionTest() {
   // save result
   useEffect(() => {
     if (phase !== 'done' || responses.length === 0) return
+    if (supabaseSynced.current) return
+    supabaseSynced.current = true
     const rts = responses.filter((r) => r.response && r.reactionTimeMs != null).map((r) => r.reactionTimeMs!)
     const meanRT = rts.length ? Math.round(rts.reduce((a, b) => a + b, 0) / rts.length) : 0
     const swRTs = responses.filter((r) => r.isSwitch && r.response).map((r) => r.reactionTimeMs!)
@@ -133,6 +138,29 @@ export function ShiftingAttentionTest() {
       score: Math.round((correct / responses.length) * 100),
     }
     saveShAResult(r)
+    persistCompletedTestSessionBestEffort({
+      testId: SHIFTING_ATTENTION_TEST_ID,
+      startedAt: r.startedAt,
+      completedAt: r.completedAt,
+      totalMs: r.totalMs,
+      score: r.score,
+      correctCount: r.correctCount,
+      totalQuestions: responses.length,
+      trials: r.trials.map((t, i) => ({
+        question_index: i,
+        question_id: `sha-${t.index}`,
+        selected: [t.isSwitch, t.response ?? 'none'],
+        correct: t.correct,
+        score: t.correct ? 1 : 0,
+        reaction_time_ms: t.reactionTimeMs,
+      })),
+      metadata: {
+        source: 'shifting-attention',
+        resultId: r.id,
+        meanRT: r.meanRT,
+        switchCost: r.switchCost,
+      },
+    })
   }, [phase, responses, startedAt, user])
 
   if (phase === 'intro') return <Intro onNext={() => setPhase('instructions')} onQuit={() => router.push('/dashboard')} />

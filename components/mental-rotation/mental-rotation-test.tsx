@@ -16,6 +16,7 @@ import {
   type OptionLetter,
   type RotationResult,
 } from '@/lib/mental-rotation-test'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { TestIntroSection } from '@/components/assessment/test-intro-section'
 import { Brain, Clock, CheckCircle, ChevronRight, AlertTriangle } from 'lucide-react'
 
@@ -300,6 +301,24 @@ export function MentalRotationTest() {
     }))
     const r = computeRotationResult(raw, elapsedSeconds)
     sessionStorage.setItem(MENTAL_ROTATION_STORAGE_KEY, JSON.stringify(r))
+    const trials = r.responses.map((resp, i) => ({
+      question_index: i,
+      question_id: `mr3d-${resp.questionNumber}`,
+      selected: [...resp.selected],
+      correct: resp.score === 2,
+      score: resp.score / 2,
+      reaction_time_ms: resp.responseTimeMs,
+    }))
+    persistCompletedTestSessionBestEffort({
+      testId: MENTAL_ROTATION_TEST_ID,
+      completedAt: r.completedAt,
+      totalMs: elapsedSeconds * 1000,
+      score: Math.round((r.totalScore / r.maxScore) * 100),
+      correctCount: r.responses.filter((x) => x.score === 2).length,
+      totalQuestions: r.responses.length,
+      trials,
+      metadata: { source: 'mental-rotation-3d', totalScoreRaw: r.totalScore },
+    })
     setResult(r)
     setPhase('done')
   }, [timings])

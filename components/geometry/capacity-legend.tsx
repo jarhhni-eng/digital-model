@@ -1,91 +1,65 @@
 /**
- * Per-test capacity legend (C1..Cn) for the "Cognition et apprentissage de
- * la géométrie" domain. Displayed on the FIRST screen of each test so the
- * student sees what the assessment is measuring.
- *
- * Pure presentation — no scoring impact.
+ * UI block: lists official Cₖ definitions for a geometry lesson on the first screen.
+ * Data lives in `@/lib/geometry/capacity-definitions`.
  */
 
 import { GraduationCap } from 'lucide-react'
+import KaTeX from 'katex'
+import 'katex/dist/katex.min.css'
+import {
+  formatCapacityGlyph,
+  getCapacitiesForTestId,
+  type CapacityDef,
+} from '@/lib/geometry/capacity-definitions'
 
-interface Capacity {
-  code: string
-  label: string
-}
+export type { CapacityDef }
+export {
+  CAPACITIES_BY_TEST,
+  getCapacitiesForTestId,
+  getCapacityLabelMap,
+  formatCapacityGlyph,
+} from '@/lib/geometry/capacity-definitions'
 
-const CAPACITIES_BY_TEST: Record<string, Capacity[]> = {
-  // Symétrie axiale & symétrie centrale share the same competency set.
-  'test-symetrie-axiale': [
-    {
-      code: 'C1',
-      label:
-        'Reconnaître la similarité des formes géométriques à l\'aide de la translation et la symétrie.',
-    },
-    {
-      code: 'C2',
-      label:
-        'L\'utilisation de la translation et la symétrie dans la résolution des problèmes géométriques.',
-    },
-  ],
-  'test-symetrie-centrale': [
-    {
-      code: 'C1',
-      label:
-        'Reconnaître la similarité des formes géométriques à l\'aide de la translation et la symétrie.',
-    },
-    {
-      code: 'C2',
-      label:
-        'L\'utilisation de la translation et la symétrie dans la résolution des problèmes géométriques.',
-    },
-  ],
-  // Vectors & translation
-  'test-geo-vectors-complete': [
-    {
-      code: 'C1',
-      label: 'La construction d\'un vecteur sous la forme \\( A\\vec{u} + B\\vec{v} \\).',
-    },
-    {
-      code: 'C2',
-      label:
-        'L\'expression des concepts et des propriétés géométriques affines en utilisant l\'outil vectoriel et l\'inverse.',
-    },
-    {
-      code: 'C3',
-      label: 'La résolution des problèmes géométriques à l\'aide de l\'outil vectoriel.',
-    },
-    {
-      code: 'C4',
-      label: 'Reconnaître la similarité des formes géométriques à l\'aide de la translation.',
-    },
-    {
-      code: 'C5',
-      label: 'L\'utilisation de la translation dans la résolution des problèmes géométriques.',
-    },
-  ],
+function renderLabelHtml(label: string): string {
+  return label.replace(/\\\(([^]+?)\\\)/g, (_, latex) => {
+    try {
+      return KaTeX.renderToString(latex, { throwOnError: false })
+    } catch {
+      return `\\(${latex}\\)`
+    }
+  })
 }
 
 interface CapacityLegendProps {
   testId: string
+  title?: string
 }
 
-export function CapacityLegend({ testId }: CapacityLegendProps) {
-  const capacities = CAPACITIES_BY_TEST[testId]
-  if (!capacities || capacities.length === 0) return null
+export function CapacityLegend({ testId, title }: CapacityLegendProps) {
+  const capacities = getCapacitiesForTestId(testId)
+  if (!capacities.length) return null
+
+  const defaultTitle =
+    testId === 'test-geo-produit-scalaire'
+      ? 'Capacités (Cₖ) évaluées — Produit scalaire (1ère Bac)'
+      : 'Capacités (Cₖ) évaluées'
 
   return (
     <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20">
       <div className="mb-2 flex items-center gap-2 text-emerald-900 dark:text-emerald-200">
         <GraduationCap className="h-4 w-4 flex-shrink-0" />
-        <p className="text-sm font-semibold">Compétences évaluées</p>
+        <p className="text-sm font-semibold">{title ?? defaultTitle}</p>
       </div>
       <ul className="space-y-1.5 text-xs leading-relaxed text-foreground">
         {capacities.map((c) => (
           <li key={c.code} className="flex gap-2">
             <span className="font-mono font-semibold text-emerald-700 dark:text-emerald-300">
-              {c.code}
+              {formatCapacityGlyph(c.code)}
             </span>
-            <span className="text-muted-foreground">{c.label}</span>
+            <span
+              className="text-muted-foreground [&_.katex]:text-xs"
+              dangerouslySetInnerHTML={{ __html: renderLabelHtml(c.label) }}
+            />
           </li>
         ))}
       </ul>

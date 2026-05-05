@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
@@ -10,10 +10,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { mockTests } from '@/lib/mock-data'
 import type { Test } from '@/lib/mock-data'
+import type { Database } from '@/lib/types/database'
 import { listMySessions } from '@/lib/results/results-service'
-import { mergeCatalogWithSessions, type TestWithProgress } from '@/lib/student-test-progress'
+import { useTestsCatalog } from '@/hooks/use-tests-catalog'
+import {
+  mergeCatalogWithSessions,
+  averageCompletedScore,
+  type TestWithProgress,
+} from '@/lib/student-test-progress'
 import { useAuth } from '@/lib/auth-context'
 import {
   ClipboardList,
@@ -28,6 +33,10 @@ import {
   ArrowRight,
   Info,
 } from 'lucide-react'
+import { ChartAreaSkeleton, ValueTextSkeleton } from '@/components/ui/value-skeleton'
+import { Skeleton } from '@/components/ui/skeleton'
+
+type SessionRow = Database['public']['Tables']['test_sessions']['Row']
 
 const testTypeConfig: Record<Test['type'], { label: string; icon: React.ReactNode }> = {
   mcq: { label: 'MCQ', icon: <FileQuestion className="w-4 h-4" /> },
@@ -47,15 +56,19 @@ function formatDuration(seconds: number): string {
 export default function TestsPage() {
   const isMobile = useIsMobile()
   const { user, loading: authLoading } = useAuth()
-  const [tests, setTests] = useState<TestWithProgress[]>(() =>
-    mergeCatalogWithSessions(mockTests, []),
-  )
+  const { catalog, fromDatabase, loading: catalogLoading } = useTestsCatalog()
+  const [sessions, setSessions] = useState<SessionRow[]>([])
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [sessionsLoading, setSessionsLoading] = useState(true)
 
+  const tests = useMemo(
+    () => mergeCatalogWithSessions(catalog, user ? sessions : []),
+    [catalog, sessions, user],
+  )
+
   useEffect(() => {
     if (!user) {
-      setTests(mergeCatalogWithSessions(mockTests, []))
+      setSessions([])
       setSessionsLoading(false)
       setFetchError(null)
       return
@@ -68,15 +81,15 @@ export default function TestsPage() {
         if (cancelled) return
         if (error) {
           setFetchError(error)
-          setTests(mergeCatalogWithSessions(mockTests, []))
+          setSessions([])
           return
         }
-        setTests(mergeCatalogWithSessions(mockTests, data))
+        setSessions(data)
       })
       .catch(() => {
         if (!cancelled) {
           setFetchError('Could not load your sessions.')
-          setTests(mergeCatalogWithSessions(mockTests, []))
+          setSessions([])
         }
       })
       .finally(() => {
@@ -85,13 +98,56 @@ export default function TestsPage() {
     return () => {
       cancelled = true
     }
-  }, [user])
+  }, [user, fromDatabase])
 
   const completed = tests.filter((t) => t.status === 'completed')
   const inProgress = tests.filter((t) => t.status === 'in-progress')
   const upcoming = tests.filter((t) => t.status === 'upcoming')
   const total = tests.length
   const completedPercent = total ? Math.round((completed.length / total) * 100) : 0
+  const overallAvg = useMemo(() => {
+    const hasScored = tests.some((t) => t.status === 'completed' && t.latestScore != null)
+    if (!hasScored) return null
+    return averageCompletedScore(tests)
+  }, [tests])
+
+  if (authLoading) {
+    return (
+      <div className="bg-background min-h-screen">
+        <Sidebar userRole="student" />
+        <div className={cn('transition-all duration-200', isMobile ? 'ml-0' : 'ml-64')}>
+          <Header
+            title="Évaluations"
+            subtitle="Consultez les tests, suivez votre progression et commencez les évaluations"
+          />
+          <main className={cn('p-4 md:p-6 pt-24 max-w-7xl space-y-6', isMobile && 'pb-20')}>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Card key={i}>
+                  <CardContent className="pt-6 pb-4 space-y-3">
+                    <Skeleton className="h-3 w-24" />
+                    <ValueTextSkeleton className="h-9 w-14" />
+                    <Skeleton className="h-3 w-32" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Overall progress</CardTitle>
+                <CardDescription>Chargement…</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ChartAreaSkeleton height={80} />
+              </CardContent>
+            </Card>
+          </main>
+        </div>
+      </div>
+    )
+  }
+
+  const listReady = !user || (!catalogLoading && !sessionsLoading)
 
   return (
     <div className="bg-background min-h-screen">
@@ -109,9 +165,6 @@ export default function TestsPage() {
               {fetchError} Showing catalog only — scores update after you complete tests.
             </p>
           )}
-          {(authLoading || sessionsLoading) && user && (
-            <p className="mb-4 text-xs text-muted-foreground">Syncing your progress from the server…</p>
-          )}
 
           {/* Summary stats */}
           <div className="grid grid-cols-1 gap-4 mb-8 sm:grid-cols-2 lg:grid-cols-4">
@@ -123,7 +176,11 @@ export default function TestsPage() {
                 <ClipboardList className="h-5 w-5 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{total}</div>
+                {listReady ? (
+                  <div className="text-2xl font-bold">{total}</div>
+                ) : (
+                  <ValueTextSkeleton className="h-9 w-14" />
+                )}
                 <p className="text-xs text-muted-foreground">In the catalog</p>
               </CardContent>
             </Card>
@@ -135,8 +192,14 @@ export default function TestsPage() {
                 <CheckCircle2 className="h-5 w-5 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">{completed.length}</div>
-                <p className="text-xs text-muted-foreground">{completedPercent}% of total</p>
+                {listReady ? (
+                  <div className="text-2xl font-bold text-green-600">{completed.length}</div>
+                ) : (
+                  <ValueTextSkeleton className="h-9 w-14" />
+                )}
+                <p className="text-xs text-muted-foreground">
+                  {listReady ? `${completedPercent}% of total` : '—'}
+                </p>
               </CardContent>
             </Card>
             <Card>
@@ -147,7 +210,11 @@ export default function TestsPage() {
                 <Clock className="h-5 w-5 text-amber-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-amber-600">{inProgress.length}</div>
+                {listReady ? (
+                  <div className="text-2xl font-bold text-amber-600">{inProgress.length}</div>
+                ) : (
+                  <ValueTextSkeleton className="h-9 w-14" />
+                )}
                 <p className="text-xs text-muted-foreground">Resume anytime</p>
               </CardContent>
             </Card>
@@ -159,11 +226,22 @@ export default function TestsPage() {
                 <Calendar className="h-5 w-5 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-blue-600">{upcoming.length}</div>
+                {listReady ? (
+                  <div className="text-2xl font-bold text-blue-600">{upcoming.length}</div>
+                ) : (
+                  <ValueTextSkeleton className="h-9 w-14" />
+                )}
                 <p className="text-xs text-muted-foreground">Not started yet</p>
               </CardContent>
             </Card>
           </div>
+
+          {listReady && user && overallAvg != null && (
+            <p className="mb-4 text-sm text-muted-foreground">
+              Average score (completed tests with a score):{' '}
+              <span className="font-semibold text-foreground">{overallAvg}%</span>
+            </p>
+          )}
 
           {/* Progress overview */}
           <Card className="mb-8">
@@ -174,6 +252,8 @@ export default function TestsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {listReady ? (
+                <>
               <div className="flex items-center gap-4">
                 <Progress value={completedPercent} className="h-3 flex-1" />
                 <span className="text-sm font-medium tabular-nums">{completedPercent}%</span>
@@ -192,6 +272,17 @@ export default function TestsPage() {
                   Upcoming {upcoming.length}
                 </span>
               </div>
+                </>
+              ) : (
+                <div className="space-y-3">
+                  <Skeleton className="h-3 w-full rounded-full" />
+                  <div className="flex flex-wrap gap-3">
+                    <Skeleton className="h-4 w-28 rounded" />
+                    <Skeleton className="h-4 w-28 rounded" />
+                    <Skeleton className="h-4 w-28 rounded" />
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -229,7 +320,7 @@ export default function TestsPage() {
                       ? 'Continue'
                       : 'Start test'
                 const actionHref =
-                  test.status === 'completed' ? '/results' : `/tests/${test.id}`
+                  listReady && test.status === 'completed' ? '/results' : `/tests/${test.id}`
 
                 return (
                   <Card
@@ -240,13 +331,17 @@ export default function TestsPage() {
                       <div className="min-w-0 flex-1">
                         <div className="mb-1 flex flex-wrap items-center gap-2">
                           <h3 className="text-lg font-semibold text-foreground">{test.title}</h3>
-                          <Badge variant={statusVariant} className="shrink-0">
-                            {test.status === 'completed'
-                              ? 'Completed'
-                              : test.status === 'in-progress'
-                                ? 'In progress'
-                                : 'Upcoming'}
-                          </Badge>
+                          {listReady ? (
+                            <Badge variant={statusVariant} className="shrink-0">
+                              {test.status === 'completed'
+                                ? 'Completed'
+                                : test.status === 'in-progress'
+                                  ? 'In progress'
+                                  : 'Upcoming'}
+                            </Badge>
+                          ) : (
+                            <Skeleton className="h-6 w-24 rounded-full shrink-0" />
+                          )}
                         </div>
                         <p className="text-sm text-muted-foreground">{test.domain}</p>
                         <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
@@ -258,10 +353,15 @@ export default function TestsPage() {
                             <Timer className="h-3.5 w-3.5" />
                             {formatDuration(test.duration)}
                           </span>
-                          {test.status === 'completed' && test.latestScore != null && (
+                          {listReady &&
+                            test.status === 'completed' &&
+                            test.latestScore != null && (
                             <span className="font-medium text-foreground">
                               Score: {test.latestScore}%
                             </span>
+                          )}
+                          {!listReady && user && (
+                            <Skeleton className="h-4 w-24 rounded inline-block" />
                           )}
                           {test.dueDate && (
                             <span className="flex items-center gap-1.5">
@@ -278,7 +378,7 @@ export default function TestsPage() {
                         asChild
                       >
                         <Link href={actionHref}>
-                          {actionLabel}
+                          {listReady ? actionLabel : 'Open'}
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                       </Button>

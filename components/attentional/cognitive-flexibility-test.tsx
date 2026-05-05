@@ -20,6 +20,7 @@ import {
   type NBackTrialResult,
   COGNITIVE_FLEXIBILITY_TEST_ID,
 } from '@/lib/attentional/cognitive-flexibility'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { TestIntroSection } from '@/components/assessment/test-intro-section'
 
 type Phase = 'intro' | 'instructions' | 'fixation' | 'stimulus' | 'isi' | 'done'
@@ -34,8 +35,10 @@ export function CognitiveFlexibilityTest() {
   const [startedAt, setStartedAt] = useState<number>(0)
   const trialStart = useRef(0)
   const responseRef = useRef<{ key: NBackResponse; rt: number } | null>(null)
+  const supabaseSynced = useRef(false)
 
   const begin = () => {
+    supabaseSynced.current = false
     setCurrent(0)
     setResponses([])
     setStartedAt(Date.now())
@@ -111,6 +114,8 @@ export function CognitiveFlexibilityTest() {
   // save on done
   useEffect(() => {
     if (phase !== 'done' || responses.length === 0) return
+    if (supabaseSynced.current) return
+    supabaseSynced.current = true
     const stats = scoreNBack(responses)
     const r: NBackResult = {
       id: `nback-${Date.now()}`,
@@ -122,7 +127,30 @@ export function CognitiveFlexibilityTest() {
       ...stats,
     }
     saveNBackResult(r)
-  }, [phase, responses, startedAt, user])
+    persistCompletedTestSessionBestEffort({
+      testId: COGNITIVE_FLEXIBILITY_TEST_ID,
+      startedAt: r.startedAt,
+      completedAt: r.completedAt,
+      totalMs: r.totalMs,
+      score: r.accuracy,
+      correctCount: r.correctCount,
+      totalQuestions: r.evaluatedCount || trials.length,
+      trials: r.trials.map((t, i) => ({
+        question_index: i,
+        question_id: `nback-${t.index}`,
+        selected: [t.letter, t.expected ?? 'na', t.response ?? 'none'],
+        correct: t.correct === true,
+        score: t.correct === true ? 1 : 0,
+        reaction_time_ms: t.reactionTimeMs,
+      })),
+      metadata: {
+        source: 'cognitive-flexibility-nback',
+        resultId: r.id,
+        level: r.level,
+        evaluatedCount: r.evaluatedCount,
+      },
+    })
+  }, [phase, responses, startedAt, user, trials.length])
 
   if (phase === 'intro')
     return <Intro onNext={() => setPhase('instructions')} onQuit={() => router.push('/dashboard')} />

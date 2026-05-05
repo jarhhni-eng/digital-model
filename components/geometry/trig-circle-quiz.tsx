@@ -24,6 +24,7 @@ import { useAuth } from '@/lib/auth-context'
 import { Tex } from '@/components/trigonometry/tex'
 import {
   TRIG_CIRCLE_QUESTIONS,
+  TRIG_CIRCLE_TEST_ID,
   anglesMatch,
   valuesMatch,
   saveTrigCircleResult,
@@ -33,6 +34,14 @@ import {
   type TrigSubAnswer,
   type TrigCircleResult,
 } from '@/lib/geometry/trig-unit-circle'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
+import { CapacityLegend } from '@/components/geometry/capacity-legend'
+import { CapacityBreakdownCard } from '@/components/geometry/capacity-breakdown-card'
+import {
+  aggregateCompetenciesWeighted,
+  GEOMETRY_SESSION_METADATA_VERSION,
+} from '@/lib/geometry/capacity-results'
+import { formatCapacityGlyph } from '@/lib/geometry/capacity-definitions'
 
 type Phase = 'intro' | 'running' | 'done'
 
@@ -450,6 +459,58 @@ export function TrigCircleQuiz() {
       score: total > 0 ? Math.round((correct / total) * 100) : 0,
     }
     saveTrigCircleResult(r)
+    const totalSubs = TRIG_CIRCLE_QUESTIONS.reduce((n, q) => n + q.subs.length, 0)
+    const weightedItems: {
+      questionId: string
+      capacityCodes: string[]
+      part: string | null
+      score: number
+      max: number
+      correct: boolean
+    }[] = []
+    for (const q of TRIG_CIRCLE_QUESTIONS) {
+      for (const s of q.subs) {
+        const a = answers[s.id]
+        const isCorrect = Boolean(a?.correct)
+        const score = isCorrect ? 1 : 0
+        weightedItems.push({
+          questionId: s.id,
+          capacityCodes: [q.competency],
+          part: q.id,
+          score,
+          max: 1,
+          correct: isCorrect,
+        })
+      }
+    }
+    const { capacityBreakdown, perQuestion, totalPercent } =
+      aggregateCompetenciesWeighted(weightedItems)
+    persistCompletedTestSessionBestEffort({
+      testId: TRIG_CIRCLE_TEST_ID,
+      startedAt: r.startedAt,
+      completedAt: r.completedAt,
+      totalMs: r.totalMs,
+      score: r.score,
+      correctCount: r.correctCount,
+      totalQuestions: totalSubs,
+      trials: r.answers.map((a, i) => ({
+        question_index: i,
+        question_id: a.subId,
+        selected: [a.choiceId ?? a.clickedAngle ?? a.clickedValue].filter((x): x is string | number => x != null),
+        correct: a.correct,
+        score: a.correct ? 1 : 0,
+        reaction_time_ms: a.reactionTimeMs,
+      })),
+      metadata: {
+        source: 'trig-circle-quiz',
+        schemaVersion: GEOMETRY_SESSION_METADATA_VERSION,
+        lessonTestId: TRIG_CIRCLE_TEST_ID,
+        capacityBreakdown,
+        perQuestion,
+        totalPercent,
+        breakdownUnit: 'fraction',
+      },
+    })
   }, [phase, answers, startedAt, user])
 
   // ── Placed points collected from answers of current question ─────────────
@@ -522,10 +583,12 @@ export function TrigCircleQuiz() {
   }
 
   if (phase === 'done') {
-    return <ResultsScreen
-      answers={Object.values(answers)}
-      onExit={() => router.push('/dashboard')}
-    />
+    return (
+      <ResultsScreen
+        answers={Object.values(answers)}
+        onExit={() => router.push('/dashboard')}
+      />
+    )
   }
 
   // ── Running view ─────────────────────────────────────────────────────────
@@ -540,7 +603,7 @@ export function TrigCircleQuiz() {
             {question.title}
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Cercle trigonométrique — {question.competency}
+            Cercle trigonométrique — {formatCapacityGlyph(question.competency)}
           </p>
         </div>
         <Badge variant="outline" className="text-indigo-700 border-indigo-300 bg-indigo-50">
@@ -766,10 +829,21 @@ function IntroScreen({ onStart, onQuit }: { onStart: () => void; onQuit: () => v
           passage à la suivante est bloqué tant que vous n&apos;avez pas répondu.
           Une seule tentative par sous-question, avec feedback immédiat.
         </p>
+        <div className="mb-6">
+          <CapacityLegend testId={TRIG_CIRCLE_TEST_ID} />
+        </div>
         <ul className="mb-6 space-y-1.5 text-sm text-slate-700">
-          <li>• <strong>Q1 (C1)</strong> — placer 2 points (M, N) sur le cercle.</li>
-          <li>• <strong>Q2 (C1)</strong> — cliquer la graduation correcte sur l&apos;axe <span className="text-rose-600 font-semibold">cos</span> (horizontal) ou <span className="text-blue-600 font-semibold">sin</span> (vertical).</li>
-          <li>• <strong>Q3 (C2)</strong> — calculer 4 valeurs exactes (QCM).</li>
+          <li>
+            • <strong>Q1</strong> — placer 2 points (M, N) sur le cercle.
+          </li>
+          <li>
+            • <strong>Q2</strong> — cliquer la graduation correcte sur l&apos;axe{' '}
+            <span className="text-rose-600 font-semibold">cos</span> (horizontal) ou{' '}
+            <span className="text-blue-600 font-semibold">sin</span> (vertical).
+          </li>
+          <li>
+            • <strong>Q3</strong> — calculer 4 valeurs exactes (QCM).
+          </li>
         </ul>
         <div className="mb-6 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
           ⚠️ Règle stricte : aucune question ne peut être sautée. Répondez avec
@@ -795,6 +869,30 @@ function ResultsScreen({
   const total = TRIG_CIRCLE_QUESTIONS.reduce((n, q) => n + q.subs.length, 0)
   const pct = total > 0 ? Math.round((correct / total) * 100) : 0
 
+  const weightedItems: {
+    questionId: string
+    capacityCodes: string[]
+    part: string | null
+    score: number
+    max: number
+    correct: boolean
+  }[] = []
+  for (const q of TRIG_CIRCLE_QUESTIONS) {
+    for (const s of q.subs) {
+      const a = answers.find((x) => x.subId === s.id)
+      const ok = Boolean(a?.correct)
+      weightedItems.push({
+        questionId: s.id,
+        capacityCodes: [q.competency],
+        part: q.id,
+        score: ok ? 1 : 0,
+        max: 1,
+        correct: ok,
+      })
+    }
+  }
+  const { capacityBreakdown } = aggregateCompetenciesWeighted(weightedItems)
+
   return (
     <main className="container mx-auto max-w-2xl py-10 px-4">
       <Card className="p-8 text-center">
@@ -811,6 +909,12 @@ function ResultsScreen({
           </div>
         </div>
 
+        <CapacityBreakdownCard
+          testId={TRIG_CIRCLE_TEST_ID}
+          breakdown={capacityBreakdown}
+          unit="fraction"
+        />
+
         <div className="mb-6 max-h-72 overflow-auto rounded-md border bg-slate-50 p-3">
           <p className="mb-2 text-xs font-semibold text-muted-foreground text-left">
             Détail par sous-question :
@@ -818,7 +922,7 @@ function ResultsScreen({
           {TRIG_CIRCLE_QUESTIONS.map((q) => (
             <div key={q.id} className="mb-2 text-left">
               <p className="text-xs font-bold text-slate-800">
-                {q.title} ({q.competency})
+                {q.title} ({formatCapacityGlyph(q.competency)})
               </p>
               {q.subs.map((s) => {
                 const a = answers.find((x) => x.subId === s.id)

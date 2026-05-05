@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import {
   BarChart3,
   BookOpen,
@@ -12,7 +13,6 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
-  Settings,
   Users,
   X,
 } from 'lucide-react'
@@ -22,20 +22,19 @@ import { useAuth } from '@/lib/auth-context'
 
 interface NavItem {
   icon: React.ReactNode
-  label: string
+  labelKey: string
   href: string
   role: 'student' | 'teacher' | 'both' | 'admin'
 }
 
 const navItems: NavItem[] = [
-  { icon: <LayoutDashboard className="w-5 h-5" />, label: 'Tableau de bord', href: '/dashboard', role: 'both' },
-  { icon: <Brain className="w-5 h-5" />, label: 'Domaines', href: '/domains', role: 'student' },
-  { icon: <ClipboardList className="w-5 h-5" />, label: 'Tests', href: '/tests', role: 'student' },
-  { icon: <FileText className="w-5 h-5" />, label: 'Résultats', href: '/results', role: 'student' },
-  { icon: <Users className="w-5 h-5" />, label: 'Élèves', href: '/students', role: 'teacher' },
-  { icon: <BarChart3 className="w-5 h-5" />, label: 'Analytique', href: '/analytics', role: 'teacher' },
-  { icon: <BookOpen className="w-5 h-5" />, label: 'Rapports', href: '/reports', role: 'teacher' },
-  { icon: <Settings className="w-5 h-5" />, label: 'Profil', href: '/profile', role: 'both' },
+  { icon: <LayoutDashboard className="w-5 h-5" />, labelKey: 'nav.dashboard', href: '/dashboard', role: 'both' },
+  { icon: <Brain className="w-5 h-5" />, labelKey: 'nav.domains', href: '/domains', role: 'student' },
+  { icon: <ClipboardList className="w-5 h-5" />, labelKey: 'nav.tests', href: '/tests', role: 'student' },
+  { icon: <FileText className="w-5 h-5" />, labelKey: 'nav.results', href: '/results', role: 'student' },
+  { icon: <Users className="w-5 h-5" />, labelKey: 'nav.students', href: '/students', role: 'teacher' },
+  { icon: <BarChart3 className="w-5 h-5" />, labelKey: 'nav.analytics', href: '/analytics', role: 'teacher' },
+  { icon: <BookOpen className="w-5 h-5" />, labelKey: 'nav.reports', href: '/reports', role: 'teacher' },
 ]
 
 interface SidebarProps {
@@ -46,6 +45,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ userRole: userRoleProp, userName: userNameProp }: SidebarProps) {
+  const { t } = useTranslation()
   const pathname = usePathname()
   const router = useRouter()
   const isMobile = useIsMobile()
@@ -56,7 +56,7 @@ export function Sidebar({ userRole: userRoleProp, userName: userNameProp }: Side
     userNameProp ??
     (user?.displayName?.trim() ? user.displayName.trim() : null) ??
     user?.username ??
-    'Utilisateur'
+    t('sidebar.userFallback')
   const [isOpen, setIsOpen] = useState(false)
 
   const filteredItems = navItems.filter((item) => {
@@ -82,7 +82,7 @@ export function Sidebar({ userRole: userRoleProp, userName: userNameProp }: Side
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-background border border-border shadow-sm min-h-[44px] min-w-[44px] flex items-center justify-center"
-          aria-label={isOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+          aria-label={isOpen ? t('sidebar.closeMenu') : t('sidebar.openMenu')}
         >
           {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
@@ -106,13 +106,13 @@ export function Sidebar({ userRole: userRoleProp, userName: userNameProp }: Side
       >
         {/* Logo */}
         <div className="px-6 py-6 border-b border-sidebar-border flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center flex-shrink-0">
               <Brain className="w-5 h-5 text-white" />
             </div>
-            <div>
+            <div className="min-w-0">
               <h1 className="font-bold text-lg text-sidebar-foreground">CogniTest</h1>
-              <p className="text-xs text-muted-foreground">Recherche académique</p>
+              <p className="text-xs text-muted-foreground truncate">{t('sidebar.tagline')}</p>
             </div>
           </div>
         </div>
@@ -134,25 +134,31 @@ export function Sidebar({ userRole: userRoleProp, userName: userNameProp }: Side
                 )}
               >
                 {item.icon}
-                <span>{item.label}</span>
+                <span>{t(item.labelKey)}</span>
               </Link>
             )
           })}
         </nav>
 
-        {/* User Footer */}
+        {/* User Footer — profil via ce bloc uniquement */}
         <div className="border-t border-sidebar-border px-4 py-4 flex-shrink-0">
-          <div className="mb-3 px-2">
-            <p className="text-xs text-muted-foreground mb-0.5">Connecté en tant que</p>
+          <Link
+            href="/profile"
+            onClick={handleNavClick}
+            className="mb-3 block rounded-lg px-2 py-2 -mx-0.5 text-left outline-none transition-colors hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            aria-label={t('sidebar.openProfileAria')}
+          >
+            <p className="text-xs text-muted-foreground mb-0.5">{t('sidebar.connectedAs')}</p>
             <p className="font-medium text-sidebar-foreground text-sm truncate">{userName}</p>
             <p className="text-xs text-muted-foreground capitalize">{userRole}</p>
-          </div>
+          </Link>
           <button
+            type="button"
             onClick={handleLogout}
             className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-lg transition-colors min-h-[44px]"
           >
             <LogOut className="w-4 h-4" />
-            Déconnexion
+            {t('sidebar.logout')}
           </button>
         </div>
       </aside>

@@ -2,7 +2,7 @@ import type { MainDomain } from './mock-data'
 
 /**
  * Seven top-level domains for the Moroccan cognitive & academic platform.
- * Capacities map to `testId` entries in `mockTests`.
+ * Capacities map to `testId` entries in the platform catalogue (`public.tests` / seed).
  */
 export const platformDomains: MainDomain[] = [
   {

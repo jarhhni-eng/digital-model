@@ -1,7 +1,7 @@
 # CogniTest (digital-model) — project overview for agents
 
-**Last reviewed:** 2026-05-04  
-**Purpose:** Single reference for codebase state, architecture, feature inventory, and production-readiness gaps. Update this file when major behavior, data sources, or routes change.
+**Last reviewed:** 2026-05-05  
+**Purpose:** Single reference for **team developers and AI agents**: product intent, **system architecture**, data flow, routing, and production gaps. Update this file when persistence, auth, catalogue, or major routes change.
 
 ---
 
@@ -9,9 +9,9 @@
 
 **CogniTest** is a cognitive and mathematical assessment web app (ENS Fès–oriented positioning in UI copy). It combines:
 
-- A **student** journey: domains → capacities → timed assessments, dashboards, results, profile.
-- A **teacher** journey: class overview, per-student views (mock-scoped data in places).
-- An **admin / research** area: psychometrics, SEM-style analytics, manual correction flows, indicators — partly backed by deterministic **mock** data (`lib/admin-mock.ts`) and partly by real **Supabase** session storage.
+- A **student** journey: domains → capacities → timed assessments, dashboards, results, profile. Progress for many flows is stored in **Supabase** (`test_sessions` / `trial_results`); some legacy batteries still use **browser storage**.
+- A **teacher** journey: class overview and per-student views, backed by **Supabase** (roster, visible sessions per RLS) with optional mock scaffolding in admin tooling.
+- An **admin / research** area: psychometrics, SEM-style analytics, manual correction, indicators — mix of **Supabase** aggregates and deterministic **mock** cohort data (`lib/admin-mock.ts`) where noted in UI.
 
 The repo is a **Next.js 16 App Router** application with **React 19**, **TypeScript**, **Tailwind CSS 4**, and **shadcn-style** Radix components (`components/ui/`, `cn()` from `lib/utils.ts`).
 
@@ -43,40 +43,80 @@ The repo is a **Next.js 16 App Router** application with **React 19**, **TypeScr
 ```mermaid
 flowchart TB
   subgraph client [Browser]
-    Pages[App Router pages]
+    Pages[App Router client pages]
     Ctx[AuthProvider + I18nProvider]
+    Cat[useTestsCatalog → listTestsCatalog]
+    Merge[mergeCatalogWithSessions]
     Dedicated[Dedicated test UIs]
     Generic[GenericTestRunner]
-    LStore[localStorage / sessionStorage]
+    LStore[localStorage / sessionStorage - legacy batteries]
   end
 
   subgraph edge [Next.js]
-    MW[Proxy (proxy.ts): session refresh + route guard]
-    RSC[Server Components]
+    MW[proxy.ts → updateSupabaseSession]
     API[Route Handlers /api/*]
   end
 
-  subgraph data [Persistence]
-    SB[(Supabase: profiles, student_profiles, test_sessions, trial_results)]
-    Mock[lib/mock-data.ts, lib/admin-mock.ts, JSON tools]
-    FS[data/*.json via lib/server/json-store.ts - legacy / tooling]
+  subgraph data [Supabase Postgres + Auth]
+    Prof[profiles + student_profiles]
+    Tests[public.tests catalogue]
+    Sess[test_sessions + trial_results]
   end
 
   Pages --> Ctx
+  Pages --> Cat
+  Cat --> Tests
+  Pages --> Merge
+  Merge --> Sess
   Pages --> Dedicated
   Pages --> Generic
   Dedicated --> LStore
   Generic --> API
-  API --> SB
-  Ctx --> SB
-  MW --> SB
+  API --> Sess
+  Ctx --> Prof
+  MW --> client
 ```
 
-**Request flow (simplified):**
+### 3.1 Runtime layers
 
-1. **Root `proxy.ts`** (Next.js proxy convention) delegates to `lib/supabase/middleware.ts` (`updateSupabaseSession`): refreshes the Supabase session cookie and enforces auth on configured path prefixes.
-2. **Authenticated API routes** use `getSupabaseServer()` (cookie-aware). **Privileged** operations use `getSupabaseAdmin()` only in trusted server code.
-3. **Many assessments** still persist progress or results in **`sessionStorage` / `localStorage`** (see per-test `lib/*.ts`). Newer quiz-style flows increasingly use **`lib/results/results-service.ts`** (`test_sessions` + `trial_results` in Supabase).
+| Layer | Responsibility |
+|--------|----------------|
+| **Browser** | React 19 UI; `getSupabaseBrowser()` for RLS-scoped reads/writes; `AuthProvider` hydrates session from cookies via `getSession()` / `onAuthStateChange`. |
+| **`proxy.ts`** | Runs on matched routes; calls `updateSupabaseSession` so Supabase cookies stay fresh; redirects unauthenticated users away from protected prefixes. |
+| **Route Handlers** (`app/api/**`) | Server-side logic with `getSupabaseServer()` (reads cookies, respects RLS as the logged-in user). Use `getSupabaseAdmin()` only where explicitly required and safe. |
+
+### 3.2 Test catalogue (what students “see” as the list of tests)
+
+| Source | File / table | Role |
+|--------|----------------|------|
+| **Canonical in-repo list** | `mockTests` in `lib/mock-data.ts` | Full student catalogue: ids, optional `questions`, `type`, `duration`, grouping `domain` strings for charts. |
+| **Database catalogue** | `public.tests` | Authoritative **names**, **domain slugs**, `metadata` (e.g. `type`, `durationSeconds`, `displayDomain`). RLS: `authenticated` can `SELECT`. |
+| **Merge** | `mergeDbCatalogOntoMock()` in `lib/tests-catalog.ts` | After a successful DB fetch, **DB fields overlay** each `mockTests` row by `id`; extra DB-only rows are appended. Keeps embedded questions from code while showing real titles from Postgres. |
+| **Hook** | `useTestsCatalog()` in `hooks/use-tests-catalog.ts` | Loads catalogue **only when `user.userId` is set**; falls back to `mockTests` if the query fails or returns no rows. |
+
+**Generic runner metadata:** `getTestForRunner(testId, catalog)` (`lib/tests-catalog.ts`) builds the `Test` object for `GenericTestRunner`: DB title/domain when present, **`questions` still from `mockTests`** when defined there.
+
+### 3.3 Sessions & dashboards (how progress appears)
+
+| Piece | Location | Behaviour |
+|--------|-----------|------------|
+| **Fetch sessions** | `listMySessions()` in `lib/results/results-service.ts` | `await auth.getUser()` then `select` on `test_sessions`. Ensures JWT is validated before RLS. |
+| **Merge with catalogue** | `mergeCatalogWithSessions()` in `lib/student-test-progress.ts` | For each catalogue test, picks a **representative** session per `test_id` (avoids stale `in-progress` masking a later `completed`). Appends **orphan** placeholder tests for any `test_id` in sessions missing from the catalogue so rows never “disappear”. |
+| **Score display** | `resolveSessionScorePercent()` | Uses `score` or derives % from `correct_count` / `total_questions`. |
+| **UI consumers** | Dashboard, `/tests`, `/results`, `/domains/[id]`, profile, teacher views | Combine `useTestsCatalog().catalog` with `listMySessions` data; several pages re-fetch sessions when `fromDatabase` flips to recover post-login races. |
+
+### 3.4 Two ways completed attempts hit Supabase
+
+| Path | When | Mechanism |
+|------|------|------------|
+| **Generic MCQ / shared bank** | `GenericTestRunner` submits | `POST /api/submissions` — server scores against `mockTestQuestions` / embedded MCQs, inserts `test_sessions` + `trial_results`. |
+| **Dedicated quizzes** (geometry, some batteries) | Client finishes flow | `startSession` / `finishSession` in `lib/results/results-service.ts` — browser client inserts/updates `test_sessions` and inserts `trial_results`. |
+
+**FK rules:** `test_sessions.test_id` → `public.tests(id)`; `test_sessions.user_id` → `public.profiles(id)`. Seed `supabase/seed.sql` so every app `test_id` exists in `public.tests`.
+
+### 3.5 Legacy / hybrid storage
+
+Dedicated batteries (Beery, TVPS, visuo-constructive, many attention/memory helpers) may still write **`sessionStorage` or `localStorage`** via helpers under `lib/*.ts`. The **Results** page surfaces some of those in separate cards; domain tables are **Supabase-first** where sessions exist.
 
 ---
 
@@ -87,8 +127,8 @@ flowchart TB
 | `app/` | Routes: landing, dashboards, domains, tests, results, teacher, admin, analytics, profile, register |
 | `app/api/` | `auth/login`, `auth/logout`, `auth/register`, `submissions`, `student-profile`, `lesson-results` |
 | `components/` | Feature UIs (`beery-vmi`, `tvps`, `visuo-constructive`, attentional, memory, geometry, admin, …) + `components/ui/` |
-| `lib/` | Domain logic, test IDs, scoring, Supabase helpers, mock data, i18n, recommendations, psychometrics |
-| `hooks/` | Toasts, mobile breakpoint, etc. |
+| `lib/` | Domain logic, test IDs, scoring, **`tests-catalog.ts`**, **`results/results-service.ts`**, **`student-test-progress.ts`**, Supabase clients (`supabase/*`), `mock-data.ts`, i18n, psychometrics |
+| `hooks/` | `use-toast`, `use-mobile`, **`use-tests-catalog`** (Supabase catalogue + mock merge), etc. |
 | `public/` | Static assets, PWA manifest, icons |
 | `supabase/` | SQL schema / seeds (if present) — align DB with `lib/types/database.ts` |
 | `tools/` | Offline datasets / scripts (not runtime-critical) |
@@ -117,9 +157,11 @@ flowchart TB
 
 ## 6. Tests page contract (`app/tests/[testId]/page.tsx`)
 
-**Rule:** For any new “real” assessment, **early-return** a dedicated component **before** falling through to `GenericTestRunner` (which uses `mockTests` + optional inline questions).
+**Rule:** For any new “real” assessment, **early-return** a dedicated component **before** falling through to `GenericTestRunner`.
 
-**Dedicated runners (non-exhaustive — verify file for full list):**
+**Resolved test props:** The generic branch uses `getTestForRunner(testId, catalog)` where `catalog` comes from `useTestsCatalog()` (DB merged onto `mockTests`). Dedicated branches ignore this.
+
+**Dedicated runners (non-exhaustive — verify `page.tsx` imports for the full list):**
 
 - Visuo-motor: `test-visuo-motor` → Beery-style (`lib/beery-vmi.ts` / `components/beery-motrice/`)
 - Visuo-constructive: `test-visuo-constructive` → WAIS-style blocks
@@ -130,20 +172,27 @@ flowchart TB
 - Attention: divided / selective / sustained / **trail making** (mapped to `test-visuo-spatial-attention`), shifting, inhibition, processing speed, cognitive flexibility
 - Geometry: vectors, symétries, droite au plan, trig circle, espace, produit scalaire (see imports in `page.tsx`)
 
-**Generic path:** Unknown `testId` still renders `GenericTestRunner` with `test` possibly `undefined` — edge case to harden for production (404 or redirect).
+**Generic path:** Unknown `testId` → `getTestForRunner` may return `undefined` → `GenericTestRunner` with no `test` (still submits with `testId` string); consider 404/redirect for production.
 
-**Registration in data:** New tests must appear in `mockTests` and in `mainDomains` / `DomainCapacity.testId` in `lib/mock-data.ts` (and `lib/platform-domains.ts` if they should appear in admin’s platform catalog).
+**Registration checklist for a new test id:**
+
+1. `lib/<name>.ts` — `TEST_ID`, types, any storage keys.
+2. `components/<name>/` — UI; **early return** in `app/tests/[testId]/page.tsx`.
+3. **`mockTests`** (and optional inline `questions`) in `lib/mock-data.ts` — required for merge, generic runner, and **`POST /api/submissions`** scoring.
+4. **`public.tests`** row (seed or migration) — required for **FK** on `test_sessions.test_id`.
+5. **`lib/platform-domains.ts`** if the capacity appears under `/domains` (student tree).
+6. Optional: `app/results/<slug>/page.tsx` for a dedicated results route.
 
 ---
 
-## 7. Two “domain catalog” sources
+## 7. Two “domain navigation” sources
 
-Agents should know both exist:
+| Source | File | Used by |
+|--------|------|---------|
+| **`platformDomains`** | `lib/platform-domains.ts` | **`/domains`** and **`/domains/[domainId]`** — seven top-level domains, capacities link to `testId`. |
+| **`mainDomains` / `mockTests`** | `lib/mock-data.ts` | Legacy hierarchy + **full test catalogue** for merge/chart grouping (`groupTestsByDomain` uses `Test.domain` strings like `Cognitive Capacity`). |
 
-1. **`mainDomains` in `lib/mock-data.ts`** — Used by student-facing **Domains** UI (`/domains`).
-2. **`platformDomains` in `lib/platform-domains.ts`** — Seven top-level Moroccan platform domains; feeds **`lib/admin-mock.ts`** and related admin/analytics scaffolding.
-
-They overlap conceptually but are **not guaranteed identical**. Consolidating or syncing them is an open product/engineering decision.
+Charts on `/results` group by **`mockTests`-style domain labels** after merge. **`getDomainPresentation()`** in `lib/domain-ui.tsx` maps known domain strings to colours/icons. Consolidating `mainDomains` vs `platformDomains` remains a product decision.
 
 ---
 
@@ -151,22 +200,25 @@ They overlap conceptually but are **not guaranteed identical**. Consolidating or
 
 | Mechanism | Used for |
 |-----------|----------|
-| **Supabase** `profiles` | Role + identity; read in `AuthProvider` via `getSupabaseBrowser()` |
-| **Supabase** `student_profiles` | `/api/student-profile` |
-| **Supabase** `test_sessions`, `trial_results` | `results-service`, `/api/submissions`, many quizzes |
-| **`lib/mock-data.ts`** | Static catalogs, generic MCQ bank (`mockTestQuestions`), teacher student list helpers |
-| **`sessionStorage` / `localStorage`** | Legacy or hybrid flows for specific batteries (Beery, TVPS, visuo-constructive, trail making, etc.) — check each `lib/<test>.ts` |
-| **`lib/server/json-store.ts`** | Files under `data/` — **server filesystem**; inappropriate for serverless-only deploy unless replaced by DB/blob storage |
+| **Supabase** `profiles` | User id, email, role; joined in `AuthProvider` (`buildAuthSession`). |
+| **Supabase** `student_profiles` | Teacher assignment, grade, school; `/api/student-profile`. |
+| **Supabase** `public.tests` | Catalogue FK target; titles/domains for UI via `listTestsCatalog` + merge. |
+| **Supabase** `test_sessions`, `trial_results` | Generic submissions API, `finishSession`, teacher/admin aggregates. |
+| **`lib/mock-data.ts`** | `mockTests`, `mockTestQuestions`, `mainDomains`; **source of truth for question banks** until `public.questions` is wired. |
+| **`lib/tests-catalog.ts`** | DB fetch, `mergeDbCatalogOntoMock`, `getTestForRunner`. |
+| **`lib/student-test-progress.ts`** | Session ↔ catalogue merge, representative session pick, score resolution. |
+| **`sessionStorage` / `localStorage`** | Legacy or hybrid dedicated batteries — inspect `lib/<battery>.ts`. |
+| **`lib/server/json-store.ts`** | `data/*.json` on disk — **not** for serverless-only deploys unless replaced. |
 
-**Scoring:** `/api/submissions` scores generic attempts against **`mockTestQuestions`** only — dedicated tests must persist via their own pipelines.
+**Scoring:** `POST /api/submissions` uses **`mockTests` + `mockTestQuestions`** (and embedded MCQs) on the server. Dedicated flows implement their own scoring and call `finishSession`.
 
 ---
 
 ## 9. Authentication
 
-- **Client:** `lib/auth-context.tsx` — `signInWithPassword`, `signUp`, `signOut`, profile role fetch from `profiles`.
-- **Server registration:** `POST /api/auth/register` uses **admin** client to create users; comments note `email_confirm: true` is convenient for dev — **tighten for production** (email verification, rate limits, admin-only registration if needed).
-- **Types:** `lib/auth-types.ts`, DB types in `lib/types/database.ts` (comments suggest regenerating via Supabase CLI).
+- **Client:** `lib/auth-context.tsx` — Supabase `signInWithPassword`, `signUp`, `signOut`; `profiles` lookup for `role` and display name; exposes `AuthSession` (`userId`, `username`, `role`, …).
+- **Server registration:** `POST /api/auth/register` may use **admin** client; tighten email confirmation and role policies for production.
+- **Types:** `lib/auth-types.ts`; DB schema in `lib/types/database.ts` (regenerate from Supabase when schema changes).
 
 ---
 
@@ -257,12 +309,13 @@ npm run lint   # verify ESLint is installed and configured
 
 ---
 
-## 15. How agents should work in this repo
+## 15. How developers / agents should work in this repo
 
-1. **Scope:** Touch only files needed for the task; follow existing Card/Button patterns (workspace rule).
-2. **New dedicated test:** `lib/<name>.ts` (types, `TEST_ID`, storage), `components/<name>/`, early return in `app/tests/[testId]/page.tsx`, register in `mockTests` + `mainDomains` (+ `platformDomains` if admin should list it), optional `app/results/<slug>/page.tsx`.
-3. **Do not** expose secrets; prefer `getSupabaseServer()` in Route Handlers for user-scoped DB access.
-4. **After structural changes:** Update **this document** (§5–§8, §12–§13) so future agents see current state.
+1. **Read architecture first:** **§3–§8** (catalogue merge, sessions merge, dual persistence paths). When in doubt, trace `useTestsCatalog` → `mergeCatalogWithSessions` → `listMySessions`.
+2. **Scope:** Touch only files needed for the task; follow existing Card/Button patterns (workspace rule).
+3. **New dedicated test:** Follow **§6 checklist** (code + `public.tests` FK + domains).
+4. **Do not** expose `SUPABASE_SERVICE_ROLE_KEY` to the client; use `getSupabaseServer()` in Route Handlers for user-scoped DB access.
+5. **After structural changes:** Update **this document** (especially §3, §6–§8, §12–§13) so the team keeps a single source of truth.
 
 ---
 

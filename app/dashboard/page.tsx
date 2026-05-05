@@ -13,8 +13,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { useAuth } from '@/lib/auth-context'
-import { mockTests } from '@/lib/mock-data'
 import { listMySessions } from '@/lib/results/results-service'
+import { useTestsCatalog } from '@/hooks/use-tests-catalog'
 import {
   mergeCatalogWithSessions,
   groupTestsByDomain,
@@ -33,6 +33,8 @@ import {
   TrendingUp, Clock, CheckCircle2, BookOpen,
   ChevronRight,
 } from 'lucide-react'
+import { ChartAreaSkeleton, ValueTextSkeleton } from '@/components/ui/value-skeleton'
+import { Skeleton } from '@/components/ui/skeleton'
 
 type SessionRow = Database['public']['Tables']['test_sessions']['Row']
 
@@ -64,13 +66,16 @@ function CustomBarTooltip({
 export default function StudentDashboard() {
   const router = useRouter()
   const { user, loading } = useAuth()
-  const [mergedTests, setMergedTests] = useState<TestWithProgress[]>(() =>
-    mergeCatalogWithSessions(mockTests, []),
-  )
+  const { catalog, fromDatabase } = useTestsCatalog()
   const [sessions, setSessions] = useState<SessionRow[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(true)
   const [dashFetchError, setDashFetchError] = useState<string | null>(null)
   const isMobile = useIsMobile()
+
+  const mergedTests = useMemo(
+    () => mergeCatalogWithSessions(catalog, sessions),
+    [catalog, sessions],
+  )
 
   useEffect(() => {
     if (!loading && !user) router.replace('/')
@@ -78,7 +83,6 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     if (!user) {
-      setMergedTests(mergeCatalogWithSessions(mockTests, []))
       setSessions([])
       setSessionsLoading(false)
       setDashFetchError(null)
@@ -92,17 +96,14 @@ export default function StudentDashboard() {
         if (cancelled) return
         if (error) {
           setDashFetchError(error)
-          setMergedTests(mergeCatalogWithSessions(mockTests, []))
           setSessions([])
           return
         }
         setSessions(data)
-        setMergedTests(mergeCatalogWithSessions(mockTests, data))
       })
       .catch(() => {
         if (!cancelled) {
           setDashFetchError('Could not load your sessions.')
-          setMergedTests(mergeCatalogWithSessions(mockTests, []))
           setSessions([])
         }
       })
@@ -112,7 +113,7 @@ export default function StudentDashboard() {
     return () => {
       cancelled = true
     }
-  }, [user])
+  }, [user, fromDatabase])
 
   const groupedDomains = useMemo(() => groupTestsByDomain(mergedTests), [mergedTests])
 
@@ -137,14 +138,48 @@ export default function StudentDashboard() {
   )
 
   const timeline = useMemo(
-    () => completedSessionsChronology(mockTests, sessions),
-    [sessions],
+    () => completedSessionsChronology(catalog, sessions),
+    [catalog, sessions],
   )
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground">Loading…</p>
+      <div className="bg-background min-h-screen">
+        <Sidebar userRole="student" />
+        <div className={cn('transition-all duration-200', isMobile ? 'ml-0' : 'ml-64')}>
+          <Header title="Tableau de bord" subtitle="Suivi de votre progression cognitive" />
+          <main className={cn('p-4 md:p-6 pt-24 max-w-7xl mx-auto space-y-6', isMobile && 'pb-20')}>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Card key={i}>
+                  <CardContent className="pt-5 pb-4 space-y-3">
+                    <Skeleton className="h-3 w-28" />
+                    <ValueTextSkeleton className="h-9 w-16" />
+                    <Skeleton className="h-3 w-36" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Domain Performance</CardTitle>
+                <CardDescription>Scores moyens par domaine (sessions terminées)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ChartAreaSkeleton height={280} />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Test Status</CardTitle>
+                <CardDescription>Répartition sur le catalogue</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ChartAreaSkeleton height={180} />
+              </CardContent>
+            </Card>
+          </main>
+        </div>
       </div>
     )
   }
@@ -182,6 +217,7 @@ export default function StudentDashboard() {
   const sortedCards = [...domainCards].sort((a, b) => b.score - a.score)
   const strengths = sortedCards.slice(0, 2)
   const weaknesses = sortedCards.slice(-2).reverse()
+  const sessionDataReady = !sessionsLoading
 
   return (
     <div className="bg-background min-h-screen">
@@ -197,9 +233,6 @@ export default function StudentDashboard() {
               {dashFetchError} Les graphiques utilisent le catalogue jusqu&apos;à la prochaine
               synchronisation.
             </p>
-          )}
-          {sessionsLoading && user && (
-            <p className="mb-4 text-xs text-muted-foreground">Chargement des sessions…</p>
           )}
 
           <div className="mb-6 rounded-lg border border-primary/20 bg-primary/5 p-4 flex gap-3">
@@ -249,7 +282,11 @@ export default function StudentDashboard() {
                     <p className="text-xs font-medium text-muted-foreground">{s.title}</p>
                     <span className="text-primary">{s.icon}</span>
                   </div>
-                  <p className="text-2xl font-bold">{s.value}</p>
+                  {sessionDataReady ? (
+                    <p className="text-2xl font-bold">{s.value}</p>
+                  ) : (
+                    <ValueTextSkeleton className="h-9 w-20" />
+                  )}
                   <p className="text-xs text-muted-foreground mt-0.5">{s.sub}</p>
                 </CardContent>
               </Card>
@@ -263,7 +300,9 @@ export default function StudentDashboard() {
                 <CardDescription>Scores moyens par domaine (sessions terminées)</CardDescription>
               </CardHeader>
               <CardContent>
-                {domainPerformanceData.length === 0 ? (
+                {!sessionDataReady ? (
+                  <ChartAreaSkeleton height={280} />
+                ) : domainPerformanceData.length === 0 ? (
                   <p className="text-sm text-muted-foreground py-12 text-center">
                     Aucune évaluation terminée avec score pour l&apos;instant.
                   </p>
@@ -307,6 +346,10 @@ export default function StudentDashboard() {
                 <CardDescription>Répartition sur le catalogue</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col items-center">
+                {!sessionDataReady ? (
+                  <ChartAreaSkeleton height={180} />
+                ) : (
+                  <>
                 <ResponsiveContainer width="100%" height={180}>
                   <PieChart>
                     <Pie
@@ -339,6 +382,8 @@ export default function StudentDashboard() {
                     </div>
                   ))}
                 </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -349,7 +394,9 @@ export default function StudentDashboard() {
               <CardDescription>Scores des évaluations terminées, dans l&apos;ordre chronologique</CardDescription>
             </CardHeader>
             <CardContent>
-              {timeline.length === 0 ? (
+              {!sessionDataReady ? (
+                <ChartAreaSkeleton height={240} />
+              ) : timeline.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-10 text-center">
                   Passez des tests jusqu&apos;au bout pour voir votre courbe de progression ici.
                 </p>
@@ -403,14 +450,22 @@ export default function StudentDashboard() {
                       <span className="font-medium">{d.domain}</span>
                     </div>
                     <span className="font-bold tabular-nums" style={{ color: d.ui.color }}>
-                      {d.tests.some((t) => t.latestScore != null) ? `${d.score}%` : '—'}
+                      {sessionDataReady ? (
+                        d.tests.some((t) => t.latestScore != null) ? `${d.score}%` : '—'
+                      ) : (
+                        <ValueTextSkeleton className="h-6 w-14 inline-block align-middle" />
+                      )}
                     </span>
                   </div>
                   <div className="h-2 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{ width: `${d.score}%`, backgroundColor: d.ui.color }}
-                    />
+                    {sessionDataReady ? (
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{ width: `${d.score}%`, backgroundColor: d.ui.color }}
+                      />
+                    ) : (
+                      <Skeleton className="h-full w-2/3 rounded-full" />
+                    )}
                   </div>
                 </div>
               ))}
@@ -422,7 +477,11 @@ export default function StudentDashboard() {
                     <div key={d.domain} className="flex items-center justify-between text-sm py-1">
                       <span className="text-green-800">{d.domain}</span>
                       <span className="font-bold text-green-700">
-                        {d.tests.some((t) => t.latestScore != null) ? `${d.score}%` : '—'}
+                        {sessionDataReady ? (
+                          d.tests.some((t) => t.latestScore != null) ? `${d.score}%` : '—'
+                        ) : (
+                          <ValueTextSkeleton className="h-5 w-12 inline-block" />
+                        )}
                       </span>
                     </div>
                   ))}
@@ -433,7 +492,11 @@ export default function StudentDashboard() {
                     <div key={d.domain} className="flex items-center justify-between text-sm py-1">
                       <span className="text-amber-800">{d.domain}</span>
                       <span className="font-bold text-amber-700">
-                        {d.tests.some((t) => t.latestScore != null) ? `${d.score}%` : '—'}
+                        {sessionDataReady ? (
+                          d.tests.some((t) => t.latestScore != null) ? `${d.score}%` : '—'
+                        ) : (
+                          <ValueTextSkeleton className="h-5 w-12 inline-block" />
+                        )}
                       </span>
                     </div>
                   ))}
@@ -454,10 +517,18 @@ export default function StudentDashboard() {
                         <CardTitle className="text-base">{domain}</CardTitle>
                       </div>
                       <span className="text-sm font-bold" style={{ color: ui.color }}>
-                        {tests.some((t) => t.latestScore != null) ? `${score}%` : '—'}
+                        {sessionDataReady ? (
+                          tests.some((t) => t.latestScore != null) ? `${score}%` : '—'
+                        ) : (
+                          <ValueTextSkeleton className="h-6 w-14 inline-block align-middle" />
+                        )}
                       </span>
                     </div>
-                    <Progress value={score} className="h-1.5 mt-1" />
+                    {sessionDataReady ? (
+                      <Progress value={score} className="h-1.5 mt-1" />
+                    ) : (
+                      <Skeleton className="h-1.5 w-full mt-1 rounded-full" />
+                    )}
                   </CardHeader>
                   <CardContent className="pt-0">
                     <div className="space-y-2">
@@ -474,10 +545,19 @@ export default function StudentDashboard() {
                             <span className="truncate">{t.title}</span>
                           </Link>
                           <div className="flex items-center gap-3 flex-shrink-0">
-                            {t.status === 'completed' && t.latestScore != null && (
-                              <span className="tabular-nums font-medium text-xs">{t.latestScore}%</span>
+                            {sessionDataReady ? (
+                              <>
+                                {t.status === 'completed' && t.latestScore != null && (
+                                  <span className="tabular-nums font-medium text-xs">{t.latestScore}%</span>
+                                )}
+                                <StatusBadge status={t.status} />
+                              </>
+                            ) : (
+                              <>
+                                <Skeleton className="h-4 w-10 rounded" />
+                                <Skeleton className="h-5 w-24 rounded-full" />
+                              </>
                             )}
-                            <StatusBadge status={t.status} />
                           </div>
                         </div>
                       ))}
@@ -509,22 +589,27 @@ export default function StudentDashboard() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {tests.map((t) => {
-                    const done = t.status === 'completed'
                     return (
-                      <Link key={t.id} href={done ? '/results' : `/tests/${t.id}`}>
+                      <Link key={t.id} href={sessionDataReady && t.status === 'completed' ? '/results' : `/tests/${t.id}`}>
                         <div
                           className={cn(
                             'rounded-xl border p-4 transition-all hover:shadow-sm cursor-pointer',
-                            done
+                            sessionDataReady && t.status === 'completed'
                               ? 'border-green-200 bg-green-50/50'
                               : 'border-border bg-card hover:border-primary/30',
                           )}
                         >
                           <div className="flex items-start justify-between gap-2">
                             <p className="text-sm font-medium leading-tight">{t.title}</p>
-                            <StatusBadge status={t.status} />
+                            {sessionDataReady ? (
+                              <StatusBadge status={t.status} />
+                            ) : (
+                              <Skeleton className="h-5 w-24 rounded-full shrink-0" />
+                            )}
                           </div>
-                          {t.status === 'completed' && t.latestScore != null && (
+                          {sessionDataReady &&
+                            t.status === 'completed' &&
+                            t.latestScore != null && (
                             <div className="mt-2">
                               <div className="flex justify-between text-xs text-muted-foreground mb-1">
                                 <span>Score</span>

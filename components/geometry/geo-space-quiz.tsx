@@ -10,12 +10,17 @@ import { ArrowLeft, ArrowRight, CheckCircle2, BarChart3, Box } from 'lucide-reac
 import { useAuth } from '@/lib/auth-context'
 import {
   GEO_SPACE_QUESTIONS,
+  GEO_SPACE_TEST_ID,
   GeoSpaceResult,
   GeoSpaceTrialResult,
   saveGeoSpaceResult,
 } from '@/lib/geometry/geo-space'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { toggleSelectionWithExclusive } from '@/lib/quiz-helpers'
 import { scoreGeometryQuestion, computeFinalPercent } from '@/lib/geometry/scoring'
+import { CapacityLegend } from '@/components/geometry/capacity-legend'
+import { CapacityBreakdownCard } from '@/components/geometry/capacity-breakdown-card'
+import { buildGeometrySessionMetadataFraction } from '@/lib/geometry/capacity-results'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
 
@@ -112,6 +117,37 @@ export function GeoSpaceQuiz() {
         score: computeFinalPercent(scorable.map((t) => t.score ?? 0)),
       }
       saveGeoSpaceResult(r)
+      persistCompletedTestSessionBestEffort({
+        testId: GEO_SPACE_TEST_ID,
+        startedAt: r.startedAt,
+        completedAt: r.completedAt,
+        totalMs: r.totalMs,
+        score: r.score,
+        correctCount: r.correctCount,
+        totalQuestions: GEO_SPACE_QUESTIONS.length,
+        trials: r.trials.map((t) => ({
+          question_index: t.index,
+          question_id: t.questionId,
+          selected: (t.selectedList?.length ? t.selectedList : [t.selected]) as unknown[],
+          correct: t.correct,
+          score: t.score ?? (t.correct ? 1 : 0),
+          reaction_time_ms: t.reactionTimeMs,
+        })),
+        metadata: {
+          source: 'geo-space-quiz',
+          ...buildGeometrySessionMetadataFraction({
+            lessonTestId: GEO_SPACE_TEST_ID,
+            questions: GEO_SPACE_QUESTIONS,
+            trials: r.trials.map((t) => ({
+              index: t.index,
+              questionId: t.questionId,
+              score: t.score ?? (t.correct ? 1 : 0),
+              correct: t.correct,
+            })),
+            isScorableIndex: (i) => GEO_SPACE_QUESTIONS[i]?.correctAnswer !== null,
+          }),
+        },
+      })
     }
   }, [phase, trials, startedAt, user])
 
@@ -173,6 +209,9 @@ function Intro({ onStart, onQuit }: { onStart: () => void; onQuit: () => void })
           Référentiel : programme national marocain (Tronc commun),
           décision ministérielle 2.853.06.
         </p>
+        <div className="mb-4">
+          <CapacityLegend testId={GEO_SPACE_TEST_ID} />
+        </div>
         <div className="mb-4 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
           <strong>Structure :</strong> 28 questions au total —
           Partie I (Q1–Q18) : questions du cours ; Partie II (Q19–Q28) : questions de raisonnement.
@@ -395,6 +434,18 @@ function Results({ trials, onExit }: ResultsProps) {
   const correct = scorable.filter((t) => t.correct).length
   const pct = scorable.length > 0 ? Math.round((correct / scorable.length) * 100) : 0
 
+  const geo = buildGeometrySessionMetadataFraction({
+    lessonTestId: GEO_SPACE_TEST_ID,
+    questions: GEO_SPACE_QUESTIONS,
+    trials: trials.map((t) => ({
+      index: t.index,
+      questionId: t.questionId,
+      score: t.score ?? (t.correct ? 1 : 0),
+      correct: t.correct,
+    })),
+    isScorableIndex: (i) => GEO_SPACE_QUESTIONS[i]?.correctAnswer !== null,
+  })
+
   const coursePart = scorable.filter(
     (t) => GEO_SPACE_QUESTIONS[t.index].part === 'course',
   )
@@ -432,6 +483,11 @@ function Results({ trials, onExit }: ResultsProps) {
             </div>
           </div>
         </div>
+        <CapacityBreakdownCard
+          testId={GEO_SPACE_TEST_ID}
+          breakdown={geo.capacityBreakdown}
+          unit="fraction"
+        />
         <div className="flex justify-center gap-3">
           <Button variant="outline" onClick={() => window.location.reload()}>
             Recommencer

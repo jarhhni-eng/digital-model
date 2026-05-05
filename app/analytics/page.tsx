@@ -33,6 +33,8 @@ import {
 } from 'recharts'
 import { placeholderFit } from '@/lib/sem-model'
 import { buildRecommendations } from '@/lib/recommendations-engine'
+import { ChartAreaSkeleton } from '@/components/ui/value-skeleton'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const radarDemo = [
   { domain: 'Attention', score: 72 },
@@ -55,10 +57,61 @@ export default function AnalyticsPage() {
     }
   }, [loading, user, router])
 
-  if (loading || !user) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground">Loading…</p>
+      <div className="bg-background min-h-screen">
+        <Sidebar userRole="teacher" />
+        <div className={cn('transition-all duration-200', isMobile ? 'ml-0' : 'ml-64')}>
+          <Header
+            title="Analytique & aide à la décision"
+            subtitle="Filtres : établissement, niveau, filière (données de démonstration)"
+          />
+          <main className="p-4 md:p-6 pt-24 max-w-7xl space-y-6">
+            <div className="flex flex-wrap gap-4">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24 rounded" />
+                <Skeleton className="h-10 w-[220px] rounded-md" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <Skeleton className="h-5 w-48 rounded" />
+                </CardHeader>
+                <CardContent>
+                  <ChartAreaSkeleton height={280} />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <Skeleton className="h-5 w-56 rounded" />
+                  <Skeleton className="h-3 w-full max-w-md rounded mt-2" />
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Skeleton className="h-4 w-32 rounded" />
+                  <Skeleton className="h-4 w-28 rounded" />
+                  <Skeleton className="h-4 w-36 rounded" />
+                </CardContent>
+              </Card>
+            </div>
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-5 w-48 rounded" />
+              </CardHeader>
+              <CardContent>
+                <ChartAreaSkeleton height={240} />
+              </CardContent>
+            </Card>
+          </main>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background p-6">
+        <p className="text-muted-foreground text-sm text-center max-w-sm">Connexion requise.</p>
       </div>
     )
   }

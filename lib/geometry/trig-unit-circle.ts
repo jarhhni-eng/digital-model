@@ -4,8 +4,7 @@
  * 3 questions, each with multiple sub-parts. All sub-parts MUST be answered
  * (single attempt, immediate feedback) before the student can advance.
  *
- * C1: Represent points on the unit circle and interpret cos, sin.
- * C2: Compute and simplify trigonometric values.
+ * Capacité C₁ (locale à cette leçon) : angles, abscisses curvilignes, cos et sin.
  */
 
 export const TRIG_CIRCLE_TEST_ID = 'test-geo-trig-circle'
@@ -31,7 +30,7 @@ export interface TrigMainQuestion {
   title: string
   /** LaTeX stem (can include $...$ segments). */
   stemTex: string
-  competency: 'C1' | 'C2'
+  competency: 'C1'
   subs: TrigSubTask[]
 }
 
@@ -89,7 +88,7 @@ export const TRIG_CIRCLE_QUESTIONS: TrigMainQuestion[] = [
     id: 'Q3',
     title: 'Q3 — Calculer',
     stemTex: 'Sélectionnez la valeur exacte pour chaque expression (cercle disponible comme support).',
-    competency: 'C2',
+    competency: 'C1',
     subs: [
       {
         id: 'Q3-a',

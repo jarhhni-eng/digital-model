@@ -17,6 +17,7 @@ import {
   saveSAResult,
   SELECTIVE_ATTENTION_TEST_ID,
 } from '@/lib/attentional/selective-attention'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { TestIntroSection } from '@/components/assessment/test-intro-section'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
@@ -30,8 +31,10 @@ export function SelectiveAttentionTest() {
   const [responses, setResponses] = useState<SATrialResult[]>([])
   const [startedAt, setStartedAt] = useState<number>(0)
   const trialStart = useRef(0)
+  const supabaseSynced = useRef(false)
 
   const begin = () => {
+    supabaseSynced.current = false
     setTrials(buildSATrials())
     setCurrent(0)
     setResponses([])
@@ -78,6 +81,8 @@ export function SelectiveAttentionTest() {
 
   useEffect(() => {
     if (phase !== 'done' || responses.length === 0) return
+    if (supabaseSynced.current) return
+    supabaseSynced.current = true
     const correctCount = responses.filter((r) => r.correct).length
     const r: SAResult = {
       id: `sa-${Date.now()}`,
@@ -90,6 +95,24 @@ export function SelectiveAttentionTest() {
       score: Math.round((correctCount / responses.length) * 100),
     }
     saveSAResult(r)
+    persistCompletedTestSessionBestEffort({
+      testId: SELECTIVE_ATTENTION_TEST_ID,
+      startedAt: r.startedAt,
+      completedAt: r.completedAt,
+      totalMs: r.totalMs,
+      score: r.score,
+      correctCount: r.correctCount,
+      totalQuestions: responses.length,
+      trials: r.trials.map((t, i) => ({
+        question_index: i,
+        question_id: `sa-${t.index}`,
+        selected: [t.wordMeaning, t.inkColor, t.keyPressed ?? ''],
+        correct: t.correct,
+        score: t.correct ? 1 : 0,
+        reaction_time_ms: t.reactionTimeMs,
+      })),
+      metadata: { source: 'selective-attention', resultId: r.id },
+    })
   }, [phase, responses, startedAt, user])
 
   if (phase === 'intro') return <Intro onNext={() => setPhase('instructions')} onQuit={() => router.push('/dashboard')} />

@@ -3,10 +3,10 @@
  * Cognitive Assessment Test
  * 9 Questions (1 auto-évaluation + 8 questions de cours)
  *
- * Competencies:
- * C1: Construction d'un vecteur
- * C2: Expression des concepts et propriétés géométriques affines
- * C4: Reconnaître la similarité par translation
+ * Capacités C₁–C₃ (locales à cette leçon — voir `CAPACITIES_BY_TEST`) :
+ * C₁ distance / perpendicularité (produit scalaire, notions de base)
+ * C₂ utilisation du produit scalaire / outil vectoriel en problèmes
+ * C₃ Cauchy (Chasles), médiane, colinéarité structurante
  */
 
 export const VECTORS_TEST_ID = 'test-geo-vectors-complete'
@@ -92,7 +92,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
   },
   {
     id: 'Q1',
-    competencies: ['C2'],
+    competencies: ['C1'],
     question: 'Soient deux vecteurs colinéaires \\( \\vec{FG} \\) et \\( \\vec{AB} \\). Alors :',
     options: [
       'Les droites (FG) et (AB) sont parallèles, \\( FG = AB \\) et les vecteurs ont le même sens',
@@ -107,7 +107,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
   },
   {
     id: 'Q2',
-    competencies: ['C2'],
+    competencies: ['C1'],
     question: '\\( \\vec{AB} - \\vec{BG} = \\;? \\)',
     options: [
       '\\( \\vec{AG} \\)',
@@ -122,7 +122,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
   },
   {
     id: 'Q3',
-    competencies: ['C2'],
+    competencies: ['C3'],
     question: 'Soit \\( I \\) le milieu du segment \\( [AB] \\). Alors :',
     options: [
       '\\( \\vec{AI} + \\vec{IB} = \\vec{0} \\)',
@@ -137,7 +137,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
   },
   {
     id: 'Q4',
-    competencies: ['C4'],
+    competencies: ['C1'],
     question: 'Une translation conserve :',
     options: [
       'L\'alignement des points',
@@ -217,7 +217,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
   },
   {
     id: 'Q9',
-    competencies: ['C1'],
+    competencies: ['C2'],
     question:
       'Placer le point \\( I \\) tel que : \\( \\vec{AI} = \\dfrac{2}{5}\\vec{AB} \\)',
     options: [],
@@ -231,7 +231,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
   },
   {
     id: 'Q10',
-    competencies: ['C1'],
+    competencies: ['C2'],
     question:
       'Placer les points \\( M \\) et \\( Q \\) tels que : \\( \\vec{AM} = \\vec{AB} + \\vec{AD} \\) et \\( \\vec{BQ} = \\vec{BG} + \\vec{BC\'} \\)',
     options: [],
@@ -245,7 +245,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
   },
   {
     id: 'Q11',
-    competencies: ['C1'],
+    competencies: ['C2'],
     question:
       'Placer les points \\( N \\) et \\( P \\) tels que : \\( \\vec{AN} = \\vec{BH} \\) et \\( \\vec{DE} = -\\vec{C\'P} \\)',
     options: [],
@@ -287,7 +287,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
   },
   {
     id: 'Q14',
-    competencies: ['C2'],
+    competencies: ['C3'],
     question:
       'En utilisant la relation de Chasles : \\( \\vec{BG} + \\vec{AB} + \\vec{GH} = \\;? \\)',
     options: [
@@ -304,7 +304,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
   },
   {
     id: 'Q15',
-    competencies: ['C1'],
+    competencies: ['C3'],
     question: 'Si \\( N \\) est le milieu de \\( [AG] \\) alors (cocher la bonne réponse) :',
     options: [
       '\\( \\vec{AN} + \\vec{NG} = \\vec{0} \\)',
@@ -319,7 +319,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
   },
   {
     id: 'Q16',
-    competencies: ['C4'],
+    competencies: ['C2'],
     question:
       'Image du point \\( E \\) par la translation de vecteur \\( \\vec{C\'H} \\) :',
     options: ['\\( D \\)', '\\( F\' \\)', '\\( E \\)', '\\( C \\)'],
@@ -331,7 +331,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
   },
   {
     id: 'Q17',
-    competencies: ['C4'],
+    competencies: ['C2'],
     question:
       'Image du point \\( C \\) par la translation de vecteur \\( \\vec{AB} \\) :',
     options: ['\\( C\' \\)', '\\( D \\)', '\\( E \\)', '\\( A \\)'],
@@ -342,7 +342,7 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
   },
   {
     id: 'Q18',
-    competencies: ['C2'],
+    competencies: ['C3'],
     question:
       'Compléter par les coefficients de colinéarité (voir l\'image « sens des vecteurs ») :',
     options: [],

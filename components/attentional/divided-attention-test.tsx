@@ -21,6 +21,7 @@ import {
   toCSV,
   DIVIDED_ATTENTION_TEST_ID,
 } from '@/lib/attentional/divided-attention'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { TestIntroSection } from '@/components/assessment/test-intro-section'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
@@ -36,9 +37,11 @@ export function DividedAttentionTest() {
   const trialStart = useRef(0)
   const pressed = useRef(false)
   const reactionMs = useRef<number | null>(null)
+  const supabaseSynced = useRef(false)
 
   // Start a fresh trial set
   const begin = () => {
+    supabaseSynced.current = false
     setTrials(buildDATrials())
     setCurrent(0)
     setResponses([])
@@ -89,6 +92,8 @@ export function DividedAttentionTest() {
   // Save result when done
   useEffect(() => {
     if (phase !== 'done' || responses.length === 0) return
+    if (supabaseSynced.current) return
+    supabaseSynced.current = true
     const correctCount = responses.filter((r) => r.correct).length
     const result: DARResult = {
       id: `da-${Date.now()}`,
@@ -101,6 +106,24 @@ export function DividedAttentionTest() {
       score: Math.round((correctCount / DA_TRIAL_COUNT) * 100),
     }
     saveDAResult(result)
+    persistCompletedTestSessionBestEffort({
+      testId: DIVIDED_ATTENTION_TEST_ID,
+      startedAt: result.startedAt,
+      completedAt: result.completedAt,
+      totalMs: result.totalMs,
+      score: result.score,
+      correctCount: result.correctCount,
+      totalQuestions: DA_TRIAL_COUNT,
+      trials: result.trials.map((t, i) => ({
+        question_index: i,
+        question_id: `da-${t.index}`,
+        selected: [t.wordColor, t.ballColor, t.isGo, t.pressed],
+        correct: t.correct,
+        score: t.correct ? 1 : 0,
+        reaction_time_ms: t.reactionTimeMs,
+      })),
+      metadata: { source: 'divided-attention', resultId: result.id },
+    })
   }, [phase, responses, startedAt, user])
 
   if (phase === 'intro') return <IntroScreen onNext={() => setPhase('instructions')} onQuit={() => router.push('/dashboard')} />

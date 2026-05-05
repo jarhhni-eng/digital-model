@@ -1,5 +1,6 @@
 /**
- * Merge catalog tests (`mockTests`) with the current user's `test_sessions`
+ * Merge catalogue tests (`Test[]`, usually from `public.tests` via `listTestsCatalog`)
+ * with the current user's `test_sessions`
  * rows from Supabase for UI on /tests and /results.
  */
 
@@ -19,14 +20,61 @@ export type TestWithProgress = Test & {
 
 type SessionRow = Database['public']['Tables']['test_sessions']['Row']
 
-/** Newest session wins per `test_id`. */
-export function latestSessionByTestId(sessions: SessionRow[]): Map<string, SessionRow> {
-  const sorted = [...sessions].sort(
+function sessionEndMs(row: SessionRow): number {
+  return new Date(row.completed_at ?? row.started_at).getTime()
+}
+
+/**
+ * One row per `test_id` for dashboards / admin aggregates.
+ *
+ * We cannot use “newest started_at” alone: an abandoned `in-progress` row
+ * that started *after* a completed attempt’s `started_at` but *before* its
+ * `completed_at` would mask the completion and look like results vanished.
+ *
+ * Rule: if there is any completed session, use the latest completed (by
+ * end time) unless there is a non-completed session that *started after* that
+ * end (a genuine retake). Otherwise use the latest non-completed row.
+ */
+function representativeSessionForTest(rows: SessionRow[]): SessionRow | undefined {
+  if (rows.length === 0) return undefined
+  const completed = rows.filter((r) => r.status === 'completed')
+  const incomplete = rows.filter((r) => r.status !== 'completed')
+
+  let latestCompletedEnd = 0
+  for (const r of completed) {
+    const t = sessionEndMs(r)
+    if (t > latestCompletedEnd) latestCompletedEnd = t
+  }
+
+  if (latestCompletedEnd > 0) {
+    const retryOpen = incomplete.filter(
+      (r) => new Date(r.started_at).getTime() > latestCompletedEnd,
+    )
+    if (retryOpen.length > 0) {
+      return retryOpen.sort(
+        (a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime(),
+      )[0]
+    }
+    return completed.sort((a, b) => sessionEndMs(b) - sessionEndMs(a))[0]
+  }
+
+  return incomplete.sort(
     (a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime(),
-  )
+  )[0]
+}
+
+/** Representative session per `test_id` (see `representativeSessionForTest`). */
+export function latestSessionByTestId(sessions: SessionRow[]): Map<string, SessionRow> {
+  const byTest = new Map<string, SessionRow[]>()
+  for (const row of sessions) {
+    const arr = byTest.get(row.test_id) ?? []
+    arr.push(row)
+    byTest.set(row.test_id, arr)
+  }
   const map = new Map<string, SessionRow>()
-  for (const row of sorted) {
-    if (!map.has(row.test_id)) map.set(row.test_id, row)
+  for (const [testId, rows] of byTest) {
+    const pick = representativeSessionForTest(rows)
+    if (pick) map.set(testId, pick)
   }
   return map
 }
@@ -38,14 +86,53 @@ function rowToUiStatus(row: SessionRow): 'upcoming' | 'in-progress' | 'completed
 }
 
 /**
+ * Display % for a session: prefer `score`, else derive from correct/total
+ * (Supabase `numeric` may arrive as string; some flows leave `score` null).
+ */
+export function resolveSessionScorePercent(row: SessionRow): number | null {
+  if (row.status !== 'completed') return null
+  if (row.score != null) {
+    const n = Number(row.score as number | string)
+    if (Number.isFinite(n)) return Math.round(n)
+  }
+  const cc = row.correct_count
+  const tq = row.total_questions
+  if (cc != null && tq != null) {
+    const nc = Number(cc)
+    const nt = Number(tq)
+    if (Number.isFinite(nc) && Number.isFinite(nt) && nt > 0) {
+      return Math.round((nc / nt) * 100)
+    }
+  }
+  return null
+}
+
+/**
  * Overlay real session state onto catalog tests (order preserved).
  */
 export function mergeCatalogWithSessions(
   catalog: readonly Test[],
   sessions: SessionRow[],
 ): TestWithProgress[] {
+  const sessionTestIds = [...new Set(sessions.map((s) => s.test_id))]
+  const catalogIds = new Set(catalog.map((t) => t.id))
+  const orphanTests: Test[] = []
+  for (const id of sessionTestIds) {
+    if (!catalogIds.has(id)) {
+      orphanTests.push({
+        id,
+        title: id,
+        domain: 'Other',
+        status: 'upcoming',
+        type: 'mcq',
+        duration: 1800,
+      })
+    }
+  }
+  const fullCatalog = [...catalog, ...orphanTests]
+
   const byTest = latestSessionByTestId(sessions)
-  return catalog.map((t) => {
+  return fullCatalog.map((t) => {
     const row = byTest.get(t.id)
     if (!row) {
       return {
@@ -55,8 +142,7 @@ export function mergeCatalogWithSessions(
       }
     }
     const status = rowToUiStatus(row)
-    const latestScore =
-      status === 'completed' && row.score != null ? Math.round(Number(row.score)) : null
+    const latestScore = status === 'completed' ? resolveSessionScorePercent(row) : null
     return {
       ...t,
       status,

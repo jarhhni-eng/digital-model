@@ -27,17 +27,19 @@ import {
 import { useAuth } from '@/lib/auth-context'
 import {
   SYMETRIE_CENTRALE_QUESTIONS,
+  SYMETRIE_CENTRALE_TEST_ID,
   SymCentraleQuestion,
   SymCentraleResult,
   SymCentraleTrialResult,
   saveSymCentraleResult,
   gradeAnswer,
   levelFor,
-  LEVEL_LABEL,
-  LEVEL_INSIGHT,
   FigureKey,
 } from '@/lib/geometry/symetrie-centrale'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { CapacityLegend } from '@/components/geometry/capacity-legend'
+import { CapacityBreakdownCard } from '@/components/geometry/capacity-breakdown-card'
+import { buildGeometrySessionMetadataPoints } from '@/lib/geometry/capacity-results'
 import { toggleSelectionWithExclusive } from '@/lib/quiz-helpers'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
@@ -141,6 +143,33 @@ export function SymetrieCentraleQuiz() {
     }
     const totalScore = scoreC1 + scoreC2
     const maxScore = maxC1 + maxC2
+    const totalPct = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0
+    const geoPayload = buildGeometrySessionMetadataPoints({
+      lessonTestId: SYMETRIE_CENTRALE_TEST_ID,
+      perQuestion: trials.map((t) => {
+        const q = SYMETRIE_CENTRALE_QUESTIONS[t.index]
+        return {
+          questionId: t.questionId,
+          capacityCodes: q.competency ? [q.competency] : [],
+          part: null,
+          score: t.pointsEarned,
+          correct: t.correct,
+        }
+      }),
+      capacityBreakdown: {
+        C1: {
+          earned: scoreC1,
+          max: maxC1,
+          percent: maxC1 > 0 ? Math.round((scoreC1 / maxC1) * 100) : 0,
+        },
+        C2: {
+          earned: scoreC2,
+          max: maxC2,
+          percent: maxC2 > 0 ? Math.round((scoreC2 / maxC2) * 100) : 0,
+        },
+      },
+      totalPercent: totalPct,
+    })
     const r: SymCentraleResult = {
       id: `symc-${Date.now()}`,
       userName: user?.username,
@@ -157,6 +186,24 @@ export function SymetrieCentraleQuiz() {
       level: levelFor(totalScore),
     }
     saveSymCentraleResult(r)
+    persistCompletedTestSessionBestEffort({
+      testId: SYMETRIE_CENTRALE_TEST_ID,
+      startedAt: r.startedAt,
+      completedAt: r.completedAt,
+      totalMs: r.totalMs,
+      score: r.maxScore > 0 ? Math.round((r.totalScore / r.maxScore) * 100) : 0,
+      correctCount: r.trials.filter((t) => t.correct).length,
+      totalQuestions: SYMETRIE_CENTRALE_QUESTIONS.length,
+      trials: r.trials.map((t) => ({
+        question_index: t.index,
+        question_id: t.questionId,
+        selected: t.selected,
+        correct: t.correct,
+        score: t.correct ? 1 : Math.min(1, t.pointsEarned / 4),
+        reaction_time_ms: t.reactionTimeMs,
+      })),
+      metadata: { source: 'symetrie-centrale-quiz', level: r.level, ...geoPayload },
+    })
   }, [phase, trials, startedAt, user])
 
   if (phase === 'intro') {
@@ -219,7 +266,7 @@ function Intro({ onStart, onQuit }: { onStart: () => void; onQuit: () => void })
           décision ministérielle 2.853.06.
         </p>
         <div className="mb-4">
-          <CapacityLegend testId="test-symetrie-centrale" />
+          <CapacityLegend testId={SYMETRIE_CENTRALE_TEST_ID} />
         </div>
         <div className="mb-4 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
           <strong>Barème :</strong> Q1 diagnostique (0 pt) · C1 = 12 pts ·
@@ -656,7 +703,19 @@ function Results({
   }
   const total = scoreC1 + scoreC2
   const max = maxC1 + maxC2
-  const level = levelFor(total)
+
+  const breakdown = {
+    C1: {
+      earned: scoreC1,
+      max: maxC1,
+      percent: maxC1 > 0 ? Math.round((scoreC1 / maxC1) * 100) : 0,
+    },
+    C2: {
+      earned: scoreC2,
+      max: maxC2,
+      percent: maxC2 > 0 ? Math.round((scoreC2 / maxC2) * 100) : 0,
+    },
+  }
 
   return (
     <main className="container mx-auto max-w-2xl py-10">
@@ -671,29 +730,14 @@ function Results({
           <div className="text-5xl font-bold text-rose-600">
             {total} / {max}
           </div>
-          <div className="mt-1 text-sm text-muted-foreground">Score global</div>
+          <div className="mt-1 text-sm text-muted-foreground">Score global (points)</div>
         </div>
 
-        <div className="mb-4 grid grid-cols-2 gap-3 text-sm">
-          <div className="rounded border p-3">
-            <div className="text-xs text-muted-foreground">Compétence C1</div>
-            <div className="text-lg font-semibold">
-              {scoreC1} / {maxC1}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              Reconnaissance (Q2–Q13)
-            </div>
-          </div>
-          <div className="rounded border p-3">
-            <div className="text-xs text-muted-foreground">Compétence C2</div>
-            <div className="text-lg font-semibold">
-              {scoreC2} / {maxC2}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              Résolution (Q14–Q17)
-            </div>
-          </div>
-        </div>
+        <CapacityBreakdownCard
+          testId={SYMETRIE_CENTRALE_TEST_ID}
+          breakdown={breakdown}
+          unit="points"
+        />
 
         <div className="flex justify-center gap-3">
           <Button onClick={onExit}>

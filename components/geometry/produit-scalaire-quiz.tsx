@@ -11,14 +11,19 @@ import { useAuth } from '@/lib/auth-context'
 import {
   PRODUIT_SCALAIRE_LESSON_LABELS,
   PRODUIT_SCALAIRE_QUESTIONS,
+  PRODUIT_SCALAIRE_TEST_ID,
   PRODUIT_SCALAIRE_TYPE_LABELS,
   ProduitScalaireResult,
   ProduitScalaireTrialResult,
   saveProduitScalaireResult,
 } from '@/lib/geometry/produit-scalaire'
+import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
 import { toggleSelectionWithExclusive } from '@/lib/quiz-helpers'
 import { InteractiveLinePlot, PlottedPoint } from '@/components/geometry/interactive-line-plot'
 import { scoreGeometryQuestion, computeFinalPercent } from '@/lib/geometry/scoring'
+import { CapacityLegend } from '@/components/geometry/capacity-legend'
+import { CapacityBreakdownCard } from '@/components/geometry/capacity-breakdown-card'
+import { buildGeometrySessionMetadataFraction } from '@/lib/geometry/capacity-results'
 
 type Phase = 'intro' | 'instructions' | 'running' | 'done'
 
@@ -146,6 +151,50 @@ export function ProduitScalaireQuiz() {
         score: computeFinalPercent(scorable.map((t) => t.score ?? 0)),
       }
       saveProduitScalaireResult(r)
+      persistCompletedTestSessionBestEffort({
+        testId: PRODUIT_SCALAIRE_TEST_ID,
+        startedAt: r.startedAt,
+        completedAt: r.completedAt,
+        totalMs: r.totalMs,
+        score: r.score,
+        correctCount: r.correctCount,
+        totalQuestions: PRODUIT_SCALAIRE_QUESTIONS.length,
+        trials: r.trials.map((t) => ({
+          question_index: t.index,
+          question_id: t.questionId,
+          selected: t.selected,
+          free_text: t.freeText ?? null,
+          correct: t.correct,
+          score: t.score ?? (t.correct ? 1 : 0),
+          reaction_time_ms: t.reactionTimeMs,
+        })),
+        metadata: {
+          source: 'produit-scalaire-quiz',
+          ...buildGeometrySessionMetadataFraction({
+            lessonTestId: PRODUIT_SCALAIRE_TEST_ID,
+            questions: PRODUIT_SCALAIRE_QUESTIONS.map((q) => ({
+              id: q.id,
+              competencies: q.competencies,
+              part: `T${q.typeCode}-D${q.lessonCode}`,
+            })),
+            trials: r.trials.map((t) => ({
+              index: t.index,
+              questionId: t.questionId,
+              score: t.score ?? (t.correct ? 1 : 0),
+              correct: t.correct,
+            })),
+            isScorableIndex: (i) => {
+              const q = PRODUIT_SCALAIRE_QUESTIONS[i]
+              return (
+                q?.correctAnswer !== null &&
+                !q.isDiagnostic &&
+                !q.isOpenEnded &&
+                !q.interactiveLine
+              )
+            },
+          }),
+        },
+      })
     }
   }, [phase, trials, startedAt, user])
 
@@ -211,6 +260,9 @@ function Intro({ onStart, onQuit }: { onStart: () => void; onQuit: () => void })
           Référentiel : programme national marocain (Tronc commun),
           décision ministérielle 2.853.06.
         </p>
+        <div className="mb-4">
+          <CapacityLegend testId={PRODUIT_SCALAIRE_TEST_ID} />
+        </div>
         <div className="mb-4 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
           <strong>Structure :</strong> 26 questions —
           Partie I (Q1–Q9) cours, Partie II (Q10–Q17) visualisation,
@@ -518,22 +570,35 @@ function Results({ trials, onExit }: ResultsProps) {
     const ok = items.filter((t) => t.correct).length
     return { ok, total: items.length }
   }
-  const byCompetency = (skill: string) => {
-    const items = scorable.filter((t) =>
-      PRODUIT_SCALAIRE_QUESTIONS[t.index].competencies.includes(skill),
-    )
-    const ok = items.filter((t) => t.correct).length
-    return { ok, total: items.length }
-  }
-
   const t1 = byType(1)
   const t2 = byType(2)
   const t3 = byType(3)
   const d1 = byLesson(1)
   const d2 = byLesson(2)
-  const skills = ['C1', 'C2', 'C3', 'C4', 'C5', 'C6']
-    .map((s) => ({ s, ...byCompetency(s) }))
-    .filter((x) => x.total > 0)
+
+  const geo = buildGeometrySessionMetadataFraction({
+    lessonTestId: PRODUIT_SCALAIRE_TEST_ID,
+    questions: PRODUIT_SCALAIRE_QUESTIONS.map((q) => ({
+      id: q.id,
+      competencies: q.competencies,
+      part: `T${q.typeCode}-D${q.lessonCode}`,
+    })),
+    trials: trials.map((t) => ({
+      index: t.index,
+      questionId: t.questionId,
+      score: t.score ?? (t.correct ? 1 : 0),
+      correct: t.correct,
+    })),
+    isScorableIndex: (i) => {
+      const q = PRODUIT_SCALAIRE_QUESTIONS[i]
+      return (
+        q?.correctAnswer !== null &&
+        !q.isDiagnostic &&
+        !q.isOpenEnded &&
+        !q.interactiveLine
+      )
+    },
+  })
 
   const openCount = trials.filter(
     (t) => PRODUIT_SCALAIRE_QUESTIONS[t.index].isOpenEnded,
@@ -602,19 +667,11 @@ function Results({ trials, onExit }: ResultsProps) {
           </div>
         </div>
 
-        <h3 className="mb-2 text-left text-sm font-semibold text-muted-foreground">
-          Par compétence
-        </h3>
-        <div className="mb-6 grid grid-cols-3 gap-3 text-sm">
-          {skills.map(({ s, ok, total }) => (
-            <div key={s} className="rounded border p-3">
-              <div className="text-xs text-muted-foreground">{s}</div>
-              <div className="text-lg font-semibold">
-                {ok} / {total}
-              </div>
-            </div>
-          ))}
-        </div>
+        <CapacityBreakdownCard
+          testId={PRODUIT_SCALAIRE_TEST_ID}
+          breakdown={geo.capacityBreakdown}
+          unit="fraction"
+        />
 
         <div className="flex justify-center gap-3">
           <Button variant="outline" onClick={() => window.location.reload()}>
