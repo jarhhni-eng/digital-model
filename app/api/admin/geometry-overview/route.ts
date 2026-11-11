@@ -7,6 +7,7 @@ import { VECTORS_QUESTIONS } from '@/lib/geometry/geo-vectors-complete'
 import { SYMETRIE_AXIALE_QUESTIONS } from '@/lib/geometry/symetrie-axiale'
 import { SYMETRIE_CENTRALE_QUESTIONS } from '@/lib/geometry/symetrie-centrale'
 import { PRODUIT_SCALAIRE_QUESTIONS } from '@/lib/geometry/produit-scalaire'
+import { PRODUIT_SCALAIRE_TC_QUESTIONS } from '@/lib/geometry/produit-scalaire-tronc-commun'
 import { SPACE_VOLUMES_QUESTIONS } from '@/lib/geometry/space-volumes'
 import { TRIG_CIRCLE_QUESTIONS } from '@/lib/geometry/trig-unit-circle'
 
@@ -28,6 +29,7 @@ for (const question of [
   ...SYMETRIE_AXIALE_QUESTIONS,
   ...SYMETRIE_CENTRALE_QUESTIONS,
   ...PRODUIT_SCALAIRE_QUESTIONS,
+  ...PRODUIT_SCALAIRE_TC_QUESTIONS,
   ...SPACE_VOLUMES_QUESTIONS,
   ...TRIG_CIRCLE_QUESTIONS,
 ]) {

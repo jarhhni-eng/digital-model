@@ -96,6 +96,12 @@ export const CAPACITIES_BY_TEST: Record<string, CapacityDef[]> = {
         'représentation des angles à l’aide des abscisses curvilignes et identification du cosinus et du sinus d’un angle',
     },
   ],
+  'test-geo-produit-scalaire-tc': [
+    { code: 'C1', label: "Exprimer la distance et la perpendicularité à l'aide du produit scalaire." },
+    { code: 'C2', label: "Utilisation de la démonstration d'alkachy et la démonstration de la médiane dans la résolution des problèmes géométriques." },
+    { code: 'C3', label: 'Traduire les notions et les propriétés de la géométrie affine et de la géométrie vectorielle à travers les coordonnées.' },
+    { code: 'C4', label: "Utiliser l'outil analytique dans la résolution des problèmes géométriques." },
+  ],
   'test-geo-produit-scalaire': [
     {
       code: 'C1',

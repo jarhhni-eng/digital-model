@@ -371,6 +371,14 @@ export const mockTests: Test[] = [
     duration: 1500,
   },
   {
+    id: 'test-geo-produit-scalaire-tc',
+    title: 'Produit scalaire — tronc commun',
+    domain: 'Cognition et apprentissage de la géométrie',
+    status: 'upcoming',
+    type: 'mcq',
+    duration: 1200,
+  },
+  {
     id: 'test-geo-space-volumes',
     title: 'Géométrie dans l\'espace : volumes',
     domain: 'Cognition et apprentissage de la géométrie',

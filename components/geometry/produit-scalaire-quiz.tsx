@@ -13,6 +13,7 @@ import {
   PRODUIT_SCALAIRE_QUESTIONS,
   PRODUIT_SCALAIRE_TEST_ID,
   PRODUIT_SCALAIRE_TYPE_LABELS,
+  ProduitScalaireQuestion,
   ProduitScalaireResult,
   ProduitScalaireTrialResult,
   saveProduitScalaireResult,
@@ -26,6 +27,13 @@ import {
   computeFinalPercent,
 } from '@/lib/geometry/scoring'
 import { CapacityLegend } from '@/components/geometry/capacity-legend'
+import { getCapacityLabelMap } from '@/lib/geometry/capacity-definitions'
+import {
+  masteryLabel,
+  saveProduitScalaireTcResult,
+  tcCapacityLabel,
+  type ProduitScalaireTcQuestion,
+} from '@/lib/geometry/produit-scalaire-tronc-commun'
 import { CapacityBreakdownCard } from '@/components/geometry/capacity-breakdown-card'
 import { GeometryAnalyticsSummary } from '@/components/geometry/geometry-analytics-summary'
 import { buildGeometrySessionMetadataFraction } from '@/lib/geometry/capacity-results'
@@ -54,9 +62,18 @@ function renderInlineLatex(text: string): string {
   })
 }
 
-export function ProduitScalaireQuiz() {
+export function ProduitScalaireQuiz({
+  testId = PRODUIT_SCALAIRE_TEST_ID,
+  questions = PRODUIT_SCALAIRE_QUESTIONS,
+  variant = 'original',
+}: {
+  testId?: string
+  questions?: ProduitScalaireQuestion[]
+  variant?: 'original' | 'tronc-commun'
+} = {}) {
   const router = useRouter()
   const { user } = useAuth()
+  const bank = questions
   const [phase, setPhase] = useState<Phase>('intro')
   const [current, setCurrent] = useState(0)
   const [trials, setTrials] = useState<ProduitScalaireTrialResult[]>([])
@@ -66,9 +83,9 @@ export function ProduitScalaireQuiz() {
   const [startedAt, setStartedAt] = useState<number>(0)
   const trialStart = useRef(0)
 
-  const maxIx = Math.max(0, PRODUIT_SCALAIRE_QUESTIONS.length - 1)
+  const maxIx = Math.max(0, bank.length - 1)
   const idx = Math.min(Math.max(0, current), maxIx)
-  const question = PRODUIT_SCALAIRE_QUESTIONS[idx]
+  const question = bank[idx]
   const isMulti =
     Array.isArray(question?.correctAnswer) &&
     (question.correctAnswer as number[]).length > 1
@@ -80,9 +97,9 @@ export function ProduitScalaireQuiz() {
   }
 
   const submit = useCallback(() => {
-    const hi = Math.max(0, PRODUIT_SCALAIRE_QUESTIONS.length - 1)
+    const hi = Math.max(0, bank.length - 1)
     const i = Math.min(Math.max(0, current), hi)
-    const q = PRODUIT_SCALAIRE_QUESTIONS[i]
+    const q = bank[i]
     if (!q) return
 
     if (q.interactiveLine?.graded && q.interactiveLine.passThrough?.length) {
@@ -103,7 +120,7 @@ export function ProduitScalaireQuiz() {
       setSelectedList([])
       setFreeText('')
       setShowHint(false)
-      if (i + 1 >= PRODUIT_SCALAIRE_QUESTIONS.length) {
+      if (i + 1 >= bank.length) {
         setPhase('done')
       } else {
         setCurrent((n) => n + 1)
@@ -132,7 +149,7 @@ export function ProduitScalaireQuiz() {
       setSelectedList([])
       setFreeText('')
       setShowHint(false)
-      if (i + 1 >= PRODUIT_SCALAIRE_QUESTIONS.length) {
+      if (i + 1 >= bank.length) {
         setPhase('done')
       } else {
         setCurrent((n) => n + 1)
@@ -170,7 +187,7 @@ export function ProduitScalaireQuiz() {
     setFreeText('')
     setShowHint(false)
 
-    if (i + 1 >= PRODUIT_SCALAIRE_QUESTIONS.length) {
+    if (i + 1 >= bank.length) {
       setPhase('done')
     } else {
       setCurrent((n) => n + 1)
@@ -182,14 +199,14 @@ export function ProduitScalaireQuiz() {
 
   useEffect(() => {
     if (phase !== 'running') return
-    const hi = Math.max(0, PRODUIT_SCALAIRE_QUESTIONS.length - 1)
+    const hi = Math.max(0, bank.length - 1)
     if (current > hi) setCurrent(hi)
   }, [phase, current])
 
   useEffect(() => {
     if (phase === 'done' && trials.length > 0) {
       const scorable = trials.filter((t) => {
-        const q = PRODUIT_SCALAIRE_QUESTIONS[t.index]
+        const q = bank[t.index]
         return !isExcludedFromGeometryScoreAndAverage({
           ...q,
           question: q.question,
@@ -206,15 +223,16 @@ export function ProduitScalaireQuiz() {
         correctCount: correct,
         score: computeFinalPercent(scorable.map((t) => t.score ?? 0)),
       }
-      saveProduitScalaireResult(r)
+      if (variant === 'tronc-commun') saveProduitScalaireTcResult(r)
+      else saveProduitScalaireResult(r)
       persistCompletedTestSessionBestEffort({
-        testId: PRODUIT_SCALAIRE_TEST_ID,
+        testId,
         startedAt: r.startedAt,
         completedAt: r.completedAt,
         totalMs: r.totalMs,
         score: r.score,
         correctCount: r.correctCount,
-        totalQuestions: PRODUIT_SCALAIRE_QUESTIONS.length,
+        totalQuestions: bank.length,
         trials: r.trials.map((t) => ({
           question_index: t.index,
           question_id: t.questionId,
@@ -226,8 +244,8 @@ export function ProduitScalaireQuiz() {
         })),
         metadata: (() => {
           const geoPayload = buildGeometrySessionMetadataFraction({
-            lessonTestId: PRODUIT_SCALAIRE_TEST_ID,
-            questions: PRODUIT_SCALAIRE_QUESTIONS.map((q) => ({
+            lessonTestId: testId,
+            questions: bank.map((q) => ({
               id: q.id,
               competencies: q.competencies,
               part: `T${q.typeCode}-D${q.lessonCode}`,
@@ -239,7 +257,7 @@ export function ProduitScalaireQuiz() {
               correct: t.correct,
             })),
             isScorableIndex: (i) => {
-              const q = PRODUIT_SCALAIRE_QUESTIONS[i]
+              const q = bank[i]
               return Boolean(
                 q &&
                   !isExcludedFromGeometryScoreAndAverage({
@@ -250,8 +268,8 @@ export function ProduitScalaireQuiz() {
             },
           })
           const geometryAnalytics = buildGeometryAnalyticsReport({
-            testId: PRODUIT_SCALAIRE_TEST_ID,
-            questions: PRODUIT_SCALAIRE_QUESTIONS,
+            testId,
+            questions: bank,
             trials: r.trials.map((t) => ({
               index: t.index,
               questionId: t.questionId,
@@ -259,7 +277,7 @@ export function ProduitScalaireQuiz() {
               correct: t.correct,
             })),
             isScorableIndex: (i) => {
-              const q = PRODUIT_SCALAIRE_QUESTIONS[i]
+              const q = bank[i]
               return Boolean(
                 q &&
                   !isExcludedFromGeometryScoreAndAverage({
@@ -271,18 +289,31 @@ export function ProduitScalaireQuiz() {
             scoringMode: 'fraction',
           })
           return {
-            source: 'produit-scalaire-quiz',
+            source: variant === 'tronc-commun' ? 'produit-scalaire-tc-quiz' : 'produit-scalaire-quiz',
             ...geoPayload,
             geometryAnalytics,
+            ...(variant === 'tronc-commun'
+              ? {
+                  questionMap: bank.map((q) => ({
+                    id: q.id,
+                    number: q.number,
+                    sourceNumber: 'sourceNumber' in q ? (q as ProduitScalaireTcQuestion).sourceNumber : q.number,
+                    sourceId: 'sourceId' in q ? (q as ProduitScalaireTcQuestion).sourceId : q.id,
+                    capacity: q.competencies[0] ?? 'autoevaluation',
+                  })),
+                }
+              : {}),
           }
         })(),
       })
     }
-  }, [phase, trials, startedAt, user])
+  }, [phase, trials, startedAt, user, bank, testId, variant])
 
   if (phase === 'intro') {
     return (
       <Intro
+        testId={testId}
+        variant={variant}
         onQuit={() => router.push('/dashboard')}
         onStart={() => {
           setStartedAt(Date.now())
@@ -307,7 +338,7 @@ export function ProduitScalaireQuiz() {
   }
 
   if (phase === 'done') {
-    return <Results trials={trials} onExit={() => router.push('/dashboard')} />
+    return <Results trials={trials} bank={bank} testId={testId} variant={variant} onExit={() => router.push('/dashboard')} />
   }
 
   if (!question) {
@@ -324,7 +355,10 @@ export function ProduitScalaireQuiz() {
   return (
     <TrialView
       index={idx}
-      total={PRODUIT_SCALAIRE_QUESTIONS.length}
+      total={bank.length}
+      bank={bank}
+      testId={testId}
+      variant={variant}
       question={question}
       selectedList={selectedList}
       isMulti={isMulti}
@@ -338,7 +372,17 @@ export function ProduitScalaireQuiz() {
   )
 }
 
-function Intro({ onStart, onQuit }: { onStart: () => void; onQuit: () => void }) {
+function Intro({
+  onStart,
+  onQuit,
+  testId = PRODUIT_SCALAIRE_TEST_ID,
+  variant = 'original',
+}: {
+  onStart: () => void
+  onQuit: () => void
+  testId?: string
+  variant?: 'original' | 'tronc-commun'
+}) {
   return (
     <main className="container mx-auto max-w-3xl py-10">
       <Button variant="ghost" size="sm" onClick={onQuit} className="mb-4">
@@ -346,26 +390,33 @@ function Intro({ onStart, onQuit }: { onStart: () => void; onQuit: () => void })
       </Button>
       <Card className="p-8">
         <div className="mb-4 flex items-center gap-2 text-sm font-medium text-indigo-600">
-          <Compass className="h-4 w-4" /> Produit scalaire & Géométrie analytique
+          <Compass className="h-4 w-4" />{' '}
+          {variant === 'tronc-commun' ? 'Tronc commun scientifique' : 'Produit scalaire & Géométrie analytique'}
         </div>
         <h1 className="mb-3 text-3xl font-bold">Produit scalaire</h1>
         <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
-          Référentiel : programme national marocain (Tronc commun),
-          décision ministérielle 2.853.06.
+          {variant === 'tronc-commun'
+            ? 'Niveau : tronc commun scientifique. Quatre capacités, de C1 à C4. L’autoévaluation n’entre pas dans le score.'
+            : 'Référentiel : programme national marocain (Tronc commun), décision ministérielle 2.853.06.'}
         </p>
         <div className="mb-4">
-          <CapacityLegend testId={PRODUIT_SCALAIRE_TEST_ID} />
+          <CapacityLegend
+            testId={testId}
+            title={variant === 'tronc-commun' ? 'Capacités — Produit scalaire, tronc commun scientifique' : undefined}
+          />
         </div>
         <div className="mb-4 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
-          <strong>Structure :</strong> 26 questions —
-          Partie I (Q1–Q9) cours, Partie II (Q10–Q17) visualisation,
-          Partie III (Q18–Q26) raisonnement.
-          La Q1 est une auto-évaluation et n&apos;est pas notée.
+          <strong>Structure :</strong>{' '}
+          {variant === 'tronc-commun'
+            ? '15 questions. Q1 est une autoévaluation hors notation. Les questions notées sont classées en C1, C2, C3 et C4.'
+            : '26 questions — Partie I (Q1–Q9) cours, Partie II (Q10–Q17) visualisation, Partie III (Q18–Q26) raisonnement. La Q1 est une auto-évaluation et n’est pas notée.'}
         </div>
+        {variant === 'original' && (
         <div className="mb-6 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
           <strong>Contexte de la Partie III :</strong>{' '}
           droite \( \Delta:\ 2x - 3y + 2 = 0 \) et point \( A(2,-3) \).
         </div>
+        )}
         <Button onClick={onStart}>
           Commencer <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
@@ -422,7 +473,10 @@ function Instructions({ onBegin, onBack }: { onBegin: () => void; onBack: () => 
 interface TrialViewProps {
   index: number
   total: number
-  question: (typeof PRODUIT_SCALAIRE_QUESTIONS)[number]
+  bank: ProduitScalaireQuestion[]
+  testId: string
+  variant: 'original' | 'tronc-commun'
+  question: ProduitScalaireQuestion
   selectedList: number[]
   isMulti: boolean
   freeText: string
@@ -436,6 +490,9 @@ interface TrialViewProps {
 function TrialView({
   index,
   total,
+  bank,
+  testId,
+  variant,
   question,
   selectedList,
   isMulti,
@@ -447,7 +504,7 @@ function TrialView({
   onSubmit,
 }: TrialViewProps) {
   const showPartBanner =
-    index === 0 || PRODUIT_SCALAIRE_QUESTIONS[index - 1]?.typeCode !== question.typeCode
+    index === 0 || bank[index - 1]?.typeCode !== question.typeCode
 
   const lessonLabel = PRODUIT_SCALAIRE_LESSON_LABELS[question.lessonCode]
 
@@ -461,7 +518,9 @@ function TrialView({
           Question {index + 1} / {total}
         </h2>
         <div className="text-right">
-          <span className="text-sm font-semibold text-indigo-600">{question.id}</span>
+          {variant === 'original' && (
+            <span className="text-sm font-semibold text-indigo-600">{question.id}</span>
+          )}
           <p className="text-xs text-muted-foreground">Leçon : {lessonLabel}</p>
         </div>
       </div>
@@ -501,6 +560,13 @@ function TrialView({
           )}
 
           <div className="space-y-6">
+            {variant === 'tronc-commun' && (
+              <p className="text-xs font-medium text-emerald-800">
+                {question.isDiagnostic || question.competencies.length === 0
+                  ? 'Autoévaluation – Hors notation'
+                  : `${question.competencies[0]} – ${tcCapacityLabel(question.competencies[0]) || getCapacityLabelMap(testId)[question.competencies[0]] || ''}`}
+              </p>
+            )}
             <div
               className="text-base leading-relaxed"
               dangerouslySetInnerHTML={{ __html: renderInlineLatex(question.question) }}
@@ -634,12 +700,15 @@ function TrialView({
 
 interface ResultsProps {
   trials: ProduitScalaireTrialResult[]
+  bank: ProduitScalaireQuestion[]
+  testId: string
+  variant: 'original' | 'tronc-commun'
   onExit: () => void
 }
 
-function Results({ trials, onExit }: ResultsProps) {
+function Results({ trials, bank, testId, variant, onExit }: ResultsProps) {
   const scorable = trials.filter((t) => {
-    const q = PRODUIT_SCALAIRE_QUESTIONS[t.index]
+    const q = bank[t.index]
     return !isExcludedFromGeometryScoreAndAverage({
       ...q,
       question: q.question,
@@ -659,7 +728,7 @@ function Results({ trials, onExit }: ResultsProps) {
 
   const byType = (code: 1 | 2 | 3) => {
     const items = scorable.filter(
-      (t) => PRODUIT_SCALAIRE_QUESTIONS[t.index].typeCode === code,
+      (t) => bank[t.index].typeCode === code,
     )
     const ok = items.filter((t) => scoreOf(t) === 1).length
     const part = items.filter((t) => scoreOf(t) > 0 && scoreOf(t) < 1).length
@@ -671,7 +740,7 @@ function Results({ trials, onExit }: ResultsProps) {
   }
   const byLesson = (code: 1 | 2) => {
     const items = scorable.filter(
-      (t) => PRODUIT_SCALAIRE_QUESTIONS[t.index].lessonCode === code,
+      (t) => bank[t.index].lessonCode === code,
     )
     const ok = items.filter((t) => t.correct).length
     return { ok, total: items.length }
@@ -683,8 +752,8 @@ function Results({ trials, onExit }: ResultsProps) {
   const d2 = byLesson(2)
 
   const geo = buildGeometrySessionMetadataFraction({
-    lessonTestId: PRODUIT_SCALAIRE_TEST_ID,
-    questions: PRODUIT_SCALAIRE_QUESTIONS.map((q) => ({
+    lessonTestId: testId,
+    questions: bank.map((q) => ({
       id: q.id,
       competencies: q.competencies,
       part: `T${q.typeCode}-D${q.lessonCode}`,
@@ -696,7 +765,7 @@ function Results({ trials, onExit }: ResultsProps) {
       correct: t.correct,
     })),
     isScorableIndex: (i) => {
-      const q = PRODUIT_SCALAIRE_QUESTIONS[i]
+      const q = bank[i]
       return Boolean(
         q &&
           !isExcludedFromGeometryScoreAndAverage({
@@ -708,8 +777,8 @@ function Results({ trials, onExit }: ResultsProps) {
   })
 
   const geometryAnalytics = buildGeometryAnalyticsReport({
-    testId: PRODUIT_SCALAIRE_TEST_ID,
-    questions: PRODUIT_SCALAIRE_QUESTIONS,
+    testId,
+    questions: bank,
     trials: trials.map((t) => ({
       index: t.index,
       questionId: t.questionId,
@@ -717,7 +786,7 @@ function Results({ trials, onExit }: ResultsProps) {
       correct: t.correct,
     })),
     isScorableIndex: (i) => {
-      const q = PRODUIT_SCALAIRE_QUESTIONS[i]
+      const q = bank[i]
       return Boolean(
         q &&
           !isExcludedFromGeometryScoreAndAverage({
@@ -730,7 +799,7 @@ function Results({ trials, onExit }: ResultsProps) {
   })
 
   const openCount = trials.filter(
-    (t) => PRODUIT_SCALAIRE_QUESTIONS[t.index].isOpenEnded,
+    (t) => bank[t.index].isOpenEnded,
   ).length
 
   return (
@@ -739,7 +808,9 @@ function Results({ trials, onExit }: ResultsProps) {
         <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-emerald-500" />
         <h1 className="mb-2 text-3xl font-bold">Test terminé</h1>
         <p className="mb-6 text-sm text-muted-foreground">
-          Produit scalaire & Géométrie analytique — Résultats
+          {variant === 'tronc-commun'
+            ? 'Produit scalaire — tronc commun scientifique — Résultats'
+            : 'Produit scalaire & Géométrie analytique — Résultats'}
         </p>
         <div className="mb-6 rounded-lg border bg-muted/30 p-6">
           <div className="text-5xl font-bold text-indigo-600">{pct}%</div>
@@ -812,17 +883,18 @@ function Results({ trials, onExit }: ResultsProps) {
         </div>
 
         <CapacityBreakdownCard
-          testId={PRODUIT_SCALAIRE_TEST_ID}
+          testId={testId}
           breakdown={geo.capacityBreakdown}
           unit="fraction"
         />
+        {variant === 'tronc-commun' && <TcProfile trials={trials} bank={bank} />}
 
         <h3 className="mb-2 mt-6 text-left text-sm font-semibold text-muted-foreground">
           Détail par question
         </h3>
         <div className="mb-6 max-h-80 space-y-2 overflow-y-auto text-left text-sm">
           {trials.map((t) => {
-            const q = PRODUIT_SCALAIRE_QUESTIONS[t.index]
+            const q = bank[t.index]
             if (!q) return null
             const s = scoreOf(t)
             const expected = Array.isArray(q.correctAnswer)
@@ -854,7 +926,7 @@ function Results({ trials, onExit }: ResultsProps) {
               <div key={t.questionId} className="rounded border p-3">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-medium">
-                    {q.number}/26 · {q.id}
+                    {q.number}/{bank.length}{variant === 'original' ? ` · ${q.id}` : ''}
                   </span>
                   <span className="text-xs text-muted-foreground">
                     {status} · {q.isDiagnostic || q.isOpenEnded ? '—' : `${s.toFixed(2)} / 1`}
@@ -889,5 +961,49 @@ function Results({ trials, onExit }: ResultsProps) {
         </div>
       </Card>
     </main>
+  )
+}
+
+function TcProfile({
+  trials,
+  bank,
+}: {
+  trials: ProduitScalaireTrialResult[]
+  bank: ProduitScalaireQuestion[]
+}) {
+  const scoreOf = (trial: ProduitScalaireTrialResult) => trial.score ?? (trial.correct ? 1 : 0)
+  const auto = trials.find((trial) => bank[trial.index]?.isDiagnostic)
+  const autoQuestion = auto ? bank[auto.index] : undefined
+  const autoText =
+    auto && autoQuestion && auto.selected[0] != null
+      ? autoQuestion.options[auto.selected[0]] ?? 'Non disponible'
+      : 'Non disponible'
+  const rows = ['C1', 'C2', 'C3', 'C4'].map((code) => {
+    const items = trials.filter((trial) => bank[trial.index]?.competencies.includes(code))
+    const earned = items.reduce((sum, trial) => sum + scoreOf(trial), 0)
+    const max = items.length
+    const percent = max === 0 ? null : Math.round((earned / max) * 1000) / 10
+    return { code, earned, max, percent, count: max }
+  })
+  return (
+    <div className="mb-6 space-y-3 text-left text-sm">
+      <h3 className="text-sm font-semibold text-muted-foreground">Profil par capacité</h3>
+      {rows.map((row) => (
+        <div key={row.code} className="rounded border p-3">
+          <div className="font-medium">
+            {row.code} – {tcCapacityLabel(row.code)}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {row.max === 0
+              ? 'Non disponible'
+              : `${row.earned.toFixed(1)} / ${row.max} · ${row.percent}% · ${row.count} question${row.count > 1 ? 's' : ''} · ${masteryLabel(row.percent)}`}
+          </p>
+        </div>
+      ))}
+      <div className="rounded border border-amber-200 bg-amber-50 p-3">
+        <div className="font-medium">Autoévaluation</div>
+        <p className="text-xs text-muted-foreground">Hors notation. Réponse : {autoText}</p>
+      </div>
+    </div>
   )
 }

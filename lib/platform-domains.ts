@@ -187,6 +187,14 @@ export const platformDomains: MainDomain[] = [
           { id: 'geo-produit-scalaire-cap', name: 'Dot product & analytic geometry', nameFr: 'Produit scalaire & géométrie analytique', testId: 'test-geo-produit-scalaire' },
         ],
       },
+      {
+        id: 'geo-produit-scalaire-tc',
+        name: 'Dot product — common core',
+        nameFr: 'Produit scalaire — tronc commun',
+        capacities: [
+          { id: 'geo-produit-scalaire-tc-cap', name: 'Dot product (tronc commun)', nameFr: 'Produit scalaire', testId: 'test-geo-produit-scalaire-tc' },
+        ],
+      },
     ],
   },
 ]

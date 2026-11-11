@@ -59,6 +59,10 @@ import { SYMETRIE_CENTRALE_TEST_ID } from '@/lib/geometry/symetrie-centrale'
 import { SymetrieCentraleQuiz } from '@/components/geometry/symetrie-centrale-quiz'
 import { PRODUIT_SCALAIRE_TEST_ID } from '@/lib/geometry/produit-scalaire'
 import { ProduitScalaireQuiz } from '@/components/geometry/produit-scalaire-quiz'
+import {
+  PRODUIT_SCALAIRE_TC_QUESTIONS,
+  PRODUIT_SCALAIRE_TC_TEST_ID,
+} from '@/lib/geometry/produit-scalaire-tronc-commun'
 import { SPACE_VOLUMES_TEST_ID } from '@/lib/geometry/space-volumes'
 import { SpaceVolumesQuiz } from '@/components/geometry/space-volumes-quiz'
 import { EXTERNAL_STUDENT_NOTICE, isExternalTest } from '@/lib/assessment/administration'
@@ -164,6 +168,15 @@ export default function TestPage({ params }: TestPageProps) {
   }
   if (testId === PRODUIT_SCALAIRE_TEST_ID) {
     return <ProduitScalaireQuiz />
+  }
+  if (testId === PRODUIT_SCALAIRE_TC_TEST_ID) {
+    return (
+      <ProduitScalaireQuiz
+        testId={PRODUIT_SCALAIRE_TC_TEST_ID}
+        questions={PRODUIT_SCALAIRE_TC_QUESTIONS}
+        variant="tronc-commun"
+      />
+    )
   }
   if (testId === SPACE_VOLUMES_TEST_ID) {
     return <SpaceVolumesQuiz />
