@@ -52,11 +52,8 @@ export default function ProfileSetupPage() {
   const [mathAverage2025_2026, setMathAverage2025_2026] = useState('')
   const [mathAverage2024_2025, setMathAverage2024_2025] = useState('')
   const [controlScore, setControlScore] = useState('')
-  const [controlMax, setControlMax] = useState('')
   const [semesterScore, setSemesterScore] = useState('')
-  const [semesterMax, setSemesterMax] = useState('')
   const [regionalScore, setRegionalScore] = useState('')
-  const [regionalMax, setRegionalMax] = useState('')
   const [formError, setFormError] = useState<string | null>(null)
 
   const academicYear = '2025/2026'
@@ -133,21 +130,20 @@ export default function ProfileSetupPage() {
     e.preventDefault()
     if (!user) return
     if (!schoolId || !teacherId) return
-    const notePair = (score: string, max: string, label: string) => {
-      if (score.trim() === '' && max.trim() === '') return { score: null, max: null }
+    const obtained = (score: string, label: string) => {
+      if (score.trim() === '') return null
       const earned = Number(score)
-      const cap = Number(max)
-      if (!Number.isFinite(earned) || !Number.isFinite(cap) || cap <= 0 || earned < 0 || earned > cap) {
-        throw new Error(`${label} : indiquez la note obtenue et la note maximale, sans dépasser le barème.`)
+      if (!Number.isFinite(earned) || earned < 0) {
+        throw new Error(`${label} : indiquez la note obtenue.`)
       }
-      return { score: earned, max: cap }
+      return earned
     }
     setIsLoading(true)
     setFormError(null)
     try {
-      const control = notePair(controlScore, controlMax, 'Premier contrôle 2026/2027')
-      const semester = notePair(semesterScore, semesterMax, 'Deuxième semestre 2025/2026')
-      const regional = notePair(regionalScore, regionalMax, 'Examen régional 2025/2026')
+      const control = obtained(controlScore, 'Premier contrôle 2026/2027')
+      const semester = obtained(semesterScore, 'Deuxième semestre 2025/2026')
+      const regional = obtained(regionalScore, 'Examen régional 2025/2026')
       const res = await fetch('/api/student-profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -166,12 +162,9 @@ export default function ProfileSetupPage() {
             mathAverage2025_2026 === '' ? null : Number(mathAverage2025_2026),
           mathAverage2024_2025:
             mathAverage2024_2025 === '' ? null : Number(mathAverage2024_2025),
-          mathControl2026Score: control.score,
-          mathControl2026Max: control.max,
-          mathSemester2025Score: semester.score,
-          mathSemester2025Max: semester.max,
-          mathRegional2025Score: regional.score,
-          mathRegional2025Max: regional.max,
+          mathControl2026Score: control,
+          mathSemester2025Score: semester,
+          mathRegional2025Score: regional,
           updatedAt: new Date().toISOString(),
         }),
       })
@@ -212,9 +205,7 @@ export default function ProfileSetupPage() {
           <div>
             <CardTitle className="text-2xl font-bold tracking-tight">Profil élève</CardTitle>
             <CardDescription className="text-base mt-2 max-w-md mx-auto">
-              Renseignez vos informations pour l&apos;année scolaire{' '}
-              <span className="font-semibold text-foreground">{academicYear}</span>. Votre enseignant
-              doit appartenir à l&apos;établissement que vous sélectionnez.
+              Renseignez vos informations pour l&apos;année scolaire 2026/2027. Votre enseignant doit appartenir à l&apos;établissement que vous sélectionnez.
             </CardDescription>
           </div>
         </CardHeader>
@@ -346,24 +337,15 @@ export default function ProfileSetupPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2 sm:col-span-2">
                   <Label>Note du premier contrôle de mathématiques — 2026/2027</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input type="number" min={0} step={0.01} placeholder="Note obtenue" value={controlScore} onChange={(e) => setControlScore(e.target.value)} />
-                    <Input type="number" min={0} step={0.01} placeholder="Note maximale" value={controlMax} onChange={(e) => setControlMax(e.target.value)} />
-                  </div>
+                  <Input type="number" min={0} step={0.01} value={controlScore} onChange={(e) => setControlScore(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label>Mathématiques — deuxième semestre 2025/2026</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input type="number" min={0} step={0.01} placeholder="Note obtenue" value={semesterScore} onChange={(e) => setSemesterScore(e.target.value)} />
-                    <Input type="number" min={0} step={0.01} placeholder="Note maximale" value={semesterMax} onChange={(e) => setSemesterMax(e.target.value)} />
-                  </div>
+                  <Input type="number" min={0} step={0.01} value={semesterScore} onChange={(e) => setSemesterScore(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label>Mathématiques — examen régional 2025/2026</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input type="number" min={0} step={0.01} placeholder="Note obtenue" value={regionalScore} onChange={(e) => setRegionalScore(e.target.value)} />
-                    <Input type="number" min={0} step={0.01} placeholder="Note maximale" value={regionalMax} onChange={(e) => setRegionalMax(e.target.value)} />
-                  </div>
+                  <Input type="number" min={0} step={0.01} value={regionalScore} onChange={(e) => setRegionalScore(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label>Moyenne maths 2025 / 2026</Label>

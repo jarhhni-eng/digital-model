@@ -164,12 +164,12 @@ export async function PUT(request: Request) {
     }
     const extra: Record<string, string | number | null> = {
       math_control_2026_score: note(body.mathControl2026Score),
-      math_control_2026_max: note(body.mathControl2026Max),
       math_s2_2025_score: note(body.mathSemester2025Score),
-      math_s2_2025_max: note(body.mathSemester2025Max),
       math_regional_2025_score: note(body.mathRegional2025Score),
-      math_regional_2025_max: note(body.mathRegional2025Max),
     }
+    if (typeof body.mathControl2026Max === 'number') extra.math_control_2026_max = note(body.mathControl2026Max)
+    if (typeof body.mathSemester2025Max === 'number') extra.math_s2_2025_max = note(body.mathSemester2025Max)
+    if (typeof body.mathRegional2025Max === 'number') extra.math_regional_2025_max = note(body.mathRegional2025Max)
     if (className) extra.class_name = className
     const saved = await loose.from('student_profiles').update(extra).eq('user_id', user.id)
     if (saved.error) console.error('[student-profile extra]', saved.error.message)
