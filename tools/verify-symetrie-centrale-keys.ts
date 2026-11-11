@@ -45,8 +45,8 @@ for (const id of ['Q7', 'Q8', 'Q9', 'Q10', 'Q11', 'Q12', 'Q13']) {
 }
 expectAns('Q14', [0, 1])
 expectAns('Q15', [0, 1, 2])
-expectAns('Q16', [0, 1])
-if (!isSymCentraleMulti(q('Q16'))) throw new Error('Q16 multi')
+expectAns('Q16', 1)
+if (isSymCentraleMulti(q('Q16'))) throw new Error('Q16 is a single answer')
 if (q('Q16').optionImages?.length !== 2) throw new Error('Q16 two figures')
 expectAns('Q17', 2)
 if (q('Q17').competency !== 'C2') throw new Error('Q17 C2')

@@ -367,13 +367,13 @@ export const SYMETRIE_CENTRALE_QUESTIONS: SymCentraleQuestion[] = [
     competency: 'C2',
     kind: 'image-choice',
     question:
-      'Soit \\( ABC \\) un triangle équilatéral tel que \\( AB = 6 \\). Soient \\( I \\) le milieu de \\( [AC] \\), \\( J \\) le milieu de \\( [AB] \\), \\( K \\) le milieu de \\( [BC] \\). On note \\( B\' \\) le symétrique de \\( B \\) par rapport à \\( I \\), \\( A\' \\) le symétrique de \\( A \\) par rapport à \\( K \\), et \\( C\' \\) le symétrique de \\( C \\) par rapport à \\( J \\). Sélectionner les deux figures qui représentent correctement la construction.',
+      'Soit \\( ABC \\) un triangle équilatéral tel que \\( AB = 6 \\). Soient \\( I \\) le milieu de \\( [AC] \\), \\( J \\) le milieu de \\( [AB] \\), \\( K \\) le milieu de \\( [BC] \\). On note \\( B\' \\) le symétrique de \\( B \\) par rapport à \\( I \\), \\( A\' \\) le symétrique de \\( A \\) par rapport à \\( K \\), et \\( C\' \\) le symétrique de \\( C \\) par rapport à \\( J \\). Sélectionner la figure qui représente correctement la construction.',
     options: ['Figure A', 'Figure B'],
     optionImages: [
       '/images/geometry/symetrie-centrale/q16-option-1.png',
       '/images/geometry/symetrie-centrale/q16-option-2.png',
     ],
-    correctAnswer: [0, 1],
+    correctAnswer: 1,
     points: 2,
   },
   {
@@ -435,9 +435,8 @@ export const SYMETRIE_CENTRALE_CORRECTION_REVIEW: {
   {
     questionId: 'Q16',
     status: 'needs-review',
-    manuscript: 'A et B (deux figures)',
-    note:
-      'Sélection multiple A+B. Fichiers q16-option-1.png et q16-option-2.png à confirmer sur le questionnaire source.',
+    manuscript: 'B',
+    note: 'Seule la figure B est correcte.',
   },
 ]
 

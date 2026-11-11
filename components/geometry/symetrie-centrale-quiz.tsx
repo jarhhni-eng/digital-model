@@ -361,8 +361,8 @@ function Instructions({ onBegin, onBack }: { onBegin: () => void; onBack: () => 
             <em>figure commune</em> avec un centre \( I \).
           </li>
           <li>
-            <strong>3.</strong> Q16 propose deux figures — sélectionnez les deux
-            qui correspondent à l&apos;énoncé. Q17 affiche le triangle A&apos;B&apos;C&apos;.
+            <strong>3.</strong> Q16 propose deux figures — une seule est correcte.
+            Q17 affiche le triangle A&apos;B&apos;C&apos;.
           </li>
           <li>
             <strong>4.</strong> Quatre formats : QCM, Vrai/Faux, cases à
