@@ -245,6 +245,7 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     question:
       'Calculer \\( \\vec{U}\\cdot\\vec{V} \\) à partir des coordonnées lues sur la figure :',
     options: ['\\( 8 \\)', '\\( -8 \\)', '\\( 10 \\)', '\\( 12 \\)'],
+    // Seule l'option D (12) est correcte : le score maximal n'est attribué que si D est l'unique choix.
     correctAnswer: 3,
     imagePath: '/images/geometry/produit scalaire/repere main.png',
   },
@@ -379,7 +380,7 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     lessonCode: 2,
     competencies: ['C5'],
     question:
-      'Distance de \\( A(2,-3) \\) à \\( \\Delta:\\ 2x - 3y + 2 = 0 \\) (cocher toutes les bonnes réponses) :',
+      'Distance de \\( A(2,-3) \\) à \\( \\Delta:\\ 2x - 3y + 2 = 0 \\) (cocher toutes les bonnes réponses) :<br/><br/><strong>Rappel.</strong> Soit une droite \\( (D) \\) d\'équation \\( ax+by+c=0 \\) et un point \\( A(x_A,y_A) \\). La distance du point \\( A \\) à la droite \\( (D) \\) est donnée par la formule \\( d(A,D)=\\dfrac{|ax_A+by_A+c|}{\\sqrt{a^2+b^2}} \\).',
     options: [
       '\\( \\dfrac{15}{\\sqrt{13}} \\)',
       '\\( \\dfrac{13}{\\sqrt{15}} \\)',
@@ -395,7 +396,7 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     lessonCode: 2,
     competencies: ['C5'],
     question:
-      "Équation de la droite passant par l'origine et perpendiculaire à \\( \\Delta \\) :",
+      "Équation de la droite passant par l'origine et perpendiculaire à \\( \\Delta \\) :<br/>\\( (\\Delta):\\quad 2x-3y+2=0 \\)",
     options: [
       '\\( x + 2y = 0 \\)',
       '\\( 2x + 3y = 0 \\)',
@@ -411,7 +412,7 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     lessonCode: 2,
     competencies: ['C5'],
     question:
-      'Représentation paramétrique de \\( \\Delta \\) passant par \\( (2,2) \\) :',
+      'Représentation paramétrique de \\( \\Delta \\) passant par \\( (2,2) \\) :<br/>\\( (\\Delta):\\quad 2x-3y+2=0 \\)',
     options: [
       '\\( \\begin{cases}x = 2 + 3t \\\\ y = 3 + 2t\\end{cases} \\)',
       '\\( \\begin{cases}x = 2 + 3t \\\\ y = 2 + 2t\\end{cases} \\)',
@@ -427,7 +428,7 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     lessonCode: 2,
     competencies: ['C5'],
     question:
-      'Coordonnées du projeté orthogonal \\( H \\) de \\( A(2,-3) \\) sur \\( \\Delta \\) :',
+      'Coordonnées du projeté orthogonal \\( H \\) de \\( A(2,-3) \\) sur \\( \\Delta \\) :<br/>\\( (\\Delta):\\quad 2x-3y+2=0 \\)',
     options: [
       '\\( (6/13,\\,-4/13) \\)',
       '\\( (-4/13,\\,-6/13) \\)',
