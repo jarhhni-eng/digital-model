@@ -34,6 +34,12 @@ export interface StudentAcademicProfile {
   mathAverage2025_2026: number | null
   /** Average for academic year 2024 / 2025 (previous). */
   mathAverage2024_2025: number | null
+  mathControl2026Score?: number | null
+  mathControl2026Max?: number | null
+  mathSemester2025Score?: number | null
+  mathSemester2025Max?: number | null
+  mathRegional2025Score?: number | null
+  mathRegional2025Max?: number | null
   updatedAt: string
 }
 
@@ -44,10 +50,14 @@ export interface StudentAcademicProfile {
  */
 export function resolveDefaultTrack(grade: MoroccanGradeLevel): AcademicTrack {
   switch (grade) {
+    case 'Tronc commun':
     case 'Tronc commun scientifique':
       return 'Scientific'
+    case '1ère Bac Sciences expérimentales':
     case '1ère année Baccalauréat – Sciences expérimentales':
+    case '2ème Bac Sciences Sciences expérimentales':
       return 'Experimental Sciences'
+    case '1ere Bac Sciences mathématiques':
     case '1ère année Baccalauréat – Sciences mathématiques':
       return 'Mathematical Sciences'
     case '3ème année collège':

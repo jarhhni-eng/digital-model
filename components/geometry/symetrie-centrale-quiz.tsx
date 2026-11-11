@@ -105,7 +105,9 @@ export function SymetrieCentraleQuiz() {
     }
   }, [phase])
 
+  const optionClicks = useRef(0)
   const toggleSelect = (idx: number) => {
+    optionClicks.current += 1
     setSelectedList((prev) =>
       toggleSelectionWithExclusive(question?.options ?? [], prev, idx, isMulti),
     )
@@ -252,6 +254,7 @@ export function SymetrieCentraleQuiz() {
       })),
       metadata: {
         source: 'symetrie-centrale-quiz',
+        totalClicks: optionClicks.current,
         level: r.level,
         ...geoPayload,
         geometryAnalytics,

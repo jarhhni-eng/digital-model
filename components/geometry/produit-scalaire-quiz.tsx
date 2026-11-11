@@ -90,7 +90,9 @@ export function ProduitScalaireQuiz({
     Array.isArray(question?.correctAnswer) &&
     (question.correctAnswer as number[]).length > 1
 
+  const optionClicks = useRef(0)
   const toggleSelect = (idx: number) => {
+    optionClicks.current += 1
     setSelectedList((prev) =>
       toggleSelectionWithExclusive(question.options, prev, idx, isMulti),
     )
@@ -292,6 +294,7 @@ export function ProduitScalaireQuiz({
             source: variant === 'tronc-commun' ? 'produit-scalaire-tc-quiz' : 'produit-scalaire-quiz',
             ...geoPayload,
             geometryAnalytics,
+            totalClicks: optionClicks.current,
             ...(variant === 'tronc-commun'
               ? {
                   questionMap: bank.map((q) => ({

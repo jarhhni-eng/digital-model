@@ -61,7 +61,9 @@ export function GeoSpaceQuiz() {
     Array.isArray(question?.correctAnswer) &&
     (question.correctAnswer as number[]).length > 1
 
+  const optionClicks = useRef(0)
   const toggleSelect = (idx: number) => {
+    optionClicks.current += 1
     setSelectedList((prev) =>
       toggleSelectionWithExclusive(question.options, prev, idx, isMulti),
     )
@@ -162,6 +164,7 @@ export function GeoSpaceQuiz() {
           })
           return {
             source: 'geo-space-quiz',
+            totalClicks: optionClicks.current,
             ...geoPayload,
             geometryAnalytics,
           }

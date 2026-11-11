@@ -154,17 +154,25 @@ export async function PUT(request: Request) {
     }
 
     const className = typeof body.className === 'string' ? body.className.trim() : ''
-    if (className) {
-      const loose = (tryGetSupabaseAdmin() ?? sb) as unknown as {
-        from: (table: string) => {
-          update: (value: { class_name: string }) => {
-            eq: (col: string, value: string) => Promise<{ error: { message: string } | null }>
-          }
+    const note = (value: unknown) => (typeof value === 'number' && Number.isFinite(value) ? value : null)
+    const loose = (tryGetSupabaseAdmin() ?? sb) as unknown as {
+      from: (table: string) => {
+        update: (value: Record<string, string | number | null>) => {
+          eq: (col: string, value: string) => Promise<{ error: { message: string } | null }>
         }
       }
-      const saved = await loose.from('student_profiles').update({ class_name: className }).eq('user_id', user.id)
-      if (saved.error) console.error('[student-profile class]', saved.error.message)
     }
+    const extra: Record<string, string | number | null> = {
+      math_control_2026_score: note(body.mathControl2026Score),
+      math_control_2026_max: note(body.mathControl2026Max),
+      math_s2_2025_score: note(body.mathSemester2025Score),
+      math_s2_2025_max: note(body.mathSemester2025Max),
+      math_regional_2025_score: note(body.mathRegional2025Score),
+      math_regional_2025_max: note(body.mathRegional2025Max),
+    }
+    if (className) extra.class_name = className
+    const saved = await loose.from('student_profiles').update(extra).eq('user_id', user.id)
+    if (saved.error) console.error('[student-profile extra]', saved.error.message)
 
     return NextResponse.json({ ok: true })
   } catch (err) {

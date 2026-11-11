@@ -17,9 +17,13 @@ export type SessionStatus = 'in-progress' | 'completed' | 'abandoned'
 
 export type GradeLevel =
   | '3ème année collège'
+  | 'Tronc commun'
   | 'Tronc commun scientifique'
+  | '1ère Bac Sciences expérimentales'
   | '1ère année Baccalauréat – Sciences expérimentales'
+  | '1ere Bac Sciences mathématiques'
   | '1ère année Baccalauréat – Sciences mathématiques'
+  | '2ème Bac Sciences Sciences expérimentales'
 
 export type Json = string | number | boolean | null | { [k: string]: Json } | Json[]
 

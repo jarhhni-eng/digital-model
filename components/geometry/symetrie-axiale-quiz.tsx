@@ -47,7 +47,9 @@ export function SymetrieAxialeQuiz() {
   const currentQuestion = SYMETRIE_AXIALE_QUESTIONS[current]
   const isMulti = currentQuestion ? isAxialeMulti(currentQuestion) : false
 
+  const optionClicks = useRef(0)
   const toggleSelect = (idx: number) => {
+    optionClicks.current += 1
     setSelectedList((prev) =>
       toggleSelectionWithExclusive(currentQuestion?.options ?? [], prev, idx, isMulti),
     )
@@ -195,6 +197,7 @@ export function SymetrieAxialeQuiz() {
         })),
         metadata: {
           source: 'symetrie-axiale-quiz',
+          totalClicks: optionClicks.current,
           ...geoPayload,
           geometryAnalytics,
         },

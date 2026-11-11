@@ -15,6 +15,7 @@ import {
 import { formatCapacityGlyph } from '@/lib/geometry/capacity-definitions'
 import { asciiCompetencyKey } from '@/lib/geometry-mcq'
 import { GeometryAnalyticsSummary } from '@/components/geometry/geometry-analytics-summary'
+import { CkaAnswerDetail } from '@/components/admin/cka-question-tables'
 
 function color(v: number | null) {
   if (v == null) return 'text-slate-400'
@@ -246,6 +247,7 @@ export default function IndividualResultsPage() {
               </Card>
             </div>
           )}
+          {student && <CkaAnswerDetail studentId={student.id} />}
         </div>
       )}
     </div>

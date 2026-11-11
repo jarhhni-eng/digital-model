@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { CkaQuestionTables } from '@/components/admin/cka-question-tables'
 
 type ScoreCell = { earned: number | null; max: number | null; percent: number | null }
 type Student = {
@@ -235,6 +236,8 @@ export default function AggregatedPage() {
           </table>
         </div>
       </section>
+
+      <CkaQuestionTables />
     </div>
   )
 }

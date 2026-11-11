@@ -37,9 +37,13 @@ begin
   if not exists (select 1 from pg_type where typname = 'grade_level') then
     create type public.grade_level as enum (
       '3ème année collège',
+      'Tronc commun',
       'Tronc commun scientifique',
+      '1ère Bac Sciences expérimentales',
       '1ère année Baccalauréat – Sciences expérimentales',
-      '1ère année Baccalauréat – Sciences mathématiques'
+      '1ere Bac Sciences mathématiques',
+      '1ère année Baccalauréat – Sciences mathématiques',
+      '2ème Bac Sciences Sciences expérimentales'
     );
   end if;
 end$$;

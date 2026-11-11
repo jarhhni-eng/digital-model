@@ -81,15 +81,20 @@ export interface StudentResult {
 
 export type ScholarLevel =
   | '3ème année collège'
+  | 'Tronc commun'
   | 'Tronc commun scientifique'
+  | '1ère Bac Sciences expérimentales'
   | '1ère année Baccalauréat – Sciences expérimentales'
+  | '1ere Bac Sciences mathématiques'
   | '1ère année Baccalauréat – Sciences mathématiques'
+  | '2ème Bac Sciences Sciences expérimentales'
 
 export const SCHOLAR_LEVELS: ScholarLevel[] = [
   '3ème année collège',
-  'Tronc commun scientifique',
-  '1ère année Baccalauréat – Sciences expérimentales',
-  '1ère année Baccalauréat – Sciences mathématiques',
+  'Tronc commun',
+  '1ère Bac Sciences expérimentales',
+  '1ere Bac Sciences mathématiques',
+  '2ème Bac Sciences Sciences expérimentales',
 ]
 
 export interface StudentProfile {

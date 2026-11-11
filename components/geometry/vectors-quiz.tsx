@@ -77,7 +77,9 @@ export function VectorsQuizTest() {
     Array.isArray(question?.correctAnswer) &&
     (question.correctAnswer as number[]).length > 1
 
+  const optionClicks = useRef(0)
   const toggleSelect = (idx: number) => {
+    optionClicks.current += 1
     setSelectedList((prev) =>
       toggleSelectionWithExclusive(question.options, prev, idx, isMulti),
     )
@@ -216,6 +218,7 @@ export function VectorsQuizTest() {
           })
           return {
             source: 'vectors-quiz',
+            totalClicks: optionClicks.current,
             ...geoPayload,
             geometryAnalytics,
           }

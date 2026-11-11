@@ -65,7 +65,9 @@ export function DroitePlanQuiz() {
   const question = DROITE_PLAN_QUESTIONS[current]
   const isMulti = question ? isDroitePlanMulti(question) : false
 
+  const optionClicks = useRef(0)
   const toggleSelect = (idx: number) => {
+    optionClicks.current += 1
     setSelectedList((prev) =>
       toggleSelectionWithExclusive(question.options, prev, idx, isMulti),
     )
@@ -165,6 +167,7 @@ export function DroitePlanQuiz() {
           })
           return {
             source: 'droite-plan-quiz',
+            totalClicks: optionClicks.current,
             ...geoPayload,
             geometryAnalytics,
           }

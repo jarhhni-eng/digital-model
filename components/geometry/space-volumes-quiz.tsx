@@ -68,8 +68,10 @@ export function SpaceVolumesQuiz() {
     Array.isArray(question?.correctAnswer) &&
     (question.correctAnswer as number[]).length > 1
 
+  const optionClicks = useRef(0)
   const toggleSelect = (idx: number) => {
     if (!question) return
+    optionClicks.current += 1
     setSelectedList((prev) =>
       toggleSelectionWithExclusive(question.options, prev, idx, isMulti),
     )
@@ -196,6 +198,7 @@ export function SpaceVolumesQuiz() {
       })),
       metadata: {
         source: 'space-volumes-quiz',
+        totalClicks: optionClicks.current,
         scorePoints: r.scorePoints,
         maxScorePoints: r.maxScorePoints,
         ...geoPayload,

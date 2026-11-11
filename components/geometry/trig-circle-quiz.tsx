@@ -346,6 +346,7 @@ export function TrigCircleQuiz() {
   >(null)
   const [startedAt, setStartedAt] = useState<number>(0)
   const subStart = useRef<number>(0)
+  const optionClicks = useRef(0)
 
   const question: TrigMainQuestion = TRIG_CIRCLE_QUESTIONS[qIdx]
   const subs = question.subs
@@ -364,6 +365,7 @@ export function TrigCircleQuiz() {
   const submitCircleAnswer = useCallback(
     (clickedAngle: number) => {
       if (currentAnswer) return // single attempt already used
+      optionClicks.current += 1
       const target = currentSub.targetAngle ?? 0
       const correct = anglesMatch(clickedAngle, target)
       const ans: TrigSubAnswer = {
@@ -387,6 +389,7 @@ export function TrigCircleQuiz() {
   const submitAxisAnswer = useCallback(
     (value: number) => {
       if (currentAnswer) return
+      optionClicks.current += 1
       const angle = currentSub.targetAngle ?? 0
       const target =
         currentSub.kind === 'project-cos' ? Math.cos(angle) : Math.sin(angle)
@@ -405,6 +408,7 @@ export function TrigCircleQuiz() {
   const submitMCQ = useCallback(
     (choiceId: string) => {
       if (currentAnswer) return
+      optionClicks.current += 1
       const choice = currentSub.choices?.find((c) => c.id === choiceId)
       const correct = choice?.correct === true
       const ans: TrigSubAnswer = {
@@ -503,6 +507,7 @@ export function TrigCircleQuiz() {
       })),
       metadata: {
         source: 'trig-circle-quiz',
+        totalClicks: optionClicks.current,
         schemaVersion: GEOMETRY_SESSION_METADATA_VERSION,
         lessonTestId: TRIG_CIRCLE_TEST_ID,
         capacityBreakdown,
