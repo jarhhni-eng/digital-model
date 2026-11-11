@@ -49,8 +49,6 @@ export default function ProfileSetupPage() {
   const [teachersError, setTeachersError] = useState<string | null>(null)
   const [gradeLevel, setGradeLevel] = useState<MoroccanGradeLevel>(SCHOLAR_LEVELS[0])
   const [className, setClassName] = useState('')
-  const [mathAverage2025_2026, setMathAverage2025_2026] = useState('')
-  const [mathAverage2024_2025, setMathAverage2024_2025] = useState('')
   const [controlScore, setControlScore] = useState('')
   const [semesterScore, setSemesterScore] = useState('')
   const [regionalScore, setRegionalScore] = useState('')
@@ -129,7 +127,6 @@ export default function ProfileSetupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) return
-    if (!schoolId || !teacherId) return
     const obtained = (score: string, label: string) => {
       if (score.trim() === '') return null
       const earned = Number(score)
@@ -137,6 +134,27 @@ export default function ProfileSetupPage() {
         throw new Error(`${label} : indiquez la note obtenue.`)
       }
       return earned
+    }
+    if (!fullName.trim() || !age.trim()) {
+      setFormError('Indiquez votre nom et votre âge.')
+      return
+    }
+    const ageNumber = Number(age)
+    if (!Number.isFinite(ageNumber) || ageNumber < 5 || ageNumber > 100) {
+      setFormError('L’âge doit être compris entre 5 et 100 ans.')
+      return
+    }
+    if (!gender) {
+      setFormError('Choisissez le genre.')
+      return
+    }
+    if (!schoolId) {
+      setFormError('Sélectionnez votre établissement.')
+      return
+    }
+    if (!teacherId) {
+      setFormError('Sélectionnez votre enseignant dans la liste.')
+      return
     }
     setIsLoading(true)
     setFormError(null)
@@ -150,7 +168,7 @@ export default function ProfileSetupPage() {
         body: JSON.stringify({
           userId: user.userId,
           fullName,
-          age: Number(age) || 0,
+          age: ageNumber,
           gender,
           schoolId,
           teacherId,
@@ -158,17 +176,14 @@ export default function ProfileSetupPage() {
           className,
           academicTrack: resolveDefaultTrack(gradeLevel),
           academicYear,
-          mathAverage2025_2026:
-            mathAverage2025_2026 === '' ? null : Number(mathAverage2025_2026),
-          mathAverage2024_2025:
-            mathAverage2024_2025 === '' ? null : Number(mathAverage2024_2025),
           mathControl2026Score: control,
           mathSemester2025Score: semester,
           mathRegional2025Score: regional,
           updatedAt: new Date().toISOString(),
         }),
       })
-      if (!res.ok) throw new Error('save failed')
+      const payload = (await res.json().catch(() => ({}))) as { error?: string }
+      if (!res.ok) throw new Error(payload.error || 'Enregistrement impossible')
       router.push('/dashboard')
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Enregistrement impossible')
@@ -180,18 +195,7 @@ export default function ProfileSetupPage() {
     return <CenteredCardFormSkeleton />
   }
 
-  const canPickSchool = !schoolsLoading && !schoolsError && schools.length > 0
-  const canPickTeacher =
-    Boolean(schoolId) && !teachersLoading && !teachersError && teachers.length > 0
-  const submitDisabled =
-    isLoading ||
-    !gender ||
-    schoolsLoading ||
-    !canPickSchool ||
-    !schoolId ||
-    teachersLoading ||
-    !canPickTeacher ||
-    !teacherId
+  const submitDisabled = isLoading || schoolsLoading
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-background to-slate-100/80 dark:from-slate-950 dark:via-background dark:to-slate-900/50 flex items-center justify-center px-4 py-10">
@@ -346,28 +350,6 @@ export default function ProfileSetupPage() {
                 <div className="space-y-2">
                   <Label>Mathématiques — examen régional 2025/2026</Label>
                   <Input type="number" min={0} step={0.01} value={regionalScore} onChange={(e) => setRegionalScore(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Moyenne maths 2025 / 2026</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={20}
-                    step={0.01}
-                    value={mathAverage2025_2026}
-                    onChange={(e) => setMathAverage2025_2026(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Moyenne maths 2024 / 2025</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={20}
-                    step={0.01}
-                    value={mathAverage2024_2025}
-                    onChange={(e) => setMathAverage2024_2025(e.target.value)}
-                  />
                 </div>
               </div>
             </div>

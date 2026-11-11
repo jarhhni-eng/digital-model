@@ -127,30 +127,48 @@ export async function PUT(request: Request) {
         ? teacherRow.full_name.trim()
         : null) ?? teacherRow.email
 
-    const upsert: Database['public']['Tables']['student_profiles']['Insert'] = {
-      user_id: user.id, // Always force the caller's own id; never trust the body.
+    const age = typeof body.age === 'number' && body.age >= 5 && body.age <= 100 ? body.age : null
+    if (age == null) {
+      return NextResponse.json({ error: 'L’âge doit être compris entre 5 et 100 ans.' }, { status: 400 })
+    }
+
+    const legacyGrade: Record<string, Row['grade_level']> = {
+      'Tronc commun': 'Tronc commun scientifique',
+      '1ère Bac Sciences expérimentales': '1ère année Baccalauréat – Sciences expérimentales',
+      '1ere Bac Sciences mathématiques': '1ère année Baccalauréat – Sciences mathématiques',
+      '2ème Bac Sciences Sciences expérimentales': '1ère année Baccalauréat – Sciences expérimentales',
+    }
+    const requestedGrade = (body.gradeLevel ?? null) as Row['grade_level']
+    const baseProfile = {
+      user_id: user.id,
       full_name: body.fullName ?? null,
-      age: typeof body.age === 'number' ? body.age : null,
+      age,
       gender: (body.gender ?? '') as Row['gender'],
       teacher_id: teacherId,
       teacher_name: teacherLabel,
       school_name: schoolRow.name,
-      grade_level: (body.gradeLevel ?? null) as Row['grade_level'],
       academic_track: body.academicTrack ?? null,
       academic_year: body.academicYear ?? null,
-      math_average_2024_2025:
-        typeof body.mathAverage2024_2025 === 'number' ? body.mathAverage2024_2025 : null,
-      math_average_2025_2026:
-        typeof body.mathAverage2025_2026 === 'number' ? body.mathAverage2025_2026 : null,
+      ...(typeof body.mathAverage2024_2025 === 'number' ? { math_average_2024_2025: body.mathAverage2024_2025 } : {}),
+      ...(typeof body.mathAverage2025_2026 === 'number' ? { math_average_2025_2026: body.mathAverage2025_2026 } : {}),
     }
+    const saveGrade = (grade: Row['grade_level']) =>
+      sb.from('student_profiles').upsert(
+        { ...baseProfile, grade_level: grade },
+        { onConflict: 'user_id' },
+      )
 
-    const { error } = await sb
-      .from('student_profiles')
-      .upsert(upsert, { onConflict: 'user_id' })
+    let savedProfile = await saveGrade(requestedGrade)
+    const gradeRejected =
+      savedProfile.error != null &&
+      requestedGrade != null &&
+      legacyGrade[requestedGrade] != null &&
+      /grade_level|enum|invalid input/i.test(savedProfile.error.message)
+    if (gradeRejected) savedProfile = await saveGrade(legacyGrade[requestedGrade] ?? requestedGrade)
 
-    if (error) {
-      console.error('[student-profile PUT]', error.message)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (savedProfile.error) {
+      console.error('[student-profile PUT]', savedProfile.error.message)
+      return NextResponse.json({ error: savedProfile.error.message }, { status: 500 })
     }
 
     const className = typeof body.className === 'string' ? body.className.trim() : ''
