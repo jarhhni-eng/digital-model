@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api/require-admin'
 import { tryGetSupabaseAdmin } from '@/lib/supabase/server'
+import { unpackSchoolYear } from '@/lib/student-profile-notes'
 import {
   geometryCognitionTestIds,
   platformDomains,
@@ -220,13 +221,13 @@ export async function GET() {
       className: school?.class_name ?? null,
       teacher: school?.teacher_name ?? null,
       school: school?.school_name ?? null,
-      year: school?.academic_year ?? null,
+      year: unpackSchoolYear(school?.academic_year).year,
       supervisedScore: school?.supervised_test_score ?? null,
       supervisedMax: school?.supervised_test_max ?? null,
       previousAverage: school?.previous_semester_average ?? null,
-      controlScore: numberOrNull(school?.math_control_2026_score),
-      semesterScore: numberOrNull(school?.math_s2_2025_score),
-      regionalScore: numberOrNull(school?.math_regional_2025_score),
+      controlScore: numberOrNull(school?.math_control_2026_score) ?? unpackSchoolYear(school?.academic_year).control,
+      semesterScore: numberOrNull(school?.math_s2_2025_score) ?? unpackSchoolYear(school?.academic_year).semester,
+      regionalScore: numberOrNull(school?.math_regional_2025_score) ?? unpackSchoolYear(school?.academic_year).regional,
       gender: genderLabel(school?.gender),
       age: (() => {
         const age = numberOrNull(school?.age)

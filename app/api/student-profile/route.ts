@@ -11,6 +11,7 @@
  */
 import { NextResponse } from 'next/server'
 import { getSupabaseServer, tryGetSupabaseAdmin } from '@/lib/supabase/server'
+import { packSchoolYear, unpackSchoolYear } from '@/lib/student-profile-notes'
 import type { StudentAcademicProfile } from '@/lib/student-profile-types'
 import type { Database } from '@/lib/types/database'
 
@@ -28,7 +29,7 @@ function rowToProfile(row: Row | null): StudentAcademicProfile | null {
     schoolName: row.school_name ?? '',
     gradeLevel: (row.grade_level ?? '3ème année collège') as StudentAcademicProfile['gradeLevel'],
     academicTrack: (row.academic_track ?? '') as StudentAcademicProfile['academicTrack'],
-    academicYear: row.academic_year ?? '',
+    academicYear: unpackSchoolYear(row.academic_year).year ?? '',
     mathAverage2024_2025: row.math_average_2024_2025 ?? null,
     mathAverage2025_2026: row.math_average_2025_2026 ?? null,
     updatedAt: row.updated_at,
@@ -122,6 +123,22 @@ export async function PUT(request: Request) {
       )
     }
 
+    const note = (value: unknown) => (typeof value === 'number' && Number.isFinite(value) ? value : null)
+    const control = note(body.mathControl2026Score)
+    const semester = note(body.mathSemester2025Score)
+    const regional = note(body.mathRegional2025Score)
+    const { data: existingProfile } = await sb
+      .from('student_profiles')
+      .select('academic_year')
+      .eq('user_id', user.id)
+      .maybeSingle()
+    const previousNotes = unpackSchoolYear(existingProfile?.academic_year)
+    const sentAnyNote = control != null || semester != null || regional != null
+    const schoolNotes = sentAnyNote
+      ? { control, semester, regional }
+      : { control: previousNotes.control, semester: previousNotes.semester, regional: previousNotes.regional }
+    const schoolYear = packSchoolYear(body.academicYear ?? previousNotes.year, schoolNotes)
+
     const teacherLabel =
       (typeof teacherRow.full_name === 'string' && teacherRow.full_name.trim() !== ''
         ? teacherRow.full_name.trim()
@@ -148,7 +165,7 @@ export async function PUT(request: Request) {
       teacher_name: teacherLabel,
       school_name: schoolRow.name,
       academic_track: body.academicTrack ?? null,
-      academic_year: body.academicYear ?? null,
+      academic_year: schoolYear,
       ...(typeof body.mathAverage2024_2025 === 'number' ? { math_average_2024_2025: body.mathAverage2024_2025 } : {}),
       ...(typeof body.mathAverage2025_2026 === 'number' ? { math_average_2025_2026: body.mathAverage2025_2026 } : {}),
     }
@@ -172,7 +189,6 @@ export async function PUT(request: Request) {
     }
 
     const className = typeof body.className === 'string' ? body.className.trim() : ''
-    const note = (value: unknown) => (typeof value === 'number' && Number.isFinite(value) ? value : null)
     const loose = (tryGetSupabaseAdmin() ?? sb) as unknown as {
       from: (table: string) => {
         update: (value: Record<string, string | number | null>) => {
@@ -181,9 +197,6 @@ export async function PUT(request: Request) {
       }
     }
     const extra: Record<string, string | number | null> = {}
-    const control = note(body.mathControl2026Score)
-    const semester = note(body.mathSemester2025Score)
-    const regional = note(body.mathRegional2025Score)
     if (control != null) extra.math_control_2026_score = control
     if (semester != null) extra.math_s2_2025_score = semester
     if (regional != null) extra.math_regional_2025_score = regional
