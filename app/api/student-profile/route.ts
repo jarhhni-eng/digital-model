@@ -180,17 +180,24 @@ export async function PUT(request: Request) {
         }
       }
     }
-    const extra: Record<string, string | number | null> = {
-      math_control_2026_score: note(body.mathControl2026Score),
-      math_s2_2025_score: note(body.mathSemester2025Score),
-      math_regional_2025_score: note(body.mathRegional2025Score),
-    }
+    const extra: Record<string, string | number | null> = {}
+    const control = note(body.mathControl2026Score)
+    const semester = note(body.mathSemester2025Score)
+    const regional = note(body.mathRegional2025Score)
+    if (control != null) extra.math_control_2026_score = control
+    if (semester != null) extra.math_s2_2025_score = semester
+    if (regional != null) extra.math_regional_2025_score = regional
     if (typeof body.mathControl2026Max === 'number') extra.math_control_2026_max = note(body.mathControl2026Max)
     if (typeof body.mathSemester2025Max === 'number') extra.math_s2_2025_max = note(body.mathSemester2025Max)
     if (typeof body.mathRegional2025Max === 'number') extra.math_regional_2025_max = note(body.mathRegional2025Max)
-    if (className) extra.class_name = className
-    const saved = await loose.from('student_profiles').update(extra).eq('user_id', user.id)
-    if (saved.error) console.error('[student-profile extra]', saved.error.message)
+    if (Object.keys(extra).length > 0) {
+      const savedNotes = await loose.from('student_profiles').update(extra).eq('user_id', user.id)
+      if (savedNotes.error) console.error('[student-profile notes]', savedNotes.error.message)
+    }
+    if (className) {
+      const savedClass = await loose.from('student_profiles').update({ class_name: className }).eq('user_id', user.id)
+      if (savedClass.error) console.error('[student-profile class]', savedClass.error.message)
+    }
 
     return NextResponse.json({ ok: true })
   } catch (err) {

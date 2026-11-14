@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api/require-admin'
+import { tryGetSupabaseAdmin } from '@/lib/supabase/server'
 import {
   geometryCognitionTestIds,
   platformDomains,
@@ -52,6 +53,13 @@ function numberOrNull(value: unknown): number | null {
   return null
 }
 
+function genderLabel(value: unknown): string | null {
+  if (value === 'Male') return 'Homme'
+  if (value === 'Female') return 'Femme'
+  if (typeof value === 'string' && value.trim() !== '') return value.trim()
+  return null
+}
+
 function clicksFrom(metadata: Json): number | null {
   if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) return null
   const row = metadata as Record<string, unknown>
@@ -76,14 +84,17 @@ export async function GET() {
   )
   const byId = new Map(catalogue.map((test) => [test.id, test]))
 
-  const [{ data: profiles }, { data: studentProfiles }, { data: sessions }] = await Promise.all([
-    sb.from('profiles').select('id, full_name, email').eq('role', 'student'),
-    sb.from('student_profiles').select('*'),
-    sb
+  const reader = tryGetSupabaseAdmin() ?? sb
+  const [{ data: profiles, error: profilesError }, { data: studentProfiles, error: schoolError }, { data: sessions }] = await Promise.all([
+    reader.from('profiles').select('id, full_name, email').eq('role', 'student'),
+    reader.from('student_profiles').select('*'),
+    reader
       .from('test_sessions')
       .select('user_id, test_id, score, total_ms, started_at, completed_at, metadata')
       .not('completed_at', 'is', null),
   ])
+  if (profilesError) return NextResponse.json({ error: profilesError.message }, { status: 500 })
+  if (schoolError) return NextResponse.json({ error: schoolError.message }, { status: 500 })
 
   const schoolByStudent = new Map((studentProfiles ?? []).map((row) => [row.user_id, row]))
   const latest = new Map<string, SessionRow>()
@@ -141,6 +152,8 @@ export async function GET() {
       math_control_2026_score?: number | string | null
       math_s2_2025_score?: number | string | null
       math_regional_2025_score?: number | string | null
+      age?: number | string | null
+      gender?: string | null
     } | undefined
     const names = splitName(profile.full_name)
     const cka: Record<string, {
@@ -214,6 +227,11 @@ export async function GET() {
       controlScore: numberOrNull(school?.math_control_2026_score),
       semesterScore: numberOrNull(school?.math_s2_2025_score),
       regionalScore: numberOrNull(school?.math_regional_2025_score),
+      gender: genderLabel(school?.gender),
+      age: (() => {
+        const age = numberOrNull(school?.age)
+        return age != null && age > 0 ? age : null
+      })(),
       cka,
       other,
     }

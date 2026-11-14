@@ -19,6 +19,8 @@ type Student = {
   controlScore: number | null
   semesterScore: number | null
   regionalScore: number | null
+  gender: string | null
+  age: number | null
   cka: Record<string, { global: ScoreCell; capacities: Record<string, ScoreCell>; parts: Record<string, ScoreCell> }>
   other: Record<string, ScoreCell & { source: string | null }>
 }
@@ -37,10 +39,12 @@ function noteText(value: number | null | undefined): string {
   return String(value).replace('.', ',')
 }
 
-const SCHOOL_NOTE_HEADERS = [
-  'Note du premier contrôle de mathématiques — 2026/2027',
-  'Mathématiques — deuxième semestre 2025/2026',
-  'Mathématiques — examen régional 2025/2026',
+const PROFILE_HEADERS = [
+  'Genre',
+  'Âge',
+  'Premier contrôle de mathématiques 2026/2027',
+  'Deuxième semestre de mathématiques 2025/2026',
+  'Examen régional de mathématiques 2025/2026',
 ] as const
 
 function csvCell(value: unknown): string {
@@ -114,7 +118,7 @@ export default function AggregatedPage() {
   }
 
   function exportCka() {
-    const headers = ['Student_ID', 'Nom', 'Prénom', 'Niveau', 'Classe', 'Enseignant', 'Établissement', 'Année', ...SCHOOL_NOTE_HEADERS, 'Devoir', 'Devoir max', 'Moyenne S2']
+    const headers = ['Student_ID', 'Nom', 'Prénom', 'Niveau', 'Classe', 'Enseignant', 'Établissement', 'Année', ...PROFILE_HEADERS, 'Devoir', 'Devoir max', 'Moyenne S2']
     for (const test of ckaTests) {
       headers.push(`${test.name} obtenu`, `${test.name} max`, `${test.name} %`)
       for (const capacity of test.capacities) headers.push(`${test.name} ${capacity.code} ${capacity.label}`)
@@ -130,6 +134,8 @@ export default function AggregatedPage() {
         student.teacher ?? '',
         student.school ?? '',
         student.year ?? '',
+        student.gender ?? '',
+        noteText(student.age),
         noteText(student.controlScore),
         noteText(student.semesterScore),
         noteText(student.regionalScore),
@@ -184,7 +190,7 @@ export default function AggregatedPage() {
           <table className="min-w-max border-collapse text-xs">
             <thead className="sticky top-0 bg-white">
               <tr className="text-left text-slate-500">
-                {['Student_ID', 'Nom', 'Prénom', 'Niveau', 'Classe', 'Enseignant', 'Établissement', 'Année', ...SCHOOL_NOTE_HEADERS].map((label) => (
+                {['Student_ID', 'Nom', 'Prénom', 'Niveau', 'Classe', 'Enseignant', 'Établissement', 'Année', ...PROFILE_HEADERS].map((label) => (
                   <th key={label} className="sticky left-0 bg-white px-2 py-2">{label}</th>
                 ))}
                 {ckaTests.flatMap((test) => [
@@ -209,6 +215,8 @@ export default function AggregatedPage() {
                   <td className="px-2 py-1">{student.teacher ?? ''}</td>
                   <td className="px-2 py-1">{student.school ?? ''}</td>
                   <td className="px-2 py-1">{student.year ?? ''}</td>
+                  <td className="px-2 py-1">{student.gender ?? ''}</td>
+                  <td className="px-2 py-1">{noteText(student.age)}</td>
                   <td className="px-2 py-1">{noteText(student.controlScore)}</td>
                   <td className="px-2 py-1">{noteText(student.semesterScore)}</td>
                   <td className="px-2 py-1">{noteText(student.regionalScore)}</td>
