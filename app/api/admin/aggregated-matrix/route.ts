@@ -44,7 +44,12 @@ function splitName(full: string | null): { firstName: string; lastName: string }
 }
 
 function numberOrNull(value: unknown): number | null {
-  return typeof value === 'number' && Number.isFinite(value) ? value : null
+  if (typeof value === 'number' && Number.isFinite(value)) return value
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value.replace(',', '.'))
+    return Number.isFinite(parsed) ? parsed : null
+  }
+  return null
 }
 
 function clicksFrom(metadata: Json): number | null {
@@ -133,6 +138,9 @@ export async function GET() {
       supervised_test_score?: number | null
       supervised_test_max?: number | null
       previous_semester_average?: number | null
+      math_control_2026_score?: number | string | null
+      math_s2_2025_score?: number | string | null
+      math_regional_2025_score?: number | string | null
     } | undefined
     const names = splitName(profile.full_name)
     const cka: Record<string, {
@@ -203,6 +211,9 @@ export async function GET() {
       supervisedScore: school?.supervised_test_score ?? null,
       supervisedMax: school?.supervised_test_max ?? null,
       previousAverage: school?.previous_semester_average ?? null,
+      controlScore: numberOrNull(school?.math_control_2026_score),
+      semesterScore: numberOrNull(school?.math_s2_2025_score),
+      regionalScore: numberOrNull(school?.math_regional_2025_score),
       cka,
       other,
     }

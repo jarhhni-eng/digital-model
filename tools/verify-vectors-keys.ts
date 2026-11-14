@@ -131,11 +131,13 @@ console.log('Q11 sequential P then N(3;-3) scored OK')
 
 if (!hasGradedFillIn(q('Q18'))) throw new Error('Q18 should be graded')
 const f18 = q('Q18').fillIn!.fields
-if (f18[0].expected !== '-1/3' || f18[1].expected !== '3/4' || f18[2].expected !== '5') {
+if (f18[0].expected !== '-3' || f18[1].expected !== '3/4' || f18[2].expected !== '3/5') {
   throw new Error('Q18 fields')
 }
-if (scoreVectorsFillIn('-1/3 ; 3/4 ; 5', f18) !== 1) throw new Error('Q18 full')
-if (scoreVectorsFillIn('-1/3 ; 3/4 ; ', f18) !== 2 / 3) throw new Error('Q18 partial')
+if (scoreVectorsFillIn('-3 ; 3/4 ; 3/5', f18) !== 1) throw new Error('Q18 full')
+if (scoreVectorsFillIn('-3,0 ; 0,75 ; 0.6', f18) !== 1) throw new Error('Q18 equivalents')
+if (scoreVectorsFillIn('-3 ; 3/5 ; 3/4', f18) === 1) throw new Error('Q18 order')
+if (scoreVectorsFillIn('-3 ; 3/4 ; ', f18) !== 2 / 3) throw new Error('Q18 partial')
 console.log('Q18 three coefficients scored OK')
 
 const auto = VECTORS_QUESTIONS.filter(isVectorsAutoEvalQuestion).map((x) => x.id)

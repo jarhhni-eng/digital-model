@@ -16,6 +16,9 @@ type Student = {
   supervisedScore: number | null
   supervisedMax: number | null
   previousAverage: number | null
+  controlScore: number | null
+  semesterScore: number | null
+  regionalScore: number | null
   cka: Record<string, { global: ScoreCell; capacities: Record<string, ScoreCell>; parts: Record<string, ScoreCell> }>
   other: Record<string, ScoreCell & { source: string | null }>
 }
@@ -28,6 +31,17 @@ function show(cell: ScoreCell | undefined): string {
   const percent = cell.percent != null ? `${Math.round(cell.percent * 10) / 10}%` : ''
   return [ratio, percent].filter(Boolean).join(' · ')
 }
+
+function noteText(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value)) return ''
+  return String(value).replace('.', ',')
+}
+
+const SCHOOL_NOTE_HEADERS = [
+  'Note du premier contrôle de mathématiques — 2026/2027',
+  'Mathématiques — deuxième semestre 2025/2026',
+  'Mathématiques — examen régional 2025/2026',
+] as const
 
 function csvCell(value: unknown): string {
   const text = value == null ? '' : String(value)
@@ -100,14 +114,29 @@ export default function AggregatedPage() {
   }
 
   function exportCka() {
-    const headers = ['Student_ID', 'Nom', 'Prénom', 'Niveau', 'Classe', 'Enseignant', 'Établissement', 'Année', 'Devoir', 'Devoir max', 'Moyenne S2']
+    const headers = ['Student_ID', 'Nom', 'Prénom', 'Niveau', 'Classe', 'Enseignant', 'Établissement', 'Année', ...SCHOOL_NOTE_HEADERS, 'Devoir', 'Devoir max', 'Moyenne S2']
     for (const test of ckaTests) {
       headers.push(`${test.name} obtenu`, `${test.name} max`, `${test.name} %`)
       for (const capacity of test.capacities) headers.push(`${test.name} ${capacity.code} ${capacity.label}`)
       for (const part of test.parts) headers.push(`${test.name} ${part.label}`)
     }
     const rows = visible.map((student) => {
-      const line: unknown[] = identity(student)
+      const line: unknown[] = [
+        student.studentId,
+        student.lastName,
+        student.firstName,
+        student.level ?? '',
+        student.className ?? '',
+        student.teacher ?? '',
+        student.school ?? '',
+        student.year ?? '',
+        noteText(student.controlScore),
+        noteText(student.semesterScore),
+        noteText(student.regionalScore),
+        student.supervisedScore ?? '',
+        student.supervisedMax ?? '',
+        student.previousAverage ?? '',
+      ]
       for (const test of ckaTests) {
         const score = student.cka[test.id]
         line.push(score?.global.earned ?? '', score?.global.max ?? '', score?.global.percent ?? '')
@@ -155,7 +184,7 @@ export default function AggregatedPage() {
           <table className="min-w-max border-collapse text-xs">
             <thead className="sticky top-0 bg-white">
               <tr className="text-left text-slate-500">
-                {['Student_ID', 'Nom', 'Prénom', 'Niveau', 'Classe', 'Enseignant', 'Établissement', 'Année'].map((label) => (
+                {['Student_ID', 'Nom', 'Prénom', 'Niveau', 'Classe', 'Enseignant', 'Établissement', 'Année', ...SCHOOL_NOTE_HEADERS].map((label) => (
                   <th key={label} className="sticky left-0 bg-white px-2 py-2">{label}</th>
                 ))}
                 {ckaTests.flatMap((test) => [
@@ -180,6 +209,9 @@ export default function AggregatedPage() {
                   <td className="px-2 py-1">{student.teacher ?? ''}</td>
                   <td className="px-2 py-1">{student.school ?? ''}</td>
                   <td className="px-2 py-1">{student.year ?? ''}</td>
+                  <td className="px-2 py-1">{noteText(student.controlScore)}</td>
+                  <td className="px-2 py-1">{noteText(student.semesterScore)}</td>
+                  <td className="px-2 py-1">{noteText(student.regionalScore)}</td>
                   {ckaTests.flatMap((test) => {
                     const score = student.cka[test.id]
                     return [

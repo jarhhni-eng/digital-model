@@ -377,15 +377,15 @@ export const VECTORS_QUESTIONS: VectorsQuestion[] = [
     imagePath: '/images/geometry/vectors/sens-des-vecteurs.png',
     fillIn: {
       fields: [
-        { label: '\\( \\vec{MR} = \\;\\square\\; \\vec{MP} \\)', expected: '-1/3' },
+        { label: '\\( \\vec{MR} = \\;\\square\\; \\vec{MP} \\)', expected: '-3' },
         { label: '\\( \\vec{MR} = \\;\\square\\; \\vec{MN} \\)', expected: '3/4' },
-        { label: '\\( \\vec{MS} = \\;\\square\\; \\vec{RN} \\)', expected: '5' },
+        { label: '\\( \\vec{MS} = \\;\\square\\; \\vec{RN} \\)', expected: '3/5' },
       ],
     },
     fillGraded: true,
     part: 'construction',
     correction:
-      'Noté : \\(\\vec{MR}=-\\tfrac{1}{3}\\vec{MP}\\), \\(\\vec{MR}=\\tfrac{3}{4}\\vec{MN}\\), \\(\\vec{MS}=5\\vec{RN}\\).',
+      'Noté : \\(\\vec{MR}=-3\\vec{MP}\\), \\(\\vec{MR}=\\tfrac{3}{4}\\vec{MN}\\), \\(\\vec{MS}=\\tfrac{3}{5}\\vec{RN}\\).',
   },
   {
     id: 'AutoEval-3',
