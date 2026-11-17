@@ -4,12 +4,15 @@ import { tryGetSupabaseAdmin } from '@/lib/supabase/server'
 import { fetchCompletedSessions, latestCompletedByStudentTest } from '@/lib/admin/completed-sessions'
 import {
   autoevalCode,
+  formatScore,
   geometryTestOrder,
   lessonNameForTest,
   questionsForTest,
+  scoreFromPerQuestion,
   scoreQuestion,
   summarizeLine,
   testNameFor,
+  VECTORS_AGGREGATE_TEST_ID,
   type AutoevalSlot,
 } from '@/lib/geometry/cka-question-stats'
 import type { Json } from '@/lib/types/database'
@@ -56,14 +59,21 @@ export async function GET() {
   const latest = latestCompletedByStudentTest(sessionsResult.rows)
   const latestSessions = [...latest.values()]
   const trials: TrialRow[] = []
-  for (let i = 0; i < latestSessions.length; i += 200) {
-    const ids = latestSessions.slice(i, i + 200).map((row) => row.id)
+  for (let i = 0; i < latestSessions.length; i += 20) {
+    const ids = latestSessions.slice(i, i + 20).map((row) => row.id)
     if (ids.length === 0) continue
-    const { data } = await reader
-      .from('trial_results')
-      .select('session_id, question_id, question_index, score, selected, free_text')
-      .in('session_id', ids)
-    trials.push(...((data ?? []) as TrialRow[]))
+    for (let from = 0; from < 20000; from += 1000) {
+      const { data, error } = await reader
+        .from('trial_results')
+        .select('session_id, question_id, question_index, score, selected, free_text')
+        .in('session_id', ids)
+        .order('id', { ascending: true })
+        .range(from, from + 999)
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      const page = (data ?? []) as TrialRow[]
+      trials.push(...page)
+      if (page.length < 1000) break
+    }
   }
   const trialsBySession = new Map<string, TrialRow[]>()
   for (const trial of trials) {
@@ -77,11 +87,19 @@ export async function GET() {
 
   const tests = testIds.map((testId) => {
     const questions = questionsForTest(testId)
-    const rows = latestSessions
-      .filter((session) => session.test_id === testId)
-      .map((session) => {
-        const profile = profileById.get(session.user_id)
-        const school = schoolById.get(session.user_id) as {
+    const sessionsForTest = latestSessions.filter((session) => session.test_id === testId)
+    const sessionByUser = new Map(sessionsForTest.map((session) => [session.user_id, session]))
+    const subjects =
+      testId === VECTORS_AGGREGATE_TEST_ID
+        ? (profiles ?? []).map((profile) => ({
+            userId: profile.id,
+            session: sessionByUser.get(profile.id) ?? null,
+          }))
+        : sessionsForTest.map((session) => ({ userId: session.user_id, session }))
+    const rows = subjects
+      .map(({ userId, session }) => {
+        const profile = profileById.get(userId)
+        const school = schoolById.get(userId) as {
           grade_level?: string | null
           class_name?: string | null
           teacher_name?: string | null
@@ -97,19 +115,28 @@ export async function GET() {
         const names = splitName(profile?.full_name ?? null)
         const byId = new Map<string, TrialRow>()
         const byIndex = new Map<number, TrialRow>()
-        for (const trial of trialsBySession.get(session.id) ?? []) {
+        for (const trial of session ? trialsBySession.get(session.id) ?? [] : []) {
           if (trial.question_id) byId.set(trial.question_id, trial)
           if (trial.question_index != null) byIndex.set(trial.question_index, trial)
         }
         const cells = questions.map((question, index) => {
           const trial = byId.get(question.id) ?? byIndex.get(index) ?? null
-          return scoreQuestion(question, trial
+          const cell = scoreQuestion(question, trial
             ? {
                 score: trial.score == null ? null : Number(trial.score),
                 selected: trial.selected,
                 freeText: trial.free_text,
               }
             : null)
+          if (testId === VECTORS_AGGREGATE_TEST_ID && !trial && session && cell.score == null) {
+            const stored = scoreFromPerQuestion(session.metadata, question.id)
+            if (stored != null) {
+              cell.score = stored
+              cell.display = formatScore(stored)
+              cell.status = stored >= 0.999 ? 'correcte' : stored > 0 ? 'partielle' : 'incorrecte'
+            }
+          }
+          return cell
         })
         const autos = ([1, 2, 3] as AutoevalSlot[]).map((slot) => {
           const match = questions.findIndex((question) => question.autoSlot === slot)
@@ -122,13 +149,14 @@ export async function GET() {
             code: text ? autoevalCode(slot, text) : null,
           }
         })
-        const durationMs =
-          session.total_ms ??
-          (session.completed_at
-            ? Math.max(0, new Date(session.completed_at).getTime() - new Date(session.started_at).getTime())
-            : null)
+        const durationMs = session == null
+          ? null
+          : (session.total_ms ??
+            (session.completed_at
+              ? Math.max(0, new Date(session.completed_at).getTime() - new Date(session.started_at).getTime())
+              : null))
         return {
-          studentId: session.user_id,
+          studentId: userId,
           firstName: names.firstName,
           lastName: names.lastName,
           level: school?.grade_level ?? null,
@@ -136,10 +164,11 @@ export async function GET() {
           teacher: school?.teacher_name ?? null,
           teacherId: school?.teacher_id ?? null,
           school: school?.school_name ?? null,
-          completedAt: session.completed_at,
-          globalPercent: session.score == null ? null : Number(session.score),
+          completedAt: session?.completed_at ?? null,
+          globalPercent: session?.score == null ? null : Number(session.score),
           durationMs,
-          clicks: clicksFrom(session.metadata),
+          clicks: session ? clicksFrom(session.metadata) : null,
+          attempted: session != null,
           cells,
           autos,
           stats: summarizeLine(questions, cells),

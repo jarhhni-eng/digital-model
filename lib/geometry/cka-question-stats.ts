@@ -180,6 +180,35 @@ export function geometryTestOrder(): string[] {
   return geometryCognitionTestIds().filter((id) => (BANKS[id]?.length ?? 0) > 0)
 }
 
+/** The live vectors lesson. Question columns Q1…Qn belong to this test only. */
+export const VECTORS_AGGREGATE_TEST_ID = 'test-geo-vectors-complete'
+
+export function isNumberedQuestionId(id: string): boolean {
+  return /^Q\d+$/.test(id)
+}
+
+/** Q1, Q2, … in numeric order. Autoevaluation items are not numbered questions. */
+export function numberedQuestions<T extends { id: string }>(questions: T[]): T[] {
+  return questions
+    .filter((question) => isNumberedQuestionId(question.id))
+    .sort((a, b) => Number(a.id.slice(1)) - Number(b.id.slice(1)))
+}
+
+/** Score already stored on the sitting, used when the answer row itself is missing. */
+export function scoreFromPerQuestion(metadata: unknown, questionId: string): number | null {
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) return null
+  const list = (metadata as Record<string, unknown>).perQuestion
+  if (!Array.isArray(list)) return null
+  for (const item of list) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) continue
+    const row = item as Record<string, unknown>
+    if (row.questionId !== questionId) continue
+    const score = typeof row.score === 'number' ? row.score : typeof row.score === 'string' ? Number(row.score) : null
+    return score != null && Number.isFinite(score) ? score : null
+  }
+  return null
+}
+
 export function letterOf(index: number): string {
   return Number.isInteger(index) && index >= 0 && index < 26 ? String.fromCharCode(65 + index) : String(index)
 }

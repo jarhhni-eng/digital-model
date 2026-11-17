@@ -48,6 +48,7 @@ export type CkaMatrixRow = {
   globalPercent: number | null
   durationMs: number | null
   clicks: number | null
+  attempted?: boolean
   cells: Cell[]
   autos: Auto[]
   stats: Stats
@@ -80,6 +81,28 @@ function pct(value: number | null): string {
   return value == null ? 'Non disponible' : `${String(value).replace('.', ',')} %`
 }
 
+const VECTORS_TEST_ID = 'test-geo-vectors-complete'
+
+function numberedQuestions<T extends { id: string }>(questions: T[]): T[] {
+  return questions
+    .filter((question) => /^Q\d+$/.test(question.id))
+    .sort((a, b) => Number(a.id.slice(1)) - Number(b.id.slice(1)))
+}
+
+function scoreText(score: number | null): string {
+  if (score == null || !Number.isFinite(score)) return ''
+  const rounded = Math.round(score * 100) / 100
+  const text = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')
+  return text.replace('.', ',')
+}
+
+function globalOutOf20(percent: number | null): string {
+  if (percent == null || !Number.isFinite(percent)) return ''
+  const earned = Math.round(percent * 2) / 10
+  const text = Number.isInteger(earned) ? String(earned) : String(earned).replace('.', ',')
+  return `${text}/20`
+}
+
 function autoLabel(auto: Auto | undefined): string {
   if (!auto?.text) return ''
   return auto.code == null ? auto.text : `${auto.text} (${auto.code})`
@@ -107,6 +130,25 @@ export function useCkaMatrix() {
 }
 
 function exportTest(test: CkaMatrixTest) {
+  if (test.id === VECTORS_TEST_ID) {
+    const questions = numberedQuestions(test.questions)
+    const headers = ['Student_ID', 'Nom', 'Prénom', 'Niveau', 'Enseignant', 'Établissement', ...questions.map((question) => question.id), 'Score global']
+    const rows = test.rows.map((row) => [
+      row.studentId,
+      row.lastName,
+      row.firstName,
+      row.level ?? '',
+      row.teacher ?? '',
+      row.school ?? '',
+      ...questions.map((question) => {
+        const index = test.questions.findIndex((item) => item.id === question.id)
+        return scoreText(row.cells[index]?.score ?? null)
+      }),
+      globalOutOf20(row.globalPercent),
+    ])
+    downloadCsv(`cka-questions-${test.id}.csv`, [headers, ...rows])
+    return
+  }
   const headers = [
     'Student_ID', 'Nom', 'Prénom', 'Niveau', 'Classe', 'Enseignant', 'Teacher_ID', 'Établissement',
     ...test.questions.map((question) => `Q${question.number}`),
@@ -141,6 +183,61 @@ function exportTest(test: CkaMatrixTest) {
   downloadCsv(`cka-questions-${test.id}.csv`, [headers, ...rows])
 }
 
+function VectorsScoreTable({ test }: { test: CkaMatrixTest }) {
+  const questions = numberedQuestions(test.questions)
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h3 className="font-medium">{test.name}</h3>
+          <p className="text-xs text-slate-500">
+            Test_ID {test.id}{test.lesson ? ` · Leçon : ${test.lesson}` : ''} · score de chaque question, puis score global sur 20
+          </p>
+        </div>
+        <button type="button" className="text-sm text-indigo-700 underline" onClick={() => exportTest(test)}>
+          Exporter ce tableau (CSV)
+        </button>
+      </div>
+      <div className="max-h-[60vh] overflow-auto rounded border">
+        <table className="min-w-max border-collapse text-xs">
+          <thead className="sticky top-0 bg-white text-left text-slate-500">
+            <tr>
+              {['Student_ID', 'Nom', 'Prénom', 'Niveau', 'Enseignant', 'Établissement'].map((label) => (
+                <th key={label} className="px-2 py-2">{label}</th>
+              ))}
+              {questions.map((question) => (
+                <th key={question.id} className="px-2 py-2" title={question.prompt}>{question.id}</th>
+              ))}
+              <th className="px-2 py-2">Score global</th>
+            </tr>
+          </thead>
+          <tbody>
+            {test.rows.map((row) => (
+              <tr key={row.studentId} className="border-t">
+                <td className="px-2 py-1 font-mono">{row.studentId}</td>
+                <td className="px-2 py-1">{row.lastName}</td>
+                <td className="px-2 py-1">{row.firstName}</td>
+                <td className="px-2 py-1">{row.level ?? ''}</td>
+                <td className="px-2 py-1">{row.teacher ?? ''}</td>
+                <td className="px-2 py-1">{row.school ?? ''}</td>
+                {questions.map((question) => {
+                  const index = test.questions.findIndex((item) => item.id === question.id)
+                  return (
+                    <td key={`${row.studentId}-${question.id}`} className="px-2 py-1 tabular-nums">
+                      {scoreText(row.cells[index]?.score ?? null)}
+                    </td>
+                  )
+                })}
+                <td className="px-2 py-1 tabular-nums">{globalOutOf20(row.globalPercent)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
 export function CkaQuestionTables() {
   const { tests, error } = useCkaMatrix()
   return (
@@ -152,7 +249,9 @@ export function CkaQuestionTables() {
         </p>
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
-      {tests.map((test) => (
+      {tests.map((test) => test.id === VECTORS_TEST_ID ? (
+        <VectorsScoreTable key={test.id} test={test} />
+      ) : (
         <div key={test.id} className="space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
@@ -213,11 +312,11 @@ export function CkaQuestionTables() {
 
 export function CkaAnswerDetail({ studentId }: { studentId: string }) {
   const { tests, error } = useCkaMatrix()
-  const available = tests.filter((test) => test.rows.some((row) => row.studentId === studentId))
+  const available = tests.filter((test) => test.rows.some((row) => row.studentId === studentId && row.attempted !== false))
   const [testId, setTestId] = useState('')
   const selectedId = testId || available[0]?.id || ''
   const test = available.find((item) => item.id === selectedId)
-  const row = test?.rows.find((item) => item.studentId === studentId)
+  const row = test?.rows.find((item) => item.studentId === studentId && item.attempted !== false)
 
   function exportDetail() {
     if (!test || !row) return
