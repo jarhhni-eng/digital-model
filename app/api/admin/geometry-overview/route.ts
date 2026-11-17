@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api/require-admin'
+import { tryGetSupabaseAdmin } from '@/lib/supabase/server'
+import { fetchCompletedSessions, latestCompletedByStudentTest } from '@/lib/admin/completed-sessions'
 import { geometryCognitionTestIds } from '@/lib/platform-domains'
 import { GEO_SPACE_QUESTIONS } from '@/lib/geometry/geo-space'
 import { DROITE_PLAN_QUESTIONS } from '@/lib/geometry/droite-plan'
@@ -11,7 +13,6 @@ import { PRODUIT_SCALAIRE_TC_QUESTIONS } from '@/lib/geometry/produit-scalaire-t
 import { SPACE_VOLUMES_QUESTIONS } from '@/lib/geometry/space-volumes'
 import { TRIG_CIRCLE_QUESTIONS } from '@/lib/geometry/trig-unit-circle'
 
-type SessionRow = { id: string; user_id: string; test_id: string; score: number | null; completed_at: string | null }
 type TrialRow = { session_id: string; question_id: string | null; score: number | null; correct: boolean | null; selected: unknown }
 
 function expectedLabel(answer: unknown): string {
@@ -65,17 +66,15 @@ export async function GET() {
   const gate = await requireAdmin()
   if ('response' in gate) return gate.response
   const { sb } = gate
+  const reader = tryGetSupabaseAdmin() ?? sb
   const geometryIds = geometryCognitionTestIds()
 
-  const [{ data: profiles }, { data: studentProfiles }, { data: sessions }] = await Promise.all([
-    sb.from('profiles').select('id, full_name, email').eq('role', 'student'),
-    sb.from('student_profiles').select('user_id, school_name, grade_level, academic_track, teacher_name'),
-    sb
-      .from('test_sessions')
-      .select('id, user_id, test_id, score, completed_at')
-      .in('test_id', geometryIds)
-      .not('completed_at', 'is', null),
+  const [{ data: profiles }, { data: studentProfiles }, sessionsResult] = await Promise.all([
+    reader.from('profiles').select('id, full_name, email').eq('role', 'student'),
+    reader.from('student_profiles').select('user_id, school_name, grade_level, academic_track, teacher_name'),
+    fetchCompletedSessions(reader, geometryIds),
   ])
+  if (sessionsResult.error) return NextResponse.json({ error: sessionsResult.error }, { status: 500 })
 
   let external: ExternalRow[] = []
   let externalReady = true
@@ -94,19 +93,14 @@ export async function GET() {
   else external = externalQuery.data ?? []
 
   const schoolByStudent = new Map((studentProfiles ?? []).map((row) => [row.user_id, row]))
-  const latest = new Map<string, SessionRow>()
-  for (const row of (sessions ?? []) as SessionRow[]) {
-    const key = `${row.user_id}|${row.test_id}`
-    const prev = latest.get(key)
-    if (!prev || (row.completed_at ?? '') > (prev.completed_at ?? '')) latest.set(key, row)
-  }
+  const latest = latestCompletedByStudentTest(sessionsResult.rows)
 
   const latestSessions = [...latest.values()]
   const trials: TrialRow[] = []
   for (let i = 0; i < latestSessions.length; i += 200) {
     const ids = latestSessions.slice(i, i + 200).map((row) => row.id)
     if (ids.length === 0) continue
-    const { data } = await sb
+    const { data } = await reader
       .from('trial_results')
       .select('session_id, question_id, score, correct, selected')
       .in('session_id', ids)

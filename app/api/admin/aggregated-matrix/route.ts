@@ -3,12 +3,16 @@ import { requireAdmin } from '@/lib/api/require-admin'
 import { tryGetSupabaseAdmin } from '@/lib/supabase/server'
 import { unpackSchoolYear } from '@/lib/student-profile-notes'
 import {
+  fetchCompletedSessions,
+  geometryCellsFromSession,
+  latestCompletedByStudentTest,
+} from '@/lib/admin/completed-sessions'
+import {
   geometryCognitionTestIds,
   platformDomains,
 } from '@/lib/platform-domains'
 import { getCapacitiesForTestId } from '@/lib/geometry/capacity-definitions'
 import { configuredCanonicalParts } from '@/lib/geometry/geometry-partition'
-import { parseGeometryAnalyticsReport } from '@/lib/geometry/geometry-analytics-report'
 import {
   isExternalTest,
   isInternalExceptionTest,
@@ -16,15 +20,6 @@ import {
 import type { Json } from '@/lib/types/database'
 
 type ScoreCell = { earned: number | null; max: number | null; percent: number | null }
-type SessionRow = {
-  user_id: string
-  test_id: string
-  score: number | null
-  total_ms: number | null
-  started_at: string
-  completed_at: string | null
-  metadata: Json
-}
 type ExternalRow = {
   student_id: string
   test_id: string
@@ -86,24 +81,17 @@ export async function GET() {
   const byId = new Map(catalogue.map((test) => [test.id, test]))
 
   const reader = tryGetSupabaseAdmin() ?? sb
-  const [{ data: profiles, error: profilesError }, { data: studentProfiles, error: schoolError }, { data: sessions }] = await Promise.all([
+  const [{ data: profiles, error: profilesError }, { data: studentProfiles, error: schoolError }, sessionsResult] = await Promise.all([
     reader.from('profiles').select('id, full_name, email').eq('role', 'student'),
     reader.from('student_profiles').select('*'),
-    reader
-      .from('test_sessions')
-      .select('user_id, test_id, score, total_ms, started_at, completed_at, metadata')
-      .not('completed_at', 'is', null),
+    fetchCompletedSessions(reader),
   ])
   if (profilesError) return NextResponse.json({ error: profilesError.message }, { status: 500 })
   if (schoolError) return NextResponse.json({ error: schoolError.message }, { status: 500 })
+  if (sessionsResult.error) return NextResponse.json({ error: sessionsResult.error }, { status: 500 })
 
   const schoolByStudent = new Map((studentProfiles ?? []).map((row) => [row.user_id, row]))
-  const latest = new Map<string, SessionRow>()
-  for (const row of (sessions ?? []) as SessionRow[]) {
-    const key = `${row.user_id}|${row.test_id}`
-    const prev = latest.get(key)
-    if (!prev || (row.completed_at ?? '') > (prev.completed_at ?? '')) latest.set(key, row)
-  }
+  const latest = latestCompletedByStudentTest(sessionsResult.rows)
 
   let external: ExternalRow[] = []
   const loose = sb as unknown as {
@@ -168,32 +156,22 @@ export async function GET() {
 
     for (const session of latest.values()) {
       if (session.user_id !== profile.id) continue
-      const report = parseGeometryAnalyticsReport(
-        session.metadata && typeof session.metadata === 'object' && !Array.isArray(session.metadata)
-          ? (session.metadata as Record<string, unknown>).geometryAnalytics
-          : null,
-      )
-      const percent = session.score == null ? report?.globalPercent ?? null : Number(session.score)
-      const cell: ScoreCell = report
-        ? { earned: report.globalScoreOutOf20, max: 20, percent: report.globalPercent }
-        : { earned: null, max: null, percent }
+      const scored = geometryCellsFromSession(session.test_id, session)
+      const durationMs =
+        session.total_ms ??
+        (session.completed_at
+          ? Math.max(0, new Date(session.completed_at).getTime() - new Date(session.started_at).getTime())
+          : null)
       if (geometryIds.includes(session.test_id)) {
-        const capacities: Record<string, ScoreCell> = {}
-        const parts: Record<string, ScoreCell> = {}
-        for (const capacity of report?.capacities ?? []) {
-          capacities[capacity.code] = { earned: capacity.earned, max: capacity.max, percent: capacity.percent }
+        cka[session.test_id] = {
+          global: scored.global,
+          capacities: scored.capacities,
+          parts: scored.parts,
+          durationMs,
+          clicks: clicksFrom(session.metadata),
         }
-        for (const part of report?.parts ?? []) {
-          parts[String(part.part)] = { earned: part.earned, max: part.max, percent: part.percent }
-        }
-        const durationMs =
-          session.total_ms ??
-          (session.completed_at
-            ? Math.max(0, new Date(session.completed_at).getTime() - new Date(session.started_at).getTime())
-            : null)
-        cka[session.test_id] = { global: cell, capacities, parts, durationMs, clicks: clicksFrom(session.metadata) }
       } else {
-        other[session.test_id] = { ...cell, source: 'internal' }
+        other[session.test_id] = { ...scored.global, source: 'internal' }
       }
     }
 
