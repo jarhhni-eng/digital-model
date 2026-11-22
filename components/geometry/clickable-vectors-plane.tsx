@@ -22,6 +22,8 @@ interface ClickableVectorsPlaneProps {
   activeLabel?: string | null
   /** Sequential: already checked marks (locked). */
   marks?: VectorsPlaneMark[]
+  /** Sequential: point the student can still move, not yet validated. */
+  draft?: { name: string; x: number; y: number } | null
   locked?: boolean
   /** Override figure letters (default: VECTOR_POINTS). Pass [] to hide them. */
   figurePoints?: { name: string; x: number; y: number }[]
@@ -34,6 +36,7 @@ export function ClickableVectorsPlane({
   mode = 'batch',
   activeLabel = null,
   marks,
+  draft = null,
   locked = false,
   figurePoints,
   onChange,
@@ -136,8 +139,8 @@ export function ClickableVectorsPlane({
       <p className="mb-2 text-sm text-muted-foreground">
         {sequential ? (
           <>
-            Cliquez sur le nœud du repère pour placer{' '}
-            <strong>{activeLabel ?? 'le point'}</strong>.
+            Cliquez pour placer <strong>{activeLabel ?? 'le point'}</strong>, puis
+            déplacez-le avant de le valider.
           </>
         ) : readonly ? (
           'Repère de référence.'
@@ -259,6 +262,22 @@ export function ClickableVectorsPlane({
             </text>
             <text x={sx(hover.x) + 8} y={sy(hover.y) + 14} fontSize={11} fill="#475569">
               ({hover.x};{hover.y})
+            </text>
+          </g>
+        )}
+
+        {draft && (
+          <g pointerEvents="none">
+            <circle
+              cx={sx(draft.x)}
+              cy={sy(draft.y)}
+              r={7}
+              fill="#2563eb"
+              stroke="white"
+              strokeWidth={1.8}
+            />
+            <text x={sx(draft.x) + 8} y={sy(draft.y) - 8} fontSize={14} fontWeight={700} fill="#1d4ed8">
+              {draft.name}
             </text>
           </g>
         )}

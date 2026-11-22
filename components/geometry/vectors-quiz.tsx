@@ -57,8 +57,6 @@ type SequentialOutcome = {
   score: number
 }
 
-const SEQUENTIAL_ADVANCE_MS = 900
-
 export function VectorsQuizTest() {
   const router = useRouter()
   const { user } = useAuth()
@@ -463,9 +461,8 @@ function TrialView({
       )}
       {isSequential && (
         <div className="rounded border border-blue-200 bg-blue-50 p-2 text-xs text-blue-900 dark:border-blue-900/40 dark:bg-blue-950/30">
-          ✍️ Placez le point demandé en cliquant sur un nœud du repère. La
-          vérification est immédiate ; le point suivant (ou la question suivante)
-          s’enchaîne automatiquement.
+          ✍️ Placez le point, déplacez-le si besoin, puis validez-le. Le point
+          suivant n’est disponible qu’après cette validation.
         </div>
       )}
 
@@ -567,15 +564,22 @@ function SequentialPlacementBoard({
   const [step, setStep] = useState(0)
   const [marks, setMarks] = useState<VectorsPlaneMark[]>([])
   const [outcomes, setOutcomes] = useState<SequentialOutcome[]>([])
+  const [draft, setDraft] = useState<{ name: string; x: number; y: number } | null>(null)
   const [locked, setLocked] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const busy = useRef(false)
 
   const activeLabel = labels[step] ?? null
 
-  const handlePlace = async (placed: { name: string; x: number; y: number }) => {
+  const handleDraft = (placed: { name: string; x: number; y: number }) => {
     if (busy.current || locked || !activeLabel) return
     if (placed.name !== activeLabel) return
+    setDraft(placed)
+    setError(null)
+  }
+
+  const validateActive = async () => {
+    if (busy.current || locked || !activeLabel || !draft || draft.name !== activeLabel) return
     busy.current = true
     setLocked(true)
     setError(null)
@@ -585,16 +589,12 @@ function SequentialPlacementBoard({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           questionId,
-          name: placed.name,
-          x: placed.x,
-          y: placed.y,
+          name: draft.name,
+          x: draft.x,
+          y: draft.y,
         }),
       })
-      const data = (await res.json()) as SequentialOutcome & {
-        error?: string
-        nextName?: string | null
-        pointCount?: number
-      }
+      const data = (await res.json()) as SequentialOutcome & { error?: string }
       if (!res.ok || data.error) {
         setError(data.error || 'Vérification impossible.')
         busy.current = false
@@ -620,31 +620,28 @@ function SequentialPlacementBoard({
       const nextOutcomes = [...outcomes, outcome]
       setMarks(nextMarks)
       setOutcomes(nextOutcomes)
-
-      window.setTimeout(() => {
-        const last = step + 1 >= labels.length
-        if (last) {
-          const earned = nextOutcomes.reduce((s, o) => s + o.score, 0)
-          onComplete({
-            freeText: JSON.stringify({
-              questionId,
-              points: nextOutcomes.map((o) => ({
-                name: o.name,
-                chosen: o.chosen,
-                expected: o.expected,
-                correct: o.correct,
-                score: o.score,
-              })),
-              score: labels.length > 0 ? earned / labels.length : 0,
-            }),
+      setDraft(null)
+      const last = step + 1 >= labels.length
+      if (last) {
+        const earned = nextOutcomes.reduce((s, o) => s + o.score, 0)
+        onComplete({
+          freeText: JSON.stringify({
+            questionId,
+            points: nextOutcomes.map((o) => ({
+              name: o.name,
+              chosen: o.chosen,
+              correct: o.correct,
+              score: o.score,
+            })),
             score: labels.length > 0 ? earned / labels.length : 0,
-          })
-        } else {
-          setStep((n) => n + 1)
-          busy.current = false
-          setLocked(false)
-        }
-      }, SEQUENTIAL_ADVANCE_MS)
+          }),
+          score: labels.length > 0 ? earned / labels.length : 0,
+        })
+        return
+      }
+      setStep((n) => n + 1)
+      busy.current = false
+      setLocked(false)
     } catch {
       setError('Vérification impossible.')
       busy.current = false
@@ -655,16 +652,40 @@ function SequentialPlacementBoard({
   return (
     <div className="space-y-2">
       <p className="text-sm font-medium">
-        Placez le point <span className="text-blue-700">{activeLabel}</span>
+        {activeLabel
+          ? <>Placez le point <span className="text-blue-700">{activeLabel}</span>, puis validez-le.</>
+          : 'Points validés.'}
       </p>
       <ClickableVectorsPlane
         labels={labels}
         mode="sequential"
         activeLabel={activeLabel}
         marks={marks}
-        locked={locked}
-        onPlace={handlePlace}
+        draft={draft}
+        locked={locked || !activeLabel}
+        onPlace={handleDraft}
       />
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setDraft(null)}
+          disabled={!draft || locked}
+          className="rounded border px-2 py-1 text-xs hover:bg-muted/50 disabled:opacity-40"
+        >
+          Réinitialiser
+        </button>
+        {labels.map((label, index) => (
+          <button
+            key={label}
+            type="button"
+            onClick={validateActive}
+            disabled={locked || index !== step || !draft || draft.name !== label}
+            className="rounded border border-blue-600 px-2 py-1 text-xs text-blue-700 hover:bg-blue-50 disabled:opacity-40"
+          >
+            Valider le point {label}
+          </button>
+        ))}
+      </div>
       {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
   )

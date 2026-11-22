@@ -1,0 +1,203 @@
+[33mcommit 8cba17f9e9e850f0b6cb9560cfa2f4e8e36323b3[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mreview/produit-scalaire-rappels[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmaster[m[33m)[m
+Author: achrafphp <jarhhni@gmail.com>
+Date:   Tue Nov 17 17:10:35 2026 +0100
+
+    fix(admin): show stored vectors question scores in the aggregated table
+    
+    The Vecteurs et translations table now lists Q1 to Q21 from the recorded answers, with the global score, without renumbering autoevaluations or filling missing scores.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 11598a9093438399f13393a2a99fc4733fc3cfda[m
+Author: achrafphp <jarhhni@gmail.com>
+Date:   Tue Nov 17 16:43:05 2026 +0100
+
+    fix(admin): include every finished vectors sitting in aggregated results
+    
+    The aggregated queries stopped after the first thousand sessions and skipped sittings without completed_at, so recorded Vecteurs scores never reached the CKA tables or their exports.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 2c8ee4af8f6b7095ed9fac10551ed97a53256e9c[m
+Author: achrafphp <jarhhni@gmail.com>
+Date:   Sun Nov 15 15:29:29 2026 +0100
+
+    fix(geometry): set vectors Q18 third coefficient to 5
+    
+    The three collinearity answers are -3, 3/4 and 5, in that order.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 059ac87716b7ed3277c306aa2418c8ec5b8d80c2[m
+Author: achrafphp <jarhhni@gmail.com>
+Date:   Sat Nov 14 02:22:55 2026 +0100
+
+    fix(admin): read the three math notes stored on the student profile
+    
+    The live profile table has no separate note columns, so the marks are kept with the school year and the aggregated geometry table reads them from that same row.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 119d91a9d936c3bab62bdb9e45ed8f71c0999b89[m
+Author: achrafphp <jarhhni@gmail.com>
+Date:   Sat Nov 14 01:50:48 2026 +0100
+
+    fix(admin): show saved gender, age and math notes on the geometry table
+    
+    The aggregated geometry rows now read those fields from the same student profile, matched by user id, and a later save no longer clears a note that was already stored.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit b5930a0fa228552a55102596739eeebfc0f778c6[m
+Author: achrafphp <jarhhni@gmail.com>
+Date:   Sat Nov 14 01:31:40 2026 +0100
+
+    feat(geometry): correct vectors Q18 and show saved math notes
+    
+    The three collinearity coefficients now score -3, 3/4 and 3/5, and the aggregated geometry table reads the notes already stored on each student profile.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 5fda9b20b54485853d1f81adae0eab2d37ba9744[m
+Author: achrafphp <jarhhni@gmail.com>
+Date:   Thu Nov 12 00:37:45 2026 +0100
+
+    fix(geometry): mark central symmetry Q16 as answer B
+    
+    Only figure B scores on question 16.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 9c273c1c606f4ac6bf6c8a4a1184bf2ded46dc80[m
+Author: achrafphp <jarhhni@gmail.com>
+Date:   Wed Nov 11 21:20:30 2026 +0100
+
+    fix(profile): let setup save and drop the math averages
+    
+    Keep Enregistrer et continuer available, accept the current school levels, and remove the 2025/2026 and 2024/2025 average fields.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 671542f5ee0a2b9379209136f8f2708a5664d671[m
+Author: achrafphp <jarhhni@gmail.com>
+Date:   Wed Nov 11 21:01:47 2026 +0100
+
+    fix(profile): keep only the obtained math scores on setup
+    
+    Show the 2026/2027 notice and stop asking for a maximum or a date next to the school marks.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit ad70bfbf2c9648616712ce05b4df8d9c4ce8cc99[m
+Author: achrafphp <jarhhni@gmail.com>
+Date:   Wed Nov 11 17:04:55 2026 +0100
+
+    feat(admin): add question-level CKA scores and school notes
+    
+    Show each geometry test as its own score table, keep the existing capacity tables, and record the new school levels and math marks.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 2b864f8e131226b075f7a0a1bbf5453adf519efa[m[33m ([m[1;31morigin/review/produit-scalaire-rappels[m[33m)[m
+Author: achrafphp <jarhhni@gmail.com>
+Date:   Wed Nov 11 16:21:00 2026 +0100
+
+    feat(geometry): add an independent tronc commun produit scalaire test
+    
+    Copy the current bank into a 15-question assessment so deletions and the revised Q2 key cannot change the original test.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 803c56610d215483c91d5ab8ae2369cd250c0cf2[m
+Author: achrafphp <jarhhni@gmail.com>
+Date:   Wed Nov 11 15:48:42 2026 +0100
+
+    fix(geometry): correct Q11 and show the line reminders on Q20-Q23
+    
+    Keep option D as the only full-score answer for the dot product, and repeat the distance formula and the line equation where students need them.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit e96ab55e8494a21a20cb8d17f6e7f683a3b4d630[m
+Merge: 8191fb9 73213c5
+Author: achrafphp <jarhhni@gmail.com>
+Date:   Mon Nov 9 15:56:25 2026 +0100
+
+    Merge branch 'review/dashboard-9112027'
+
+[33mcommit 73213c560ced74aa6ea050d2d6e69423fdda8e90[m[33m ([m[1;31morigin/review/dashboard-9112027[m[33m, [m[1;32mreview/dashboard-9112027[m[33m)[m
+Author: achrafphp <jarhhni@gmail.com>
+Date:   Mon Nov 9 14:02:40 2026 +0100
+
+    feat(admin): split aggregated results and keep five tests internal
+    
+    Geometry and the five named cognitive tests stay in the app. Admins get two result tables, and students can see the teachers of the school they select.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 8191fb9533bc5fc390a973342eb3ed1590bd1238[m
+Merge: 8033c5b 76aa585
+Author: amine jarhni <69428653+amine-Jh@users.noreply.github.com>
+Date:   Sun Nov 8 19:42:14 2026 +0000
+
+    Merge pull request #15 from jarhhni-eng/Last-version
+    
+    feat(geometry): centralize internal and external results
+
+[33mcommit 76aa585e4d36af6e4666368b9e157dca9950650c[m[33m ([m[1;31morigin/Last-version[m[33m, [m[1;32mLast-version[m[33m)[m
+Author: achrafphp <jarhhni@gmail.com>
+Date:   Sun Nov 8 20:39:15 2026 +0100
+
+    feat(geometry): centralize internal and external results
+    
+    Keep geometry tests in the app, lock external cognitive tests, and give admins real student tables plus a checked CSV import.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit 8033c5b4c858bb9d65391db564735ad6f5d9712a[m
+Merge: ce12e3a 4e14c4b
+Author: amine jarhni <69428653+amine-Jh@users.noreply.github.com>
+Date:   Sun Nov 8 18:23:35 2026 +0000
+
+    Merge pull request #14 from jarhhni-eng/review/geometry-brief-2027
+    
+    Merge pull request #13 from jarhhni-eng/master
+
+[33mcommit 4e14c4bad5d5d1640690bf0ffb4b5fe952616ac4[m[33m ([m[1;31morigin/review/geometry-brief-2027[m[33m, [m[1;32mreview/geometry-brief-2027[m[33m)[m
+Merge: 1e5ebc4 ce12e3a
+Author: amine jarhni <69428653+amine-Jh@users.noreply.github.com>
+Date:   Sun Nov 8 18:23:07 2026 +0000
+
+    Merge pull request #13 from jarhhni-eng/master
+    
+    Merge pull request #12 from jarhhni-eng/review/geometry-brief-2027
+
+[33mcommit ce12e3af104abbeaab73886ef85a27860c10694c[m
+Merge: fac3558 1e5ebc4
+Author: jarhhni-eng <jarhhni@gmail.com>
+Date:   Sun Nov 8 04:24:22 2026 +0100
+
+    Merge pull request #12 from jarhhni-eng/review/geometry-brief-2027
+    
+    feat(geometry): apply the 2027 review brief
+
+[33mcommit 1e5ebc48b5065414006464a33515a512f103de6e[m
+Author: achrafphp <jarhhni@gmail.com>
+Date:   Sat Nov 7 22:53:08 2026 +0100
+
+    feat(geometry): apply the 2027 review brief
+    
+    Update symmetry answer keys, static volume figures, and the dot-product test so the scoring changes can be reviewed.
+    
+    Co-authored-by: Cursor <cursoragent@cursor.com>
+
+[33mcommit fac3558c8a19db43e7c3c048597704c339d1cdcb[m
+Merge: 05b137c ad4ee97
+Author: amine jarhni <69428653+amine-Jh@users.noreply.github.com>
+Date:   Thu Oct 29 21:27:22 2026 +0100
+
+    Merge pull request #11 from jarhhni-eng/enh/features-add
+    
+    Enh/features add
+
+[33mcommit ad
