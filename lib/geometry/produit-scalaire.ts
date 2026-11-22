@@ -117,11 +117,10 @@ export const PRODUIT_SCALAIRE_QUESTIONS: ProduitScalaireQuestion[] = [
     question: "Si l'un des vecteurs \\( \\vec{U} \\), \\( \\vec{V} \\) est nul :",
     options: [
       '\\( \\vec{U} \\cdot \\vec{V} = \\vec{0} \\)',
-      '\\( \\vec{U} \\cdot \\vec{V} = 0 \\)',
       '\\( \\vec{U} \\) et \\( \\vec{V} \\) sont orthogonaux',
       "J'ai oublié",
     ],
-    correctAnswer: [0, 1, 2],
+    correctAnswer: 0,
   },
   {
     id: 'T1-D1-Q4',
