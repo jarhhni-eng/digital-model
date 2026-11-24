@@ -7,6 +7,7 @@ import {
   formatScore,
   geometryTestOrder,
   lessonNameForTest,
+  questionsForSession,
   questionsForTest,
   scoreFromPerQuestion,
   scoreQuestion,
@@ -119,7 +120,8 @@ export async function GET() {
           if (trial.question_id) byId.set(trial.question_id, trial)
           if (trial.question_index != null) byIndex.set(trial.question_index, trial)
         }
-        const cells = questions.map((question, index) => {
+        const sessionQuestions = session ? questionsForSession(testId, session.metadata) : questions
+        const cells = sessionQuestions.map((question, index) => {
           const trial = byId.get(question.id) ?? byIndex.get(index) ?? null
           const cell = scoreQuestion(question, trial
             ? {
@@ -139,8 +141,8 @@ export async function GET() {
           return cell
         })
         const autos = ([1, 2, 3] as AutoevalSlot[]).map((slot) => {
-          const match = questions.findIndex((question) => question.autoSlot === slot)
-          const question = match >= 0 ? questions[match] : null
+          const match = sessionQuestions.findIndex((question) => question.autoSlot === slot)
+          const question = match >= 0 ? sessionQuestions[match] : null
           const text = question ? cells[match]?.selectedText || null : null
           return {
             slot,
@@ -171,7 +173,7 @@ export async function GET() {
           attempted: session != null,
           cells,
           autos,
-          stats: summarizeLine(questions, cells),
+          stats: summarizeLine(sessionQuestions, cells),
           notes: {
             controlScore: school?.math_control_2026_score ?? null,
             controlMax: school?.math_control_2026_max ?? null,

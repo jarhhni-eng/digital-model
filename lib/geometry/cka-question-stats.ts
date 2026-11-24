@@ -8,7 +8,12 @@ import { VECTORS_QUESTIONS } from '@/lib/geometry/geo-vectors-complete'
 import { PRODUIT_SCALAIRE_QUESTIONS } from '@/lib/geometry/produit-scalaire'
 import { PRODUIT_SCALAIRE_TC_QUESTIONS } from '@/lib/geometry/produit-scalaire-tronc-commun'
 import { SPACE_VOLUMES_LIVE_QUESTIONS } from '@/lib/geometry/space-volumes'
-import { SYMETRIE_AXIALE_QUESTIONS } from '@/lib/geometry/symetrie-axiale'
+import {
+  SYMETRIE_AXIALE_LEGACY_QUESTIONS,
+  SYMETRIE_AXIALE_QUESTIONS,
+  SYMETRIE_AXIALE_TEST_ID,
+  isCurrentSymetrieAxialeSession,
+} from '@/lib/geometry/symetrie-axiale'
 import { SYMETRIE_CENTRALE_QUESTIONS } from '@/lib/geometry/symetrie-centrale'
 import { TRIG_CIRCLE_QUESTIONS } from '@/lib/geometry/trig-unit-circle'
 import { isExcludedFromGeometryScoreAndAverage } from '@/lib/geometry/geometry-scoring-exclusions'
@@ -155,6 +160,18 @@ export function questionsForTest(testId: string): CkaQuestionDef[] {
   return bank.map((question, index) => {
     return fromLoose(question, index)
   })
+}
+
+/**
+ * Questions as the student saw them in a given session. Symétrie axiale sessions
+ * taken before 2026-11-24 (no `metadata.testVersion`) are read with the legacy bank,
+ * so their stored option indices keep pointing at the options they actually chose.
+ */
+export function questionsForSession(testId: string, metadata: unknown): CkaQuestionDef[] {
+  if (testId === SYMETRIE_AXIALE_TEST_ID && !isCurrentSymetrieAxialeSession(metadata)) {
+    return (SYMETRIE_AXIALE_LEGACY_QUESTIONS as LooseQuestion[]).map((question, index) => fromLoose(question, index))
+  }
+  return questionsForTest(testId)
 }
 
 export function lessonNameForTest(testId: string): string {

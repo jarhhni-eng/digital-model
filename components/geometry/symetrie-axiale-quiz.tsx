@@ -11,13 +11,14 @@ import { useAuth } from '@/lib/auth-context'
 import {
   SYMETRIE_AXIALE_QUESTIONS,
   SYMETRIE_AXIALE_TEST_ID,
+  SYMETRIE_AXIALE_TEST_VERSION,
   SymetrieAxialeResult,
   SymetrieAxialeTrialResult,
   saveSymetrieAxialeResult,
+  scoreSymetrieAxialeQuestion,
   isAxialeMulti,
 } from '@/lib/geometry/symetrie-axiale'
 import { persistCompletedTestSessionBestEffort } from '@/lib/results/submit-completed-session-api'
-import { scoreGeometryQuestion } from '@/lib/geometry/scoring'
 import { CapacityLegend } from '@/components/geometry/capacity-legend'
 import { CapacityBreakdownCard } from '@/components/geometry/capacity-breakdown-card'
 import { GeometryAnalyticsSummary } from '@/components/geometry/geometry-analytics-summary'
@@ -62,11 +63,7 @@ export function SymetrieAxialeQuiz() {
     const excluded = isExcludedFromGeometryScoreAndAverage(question)
     const score = excluded
       ? 0
-      : scoreGeometryQuestion({
-          options: question.options,
-          selected: selectedList,
-          correctAnswer: question.correctAnswer,
-        })
+      : scoreSymetrieAxialeQuestion(question, selectedList)
     const pts = question.points ?? 0
     const pointsEarned = excluded || pts === 0 ? 0 : score * pts
 
@@ -197,6 +194,7 @@ export function SymetrieAxialeQuiz() {
         })),
         metadata: {
           source: 'symetrie-axiale-quiz',
+          testVersion: SYMETRIE_AXIALE_TEST_VERSION,
           totalClicks: optionClicks.current,
           ...geoPayload,
           geometryAnalytics,
@@ -293,7 +291,7 @@ function Instructions({ onBegin, onBack }: { onBegin: () => void; onBack: () => 
             <strong>1.</strong> Lisez attentivement chaque question. Certaines incluent des illustrations pour vous aider.
           </li>
           <li>
-            <strong>2.</strong> Certaines questions (Q2, Q3, Q4, Q11, Q17, Q18) admettent
+            <strong>2.</strong> Certaines questions (Q3, Q4, Q11, Q17, Q18) admettent
             plusieurs réponses — cochez toutes les bonnes options.
           </li>
           <li>

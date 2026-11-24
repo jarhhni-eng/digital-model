@@ -6,8 +6,17 @@
  * Barème existant : items de cours/figure 1 pt · raisonnement 2 pts.
  */
 
+import { scoreGeometryQuestion } from '@/lib/geometry/scoring'
+
 export const SYMETRIE_AXIALE_TEST_ID = 'test-geo-symetrie-axiale'
 export const SYMETRIE_AXIALE_RESULTS_KEY = 'symetrie-axiale:results'
+/**
+ * Version des énoncés / clés. 2026-11-24 : Q2 → A seule ; Q6 → option B supprimée,
+ * A seule ; Q9 → reformulée, D « Aucune réponse » seule. Enregistrée dans
+ * `metadata.testVersion` des nouvelles passations ; les passations sans cette
+ * version sont relues avec SYMETRIE_AXIALE_LEGACY_QUESTIONS.
+ */
+export const SYMETRIE_AXIALE_TEST_VERSION = '2026-11-24'
 
 export interface SymetrieAxialeQuestion {
   id: string
@@ -85,11 +94,10 @@ export const SYMETRIE_AXIALE_QUESTIONS: SymetrieAxialeQuestion[] = [
       'Les angles seulement',
       'Je ne sais pas',
     ],
-    allowMultiple: true,
-    correctAnswer: [0, 1, 2],
+    correctAnswer: 0,
     requiresImage: false,
     part: 'course',
-    correction: 'Réponses correctes : A, B, C',
+    correction: 'Réponse correcte : A',
     points: 1,
   },
   {
@@ -152,7 +160,6 @@ export const SYMETRIE_AXIALE_QUESTIONS: SymetrieAxialeQuestion[] = [
       'Dans un rectangle $ABCD$, l\'image de l\'angle $\\widehat{ABC}$ par rapport à un axe de symétrie du rectangle est :',
     options: [
       'Un angle de même mesure',
-      'Un angle droit uniquement',
       'Un angle différent',
       'Je ne sais pas',
     ],
@@ -209,18 +216,18 @@ export const SYMETRIE_AXIALE_QUESTIONS: SymetrieAxialeQuestion[] = [
     id: 'Q9',
     competencies: ['C1'],
     question:
-      'Répondre par vrai ou faux : quelle affirmation est vraie ?',
+      'Sur la figure ci-dessous, identifier l\'affirmation vraie parmi les suivantes :',
     options: [
       'Le symétrique du point $A$ par rapport à $(GH)$ est le point $F$',
       'Le symétrique du point $A$ par rapport à $(EF)$ est le point $C$',
       'Le symétrique du point $G$ par rapport à $(BD)$ est le point $H$',
       'Aucune réponse',
     ],
-    correctAnswer: 1,
+    correctAnswer: 3,
     requiresImage: true,
     imagePath: IMG,
     part: 'visualization',
-    correction: 'Réponse correcte : B',
+    correction: 'Réponse correcte : D (Aucune réponse)',
     points: 1,
   },
   {
@@ -368,6 +375,51 @@ export const SYMETRIE_AXIALE_QUESTIONS: SymetrieAxialeQuestion[] = [
   },
 ]
 
+/**
+ * Q2, Q6 et Q9 telles qu'en production avant le 2026-11-24. Sert uniquement à relire
+ * les passations historiques : leurs indices `selected` pointent vers ces options.
+ */
+const LEGACY_OVERRIDES: Record<string, Partial<SymetrieAxialeQuestion>> = {
+  Q2: {
+    allowMultiple: true,
+    correctAnswer: [0, 1, 2],
+    correction: 'Réponses correctes : A, B, C',
+  },
+  Q6: {
+    options: [
+      'Un angle de même mesure',
+      'Un angle droit uniquement',
+      'Un angle différent',
+      'Je ne sais pas',
+    ],
+  },
+  Q9: {
+    question: 'Répondre par vrai ou faux : quelle affirmation est vraie ?',
+    correctAnswer: 1,
+    correction: 'Réponse correcte : B',
+  },
+}
+
+export const SYMETRIE_AXIALE_LEGACY_QUESTIONS: SymetrieAxialeQuestion[] = SYMETRIE_AXIALE_QUESTIONS.map((q) =>
+  LEGACY_OVERRIDES[q.id] ? { ...q, ...LEGACY_OVERRIDES[q.id] } : q,
+)
+
+/** True when a stored session was taken with the current questions (metadata.testVersion). */
+export function isCurrentSymetrieAxialeSession(metadata: unknown): boolean {
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) return false
+  return (metadata as Record<string, unknown>).testVersion === SYMETRIE_AXIALE_TEST_VERSION
+}
+
+/**
+ * Score [0, 1] d'une réponse. Comme scoreGeometryQuestion, sauf qu'une option
+ * « Aucune réponse » désignée par la clé (Q9) rapporte le point : la règle commune
+ * annule toute option exclusive, ce qui rendrait Q9 impossible à réussir.
+ */
+export function scoreSymetrieAxialeQuestion(q: SymetrieAxialeQuestion, selected: number[]): number {
+  if (typeof q.correctAnswer === 'number' && selected.length === 1 && selected[0] === q.correctAnswer) return 1
+  return scoreGeometryQuestion({ options: q.options, selected, correctAnswer: q.correctAnswer })
+}
+
 export function isAxialeMulti(q: SymetrieAxialeQuestion): boolean {
   if (q.allowMultiple === true) return true
   return Array.isArray(q.correctAnswer) && q.correctAnswer.length > 1
@@ -388,8 +440,20 @@ export const SYMETRIE_AXIALE_CORRECTION_REVIEW: {
   {
     questionId: 'Q2',
     status: 'checked',
-    manuscript: 'A, B, C',
-    note: 'Choix multiples A, B, C selon consigne de passation.',
+    manuscript: 'A',
+    note: 'Consigne 2026-11-24 : A seule bonne réponse (choix unique).',
+  },
+  {
+    questionId: 'Q6',
+    status: 'checked',
+    manuscript: 'A',
+    note: 'Consigne 2026-11-24 : option B « Un angle droit uniquement » supprimée ; A seule bonne réponse.',
+  },
+  {
+    questionId: 'Q9',
+    status: 'checked',
+    manuscript: 'D (Aucune réponse)',
+    note: 'Consigne 2026-11-24 : énoncé reformulé ; D « Aucune réponse » seule bonne réponse.',
   },
   {
     questionId: 'Q18',
