@@ -222,6 +222,15 @@ Charts on `/results` group by **`mockTests`-style domain labels** after merge. *
 - **Role enforcement:** `proxy.ts` gates `/admin`, `/teacher`, `/analytics`, `/reports` by `profiles.role`; RLS + the `trg_profiles_guard` trigger enforce it in the database.
 - **Types:** `lib/auth-types.ts`; DB schema in `lib/types/database.ts` (regenerate from Supabase when schema changes).
 
+### 9.1 Account archive (soft delete) — `supabase/migrations/0013_account_archive.sql`
+
+- **Who:** super admin only, at `/admin/accounts`. Only `student` and `teacher` accounts; never admins, never yourself.
+- **What happens:** `profiles.archived_at` is set and an `account_archive_events` audit row is written; the user is banned in Supabase Auth; their Auth e-mail becomes `archived-<id>@archived.invalid` so the address can sign up again (the original is kept in `profiles.archived_email`). No row is deleted. A teacher's students keep their `teacher_id`.
+- **Visibility:** a RESTRICTIVE `archive_gate` RLS policy on every table hides archived accounts and their data from **every** JWT caller (super admin included) and locks an archived caller out even with a still-valid token. The super admin sees archived accounts only via `list_archived_accounts()`.
+- **Only path:** `archive_account()` / `restore_account()` (SECURITY DEFINER, re-check the caller). `trg_profiles_guard` refuses any other change to the archive columns.
+- **Rule for new code:** the secret-key client (`tryGetSupabaseAdmin()`) **bypasses RLS**. Any read of user data with it must drop archived accounts — `.is('archived_at', null)` on `profiles`, or `fetchArchivedUserIds()` + `withoutArchived()` from `lib/admin/archived-accounts.ts` for related rows. Prefer the user's client (`getSupabaseServer()`) so RLS does it for you.
+- **Restore:** refused (409) when the original e-mail has since been used by a new account.
+
 ---
 
 ## 10. Internationalization

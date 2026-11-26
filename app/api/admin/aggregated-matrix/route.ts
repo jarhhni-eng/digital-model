@@ -7,6 +7,7 @@ import {
   geometryCellsFromSession,
   latestCompletedByStudentTest,
 } from '@/lib/admin/completed-sessions'
+import { fetchArchivedUserIds, withoutArchived } from '@/lib/admin/archived-accounts'
 import {
   geometryCognitionTestIds,
   platformDomains,
@@ -81,17 +82,31 @@ export async function GET() {
   const byId = new Map(catalogue.map((test) => [test.id, test]))
 
   const reader = tryGetSupabaseAdmin() ?? sb
-  const [{ data: profiles, error: profilesError }, { data: studentProfiles, error: schoolError }, sessionsResult] = await Promise.all([
-    reader.from('profiles').select('id, full_name, email').eq('role', 'student'),
+  const [
+    { data: rawProfiles, error: profilesError },
+    { data: rawStudentProfiles, error: schoolError },
+    sessionsResult,
+    archivedResult,
+  ] = await Promise.all([
+    reader.from('profiles').select('id, full_name, email').eq('role', 'student').is('archived_at', null),
     reader.from('student_profiles').select('*'),
     fetchCompletedSessions(reader),
+    fetchArchivedUserIds(reader),
   ])
   if (profilesError) return NextResponse.json({ error: profilesError.message }, { status: 500 })
   if (schoolError) return NextResponse.json({ error: schoolError.message }, { status: 500 })
   if (sessionsResult.error) return NextResponse.json({ error: sessionsResult.error }, { status: 500 })
+  if (archivedResult.error) {
+    // Fail closed: never risk returning archived accounts' data.
+    return NextResponse.json({ error: archivedResult.error }, { status: 500 })
+  }
+  const archived = archivedResult.ids
+  const profiles = withoutArchived(rawProfiles, archived, (row) => row.id)
+  const studentProfiles = withoutArchived(rawStudentProfiles, archived, (row) => row.user_id)
+  const sessionRows = withoutArchived(sessionsResult.rows, archived, (row) => row.user_id)
 
   const schoolByStudent = new Map((studentProfiles ?? []).map((row) => [row.user_id, row]))
-  const latest = latestCompletedByStudentTest(sessionsResult.rows)
+  const latest = latestCompletedByStudentTest(sessionRows)
 
   let external: ExternalRow[] = []
   const loose = sb as unknown as {
@@ -105,7 +120,7 @@ export async function GET() {
     .from('external_results')
     .select('student_id, test_id, raw_score, max_score, normalized_score, validation_status, source')
     .eq('validation_status', 'validated')
-  if (!externalQuery.error) external = externalQuery.data ?? []
+  if (!externalQuery.error) external = withoutArchived(externalQuery.data, archived, (row) => row.student_id)
 
   const ckaTests = geometryIds.map((id) => ({
     id,

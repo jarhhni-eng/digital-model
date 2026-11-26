@@ -25,6 +25,7 @@ import {
   Shield,
   User,
   UserCog,
+  UserX,
   Users,
   X,
 } from 'lucide-react'
@@ -47,6 +48,11 @@ const superAdminNav = [
     icon: <UserCog className="w-5 h-5" />,
     label: 'Administrateurs',
     href: '/admin/admins',
+  },
+  {
+    icon: <UserX className="w-5 h-5" />,
+    label: 'Comptes & archivage',
+    href: '/admin/accounts',
   },
 ]
 

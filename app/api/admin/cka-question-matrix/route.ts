@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api/require-admin'
 import { tryGetSupabaseAdmin } from '@/lib/supabase/server'
 import { fetchCompletedSessions, latestCompletedByStudentTest } from '@/lib/admin/completed-sessions'
+import { fetchArchivedUserIds, withoutArchived } from '@/lib/admin/archived-accounts'
 import {
   autoevalCode,
   formatScore,
@@ -50,14 +51,23 @@ export async function GET() {
   const reader = tryGetSupabaseAdmin() ?? sb
   const testIds = geometryTestOrder()
 
-  const [{ data: profiles }, { data: studentProfiles }, sessionsResult] = await Promise.all([
-    reader.from('profiles').select('id, full_name').eq('role', 'student'),
+  const [{ data: rawProfiles }, { data: rawStudentProfiles }, sessionsResult, archivedResult] = await Promise.all([
+    reader.from('profiles').select('id, full_name').eq('role', 'student').is('archived_at', null),
     reader.from('student_profiles').select('*'),
     fetchCompletedSessions(reader, testIds),
+    fetchArchivedUserIds(reader),
   ])
   if (sessionsResult.error) return NextResponse.json({ error: sessionsResult.error }, { status: 500 })
+  if (archivedResult.error) {
+    // Fail closed: never risk returning archived accounts' data.
+    return NextResponse.json({ error: archivedResult.error }, { status: 500 })
+  }
+  const archived = archivedResult.ids
+  const profiles = withoutArchived(rawProfiles, archived, (row) => row.id)
+  const studentProfiles = withoutArchived(rawStudentProfiles, archived, (row) => row.user_id)
+  const sessionRows = withoutArchived(sessionsResult.rows, archived, (row) => row.user_id)
 
-  const latest = latestCompletedByStudentTest(sessionsResult.rows)
+  const latest = latestCompletedByStudentTest(sessionRows)
   const latestSessions = [...latest.values()]
   const trials: TrialRow[] = []
   for (let i = 0; i < latestSessions.length; i += 20) {

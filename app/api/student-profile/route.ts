@@ -110,6 +110,8 @@ export async function PUT(request: Request) {
       .select('id, full_name, email, school_id')
       .eq('id', teacherId)
       .eq('role', 'teacher')
+      // Secret-key reader bypasses RLS: archived teachers must be refused here.
+      .is('archived_at', null)
       .maybeSingle()
 
     if (teacherErr || !teacherRow) {

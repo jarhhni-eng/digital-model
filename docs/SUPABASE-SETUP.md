@@ -52,6 +52,10 @@ Security rules built in:
 - Signup can only create a **student** or a **teacher**. Nobody can give themselves a role. Only a **super admin** can change roles.
 - Students cannot change a score after a test is finished.
 
+### Migrations after `setup.sql`
+
+Run each file in `supabase/migrations/` in number order (`0010` → `0013`) in the SQL editor. `0013_account_archive.sql` adds super-admin archiving of student/teacher accounts; check it on a staging project first with `supabase/tests/0013_account_archive.verify.sql` (runs inside a transaction and rolls back — it must end with `ALL ARCHIVE CHECKS PASSED`). Rollback script: `0013_account_archive.down.sql`.
+
 ---
 
 
@@ -183,7 +187,7 @@ Pick one of these:
 | `student`     | `/register`                      | `/dashboard`, `/domains`, `/tests`, `/results`, `/profile` — own data only |
 | `teacher`     | `/admin/teachers` or `/register` | `/teacher/*`, `/analytics`, `/reports` — only their own students           |
 | `admin`       | `/admin/admins` (super admin)    | `/admin/*` (except the 3 pages below), all results                         |
-| `super_admin` | SQL, Step 6.1                    | everything + `/admin/admins`, `/admin/schools`, `/admin/teachers`          |
+| `super_admin` | SQL, Step 6.1                    | everything + `/admin/admins`, `/admin/schools`, `/admin/teachers`, `/admin/accounts` (archive / restore) |
 
 
 To change someone's role later (SQL editor or as a super admin):

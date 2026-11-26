@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api/require-admin'
 import { tryGetSupabaseAdmin } from '@/lib/supabase/server'
 import { fetchCompletedSessions, latestCompletedByStudentTest } from '@/lib/admin/completed-sessions'
+import { fetchArchivedUserIds, withoutArchived } from '@/lib/admin/archived-accounts'
 import { geometryCognitionTestIds } from '@/lib/platform-domains'
 import { GEO_SPACE_QUESTIONS } from '@/lib/geometry/geo-space'
 import { DROITE_PLAN_QUESTIONS } from '@/lib/geometry/droite-plan'
@@ -69,12 +70,21 @@ export async function GET() {
   const reader = tryGetSupabaseAdmin() ?? sb
   const geometryIds = geometryCognitionTestIds()
 
-  const [{ data: profiles }, { data: studentProfiles }, sessionsResult] = await Promise.all([
-    reader.from('profiles').select('id, full_name, email').eq('role', 'student'),
+  const [{ data: rawProfiles }, { data: rawStudentProfiles }, sessionsResult, archivedResult] = await Promise.all([
+    reader.from('profiles').select('id, full_name, email').eq('role', 'student').is('archived_at', null),
     reader.from('student_profiles').select('user_id, school_name, grade_level, academic_track, teacher_name'),
     fetchCompletedSessions(reader, geometryIds),
+    fetchArchivedUserIds(reader),
   ])
   if (sessionsResult.error) return NextResponse.json({ error: sessionsResult.error }, { status: 500 })
+  if (archivedResult.error) {
+    // Fail closed: never risk returning archived accounts' data.
+    return NextResponse.json({ error: archivedResult.error }, { status: 500 })
+  }
+  const archived = archivedResult.ids
+  const profiles = withoutArchived(rawProfiles, archived, (row) => row.id)
+  const studentProfiles = withoutArchived(rawStudentProfiles, archived, (row) => row.user_id)
+  const sessionRows = withoutArchived(sessionsResult.rows, archived, (row) => row.user_id)
 
   let external: ExternalRow[] = []
   let externalReady = true
@@ -90,10 +100,10 @@ export async function GET() {
     .select('student_id, test_id, domain, capacity, raw_score, max_score, normalized_score, validation_status')
     .eq('validation_status', 'validated')
   if (externalQuery.error) externalReady = false
-  else external = externalQuery.data ?? []
+  else external = withoutArchived(externalQuery.data, archived, (row) => row.student_id)
 
   const schoolByStudent = new Map((studentProfiles ?? []).map((row) => [row.user_id, row]))
-  const latest = latestCompletedByStudentTest(sessionsResult.rows)
+  const latest = latestCompletedByStudentTest(sessionRows)
 
   const latestSessions = [...latest.values()]
   const trials: TrialRow[] = []

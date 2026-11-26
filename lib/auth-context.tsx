@@ -45,11 +45,17 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 async function buildAuthSession(user: User | null): Promise<AuthSession | null> {
     if (!user) return null
     const sb = getSupabaseBrowser()
-    const {data: profile} = await sb
+    const {data: profile, error: profileError} = await sb
         .from('profiles')
         .select('role, full_name')
         .eq('id', user.id)
         .maybeSingle()
+    // A successful read with no row means RLS hides the profile: the account
+    // is archived. End the local session instead of defaulting to `student`.
+    if (!profileError && !profile) {
+        await sb.auth.signOut({scope: 'local'}).catch(() => undefined)
+        return null
+    }
     const meta = user.user_metadata as {full_name?: string} | undefined
     const fromProfile = profile?.full_name?.trim()
     const fromMeta =
@@ -155,6 +161,9 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
         const {data, error} = await sb.auth.signInWithPassword({email: normalized, password})
         if (error || !data.user) {
             const raw = error?.message ?? 'Login failed'
+            if (/banned/i.test(raw)) {
+                return {ok: false, error: 'Ce compte a été désactivé. Contactez l’administrateur.'}
+            }
             if (/email not confirmed/i.test(raw)) {
                 return {
                     ok: false,
@@ -165,7 +174,7 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
             return {ok: false, error: raw}
         }
         const session = await buildAuthSession(data.user)
-        if (!session) return {ok: false, error: 'Profile lookup failed'}
+        if (!session) return {ok: false, error: 'Ce compte a été désactivé ou son profil est introuvable.'}
         setUser(session)
         return {ok: true, session}
     }, [])

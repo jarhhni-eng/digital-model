@@ -24,7 +24,12 @@ export async function GET(request: Request) {
     // Students cannot read other profiles under RLS. The directory is limited
     // to teacher id, name, email and school, and only after sign-in.
     const reader = tryGetSupabaseAdmin() ?? sb
-    let q = reader.from('profiles').select('id, email, full_name, school_id').eq('role', 'teacher')
+    // `.is('archived_at', null)` is required: the secret-key reader bypasses RLS.
+    let q = reader
+      .from('profiles')
+      .select('id, email, full_name, school_id')
+      .eq('role', 'teacher')
+      .is('archived_at', null)
     if (schoolId) {
       q = q.eq('school_id', schoolId)
     }

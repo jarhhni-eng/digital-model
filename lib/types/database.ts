@@ -141,6 +141,12 @@ export interface Database {
           school_id: string | null
           created_at: string
           updated_at: string
+          /** Set by `archive_account()` only. Archived rows are hidden by RLS. */
+          archived_at: string | null
+          archived_by: string | null
+          /** Original e-mail, kept while the Auth e-mail is a placeholder. */
+          archived_email: string | null
+          archive_reason: string | null
         }
         Insert: {
           id: string
@@ -354,6 +360,28 @@ export interface Database {
       is_teacher: { Args: Record<string, never>; Returns: boolean }
       is_super_admin: { Args: Record<string, never>; Returns: boolean }
       is_my_student: { Args: { student: string }; Returns: boolean }
+      is_active_account: { Args: { uid: string }; Returns: boolean }
+      caller_is_active: { Args: Record<string, never>; Returns: boolean }
+      archive_account: {
+        Args: { target: string; reason: string }
+        Returns: { id: string; role: UserRole; archived_email: string | null; already_archived: boolean }[]
+      }
+      restore_account: {
+        Args: { target: string }
+        Returns: { id: string; role: UserRole; already_active: boolean }[]
+      }
+      list_archived_accounts: {
+        Args: Record<string, never>
+        Returns: {
+          id: string
+          role: UserRole
+          full_name: string | null
+          archived_email: string | null
+          archived_at: string
+          archive_reason: string | null
+          archived_by_email: string | null
+        }[]
+      }
     }
     Enums: {
       user_role: UserRole

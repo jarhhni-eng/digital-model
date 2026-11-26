@@ -27,6 +27,7 @@ const ADMINS: UserRole[] = ['admin', 'super_admin']
 /** First matching prefix wins — keep the most specific prefixes first. */
 const ROLE_RULES: { prefix: string; roles: UserRole[] }[] = [
   { prefix: '/admin/admins', roles: ['super_admin'] },
+  { prefix: '/admin/accounts', roles: ['super_admin'] },
   { prefix: '/admin/schools', roles: ['super_admin'] },
   { prefix: '/admin/teachers', roles: ['super_admin'] },
   { prefix: '/admin', roles: ADMINS },
