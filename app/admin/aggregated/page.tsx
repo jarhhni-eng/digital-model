@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { CkaQuestionTables } from '@/components/admin/cka-question-tables'
+import { OtherDomainTables } from '@/components/admin/other-domain-tables'
+import type { OtherTestSection } from '@/lib/admin/other-domains-matrix'
 
 type ScoreCell = { earned: number | null; max: number | null; percent: number | null }
 type Student = {
@@ -22,10 +24,8 @@ type Student = {
   gender: string | null
   age: number | null
   cka: Record<string, { global: ScoreCell; capacities: Record<string, ScoreCell>; parts: Record<string, ScoreCell> }>
-  other: Record<string, ScoreCell & { source: string | null }>
 }
 type CkaTest = { id: string; name: string; capacities: { code: string; label: string }[]; parts: { key: string; label: string }[] }
-type OtherTest = { id: string; name: string; domainName: string; mode: string }
 
 function show(cell: ScoreCell | undefined): string {
   if (!cell || (cell.earned == null && cell.max == null && cell.percent == null)) return ''
@@ -65,7 +65,8 @@ function download(filename: string, rows: unknown[][]) {
 export default function AggregatedPage() {
   const [students, setStudents] = useState<Student[]>([])
   const [ckaTests, setCkaTests] = useState<CkaTest[]>([])
-  const [otherTests, setOtherTests] = useState<OtherTest[]>([])
+  const [otherSections, setOtherSections] = useState<OtherTestSection[]>([])
+  const [otherWarning, setOtherWarning] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [level, setLevel] = useState('')
@@ -80,7 +81,8 @@ export default function AggregatedPage() {
         if (!cancelled) {
           setStudents(body.students ?? [])
           setCkaTests(body.ckaTests ?? [])
-          setOtherTests(body.otherTests ?? [])
+          setOtherSections(body.otherSections ?? [])
+          setOtherWarning(body.otherWarning ?? null)
         }
       })
       .catch((err: Error) => {
@@ -100,22 +102,6 @@ export default function AggregatedPage() {
     if (school && student.school !== school) return false
     return true
   })
-
-  function identity(student: Student) {
-    return [
-      student.studentId,
-      student.lastName,
-      student.firstName,
-      student.level ?? '',
-      student.className ?? '',
-      student.teacher ?? '',
-      student.school ?? '',
-      student.year ?? '',
-      student.supervisedScore ?? '',
-      student.supervisedMax ?? '',
-      student.previousAverage ?? '',
-    ]
-  }
 
   function exportCka() {
     const headers = ['Student_ID', 'Nom', 'Prénom', 'Niveau', 'Classe', 'Enseignant', 'Établissement', 'Année', ...PROFILE_HEADERS, 'Devoir', 'Devoir max', 'Moyenne S2']
@@ -152,12 +138,6 @@ export default function AggregatedPage() {
       return line
     })
     download('resultats-cka.csv', [headers, ...rows])
-  }
-
-  function exportOther() {
-    const headers = ['Student_ID', 'Nom', 'Prénom', 'Niveau', 'Classe', 'Enseignant', 'Établissement', 'Année', 'Devoir', 'Devoir max', 'Moyenne S2', ...otherTests.map((test) => `${test.name} (${test.mode})`)]
-    const rows = visible.map((student) => [...identity(student), ...otherTests.map((test) => show(student.other[test.id]))])
-    download('resultats-autres-domaines.csv', [headers, ...rows])
   }
 
   return (
@@ -239,43 +219,7 @@ export default function AggregatedPage() {
         </div>
       </section>
 
-      <section className="space-y-2">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold">2. Autres domaines</h2>
-          <button type="button" className="text-sm text-indigo-700 underline" onClick={exportOther}>Exporter Excel (CSV)</button>
-        </div>
-        <div className="max-h-[70vh] overflow-auto rounded border">
-          <table className="min-w-max border-collapse text-xs">
-            <thead className="sticky top-0 bg-white">
-              <tr className="text-left text-slate-500">
-                {['Student_ID', 'Nom', 'Prénom', 'Niveau', 'Classe', 'Enseignant', 'Établissement', 'Année'].map((label) => (
-                  <th key={label} className="px-2 py-2">{label}</th>
-                ))}
-                {otherTests.map((test) => (
-                  <th key={test.id} className="px-2 py-2">{test.name}<div className="font-normal text-slate-400">{test.mode === 'external' ? 'Externe' : 'Interne'}</div></th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {visible.map((student) => (
-                <tr key={student.studentId} className="border-t">
-                  <td className="px-2 py-1 font-mono">{student.studentId}</td>
-                  <td className="px-2 py-1">{student.lastName}</td>
-                  <td className="px-2 py-1">{student.firstName}</td>
-                  <td className="px-2 py-1">{student.level ?? ''}</td>
-                  <td className="px-2 py-1">{student.className ?? ''}</td>
-                  <td className="px-2 py-1">{student.teacher ?? ''}</td>
-                  <td className="px-2 py-1">{student.school ?? ''}</td>
-                  <td className="px-2 py-1">{student.year ?? ''}</td>
-                  {otherTests.map((test) => (
-                    <td key={test.id} className="px-2 py-1">{show(student.other[test.id])}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <OtherDomainTables sections={otherSections} students={visible} warning={otherWarning} />
 
       <CkaQuestionTables />
     </div>
