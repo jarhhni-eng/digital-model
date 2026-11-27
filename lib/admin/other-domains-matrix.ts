@@ -249,9 +249,11 @@ export async function buildOtherDomainSections(
     const groups: OtherGroup[] = []
     const hasSessions = testsWithSessions.has(test.id)
     const caps = [...(capacitiesByTest.get(test.id) ?? [])].sort((a, b) => a.localeCompare(b, 'fr'))
-    // Internal tests are imported never (the import refuses them), so their only source is the app.
+    // New imports of internal tests are refused, so the app is their main source.
     if (mode === 'internal' || hasSessions || caps.length === 0) groups.push({ key: 'app', label: mode === 'internal' ? 'Score' : 'Passation application' })
-    if (mode === 'external') for (const cap of caps) groups.push({ key: `ext:${cap}`, label: cap })
+    // Validated imports made while a test was still external (e.g. mental rotation
+    // before it moved back in-app) stay visible next to the app score.
+    for (const cap of caps) groups.push({ key: `ext:${cap}`, label: cap })
 
     const rows: Record<string, OtherStudentRow> = {}
     let completedCount = 0
@@ -259,11 +261,9 @@ export async function buildOtherDomainSections(
       const cells: Record<string, OtherCell> = {}
       const app = cellFromSessions(sessionsBy.get(`${studentId}|${test.id}`) ?? [])
       if (app) cells.app = app
-      if (mode === 'external') {
-        for (const cap of caps) {
-          const row = externalBy.get(`${studentId}|${test.id}|${cap}`)
-          if (row) cells[`ext:${cap}`] = cellFromExternal(row)
-        }
+      for (const cap of caps) {
+        const row = externalBy.get(`${studentId}|${test.id}|${cap}`)
+        if (row) cells[`ext:${cap}`] = cellFromExternal(row)
       }
       const status = overallStatus(Object.values(cells), 1)
       if (status === 'completed') completedCount += 1
