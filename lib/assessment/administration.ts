@@ -4,10 +4,14 @@ import { geometryCognitionTestIds, platformDomains } from '@/lib/platform-domain
 export const GEOMETRY_MODULE_ID = 'geometry-learning'
 
 /**
- * These five tests belong to other domains, but they are taken inside the
+ * These tests belong to other domains, but they are taken inside the
  * application. Every other non-geometry catalogue test is external.
+ * Mental rotation 3D / 2D run their own in-app runners
+ * (`components/mental-rotation*`) and save through `/api/test-sessions/complete`.
  */
 export const INTERNAL_EXCEPTION_TEST_IDS = [
+  'test-mental-rotation',
+  'test-mental-rotation-2d',
   'test-spatial-orientation',
   'test-spatial-transformation',
   'test-visuo-perceptive',
